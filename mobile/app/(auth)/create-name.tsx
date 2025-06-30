@@ -14,7 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedButton } from "@/components/ThemedButton";
-import { existUsername } from "@/api/user"
+import { existUsername } from "@/api/user";
 
 export default function CreateName() {
   const [name, setName] = useState("");
@@ -48,16 +48,16 @@ export default function CreateName() {
 
     try {
       const data = await existUsername(username);
+
       if (data.status) {
         setIsError(true);
-        setErrorMessage("Username already exists!");
-        return;
+        setErrorMessage(data.message);
+      } else {
+        router.push({
+          pathname: "/(auth)/create-password",
+          params: { name, username, email },
+        });
       }
-
-      router.push({
-        pathname: "/(auth)/create-password",
-        params: { name, username, email },
-      });
     } catch (error: any) {
       setIsError(true);
       setErrorMessage(error.message);
@@ -97,7 +97,7 @@ export default function CreateName() {
                   setIsError(false);
                   const sanitized = text
                     .replace(/^\s+/, "") // Remove leading spaces
-                    .replace(/[^A-Za-z\s]/g, "") // Remove all non-letter characters
+                    .replace(/[^A-Za-z\s]/g, ""); // Remove all non-letter characters
                   setName(sanitized);
                 }}
               />

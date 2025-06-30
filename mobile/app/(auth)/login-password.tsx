@@ -68,7 +68,7 @@ export default function LoginPassword() {
     try {
       const data = await login(email, password);
       if (data.status) {
-        setUser(data.result.user, data.result.accessToken);
+        setUser(data.result, data.result.accessToken);
         router.replace("/(tab)");
       }
     } catch (error: any) {

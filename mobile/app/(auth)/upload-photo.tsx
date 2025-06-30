@@ -76,7 +76,7 @@ export default function UploadPhoto() {
 
       const data = await uploadPhoto(profilePhotoUrl, coverPhotoUrl);
       if (data.status) {
-       setUser(data.result.user, data.result.accessToken);
+        setUser(data.result, data.result.accessToken);
         router.replace("/(tab)");
       }
     } catch (error: any) {

@@ -4,7 +4,7 @@ import resJson from "../../utils/resJson.js";
 import resError from "../../utils/resError.js";
 import uploadUserPhoto from "../../utils/uploadUserPhoto.js";
 
-const uploadPhoto = async (req, res, next) => {
+export default async function uploadPhoto(req, res, next) {
   try {
     const userId = req.userId;
     const body = req.body;
@@ -41,16 +41,14 @@ const uploadPhoto = async (req, res, next) => {
     const accessToken = Token.makeAccessToken({
       id: updatedUser._id.toString(),
     });
-    resJson(res, 200, "Success upload photo.", {
-      user: updatedUser,
-      accessToken,
-    });
+    const userWithToken = updatedUser.toObject();
+    userWithToken.accessToken = accessToken;
+
+    resJson(res, 200, "Success uupload photo.", userWithToken);
   } catch (error) {
     next(error);
   }
-};
-
-export default uploadPhoto;
+}
 
 // import Token from "../../utils/token.js";
 // import UserDB from "../../models/user.js";

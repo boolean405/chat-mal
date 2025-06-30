@@ -15,6 +15,7 @@ export async function existEmail(email) {
         email,
       },
     });
+
     return response.data;
   } catch (error) {
     const message = error.response?.data?.message || "Something went wrong";
@@ -32,6 +33,7 @@ export async function existUsername(username) {
         username,
       },
     });
+
     return response.data;
   } catch (error) {
     const message = error.response?.data?.message || "Something went wrong";

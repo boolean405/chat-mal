@@ -10,11 +10,8 @@ const getUser = async (req, res, next) => {
 
     resJson(res, 200, "Success get user details.", user);
   } catch (error) {
-    error.status = error.status;
     next(error);
   }
 };
 
 export default getUser;
-
-

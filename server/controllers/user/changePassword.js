@@ -8,7 +8,7 @@ const changePassword = async (req, res, next) => {
     const userId = req.userId;
     const { oldPassword, newPassword } = req.body;
     const user = await UserDB.findById(userId);
-    if (!user) throw resError(404, "User not found!");
+    if (!user) throw resError(401, "Authenticated user not found!");
 
     if (!Encoder.compare(oldPassword, user.password))
       throw resError(401, "Incorrect old password!");
@@ -23,7 +23,6 @@ const changePassword = async (req, res, next) => {
 
     resJson(res, 200, "Success changed password.", updatedUser);
   } catch (error) {
-    error.status = error.status;
     next(error);
   }
 };

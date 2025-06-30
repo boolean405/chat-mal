@@ -6,7 +6,7 @@ const getPicture = async (req, res, next) => {
   try {
     const userId = req.params.userId;
     const user = await UserDB.findById(userId);
-    if (!user) throw resError(404, "User not found!");
+    if (!user) throw resError(401, "User not found!");
 
     const picture = await PictureDB.findById(user.picture);
     if (!picture) throw resError(404, "Picture not found in user!");
@@ -14,7 +14,6 @@ const getPicture = async (req, res, next) => {
     res.set("Content-Type", picture.contentType);
     res.send(picture.data);
   } catch (error) {
-    error.status = error.status;
     next(error);
   }
 };

@@ -9,7 +9,7 @@ const changeNames = async (req, res, next) => {
     if (!body) throw resError(400, "Need to edit something!");
 
     const currentUser = await UserDB.findById(userId);
-    if (!currentUser) throw resError(404, "User not found!");
+    if (!currentUser) throw resError(401, "Authenticated user not found!");
 
     const name = body.name;
     const username = body.username;

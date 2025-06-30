@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Chat Pay Par",
-    "slug": "chat-pay-par",
+    "name": "Chat Mal",
+    "slug": "chat-mal",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.chat.pay.par",
+      "bundleIdentifier": "com.chat.mal",
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
@@ -23,8 +23,8 @@
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
-      "softwareKeyboardLayoutMode": "pan",
-      "package": "com.chat.pay.par"
+      "softwareKeyboardLayoutMode": "resize",
+      "package": "com.chat.mal"
     },
     "web": {
       "bundler": "metro",

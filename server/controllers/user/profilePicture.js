@@ -14,7 +14,6 @@ const profilePicture = async (req, res, next) => {
     res.set("Content-Type", picture.contentType);
     res.send(picture.data);
   } catch (error) {
-    error.status = error.status;
     next(error);
   }
 };

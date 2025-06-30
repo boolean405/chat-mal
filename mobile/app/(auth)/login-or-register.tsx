@@ -46,6 +46,7 @@ export default function LoginOrRegister() {
     setIsLoading(true);
     try {
       const data = await existEmail(email);
+
       if (data.status) {
         router.push({
           pathname: "/(auth)/login-password",

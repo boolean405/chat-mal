@@ -18,6 +18,7 @@ export type User = {
   lastOnlineAt: Date;
   createdAt: Date;
   updatedAt: Date;
+  accessToken?: string;
 };
 
 export type Post = {

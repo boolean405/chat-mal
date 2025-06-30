@@ -1,16 +1,17 @@
 import UserDB from "../../models/user.js";
 import resJson from "../../utils/resJson.js";
-import resError from "../../utils/resError.js";
 
 const existEmail = async (req, res, next) => {
   try {
     const email = req.query.email;
-    const user = await UserDB.findOne({ email }).select("-password");
-    if (!user) throw resError(200, "Email not found!");
+    const user = await UserDB.exists({ email });
+    if (!user)
+      return res
+        .status(200)
+        .json({ status: false, message: "Eamil don't exist!" });
 
-    resJson(res, 200, "Success exist email.", user);
+    resJson(res, 200, "Success email exist.");
   } catch (error) {
-    error.status = error.status;
     next(error);
   }
 };

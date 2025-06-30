@@ -54,7 +54,6 @@ const forgotPassword = async (req, res, next) => {
 
     resJson(res, 201, "Verification code email sent.");
   } catch (error) {
-    error.status = error.status;
     next(error);
   }
 };

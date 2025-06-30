@@ -14,7 +14,7 @@ export default async function deletePhoto(req, res, next) {
     const profilePhoto = body.profilePhoto;
 
     const user = await UserDB.findById(userId);
-    if (!user) throw resError(404, "User not found!");
+    if (!user) throw resError(404, "Authenticated user not found!");
 
     const editedPhoto = {};
 

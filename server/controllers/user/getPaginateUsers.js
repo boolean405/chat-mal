@@ -11,7 +11,7 @@ export default async function getPaginateUsers(req, res, next) {
     const page = parseInt(req.params.pageNum, 10);
 
     if (!(await UserDB.exists({ _id: userId })))
-      throw resError(404, "Authenticated user not found!");
+      throw resError(401, "Authenticated user not found!");
 
     if (isNaN(page)) throw resError(400, "Page number must be a valid number!");
 

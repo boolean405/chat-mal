@@ -17,7 +17,6 @@ const signout = async (req, res, next) => {
     clearCookie(req, res, "refreshToken");
     resJson(res, 200, "Success signout.");
   } catch (error) {
-    error.status = error.status;
     next(error);
   }
 };

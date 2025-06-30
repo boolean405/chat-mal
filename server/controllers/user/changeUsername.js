@@ -7,7 +7,7 @@ const changeUsername = async (req, res, next) => {
     const userId = req.userId;
     const username = req.body.username;
     const user = await UserDB.findById(userId);
-    if (!user) throw resError(404, "User not found!");
+    if (!user) throw resError(401, "Authenticated user not found!");
 
     if (await UserDB.findOne({ username }))
       throw resError(409, "Username already exist!");
@@ -20,7 +20,6 @@ const changeUsername = async (req, res, next) => {
 
     resJson(res, 200, "Success changed username.", updatedUser);
   } catch (error) {
-    error.status = error.status;
     next(error);
   }
 };

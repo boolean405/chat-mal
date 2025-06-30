@@ -19,7 +19,6 @@ const deleteAccount = async (req, res, next) => {
     clearCookie(req, res, "refreshToken");
     resJson(res, 200, "Success deleted account.");
   } catch (error) {
-    error.status = error.status;
     next(error);
   }
 };

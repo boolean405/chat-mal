@@ -18,7 +18,6 @@ const forgotPasswordVerify = async (req, res, next) => {
 
     resJson(res, 200, "Success verify, now change your password.");
   } catch (error) {
-    error.status = error.status;
     next(error);
   }
 };

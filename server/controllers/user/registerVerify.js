@@ -65,11 +65,12 @@ const registerVerify = async (req, res, next) => {
       `[${APP_NAME}] Successfully Verified`,
       htmlFile
     );
+    const userWithToken = user.toObject();
+    userWithToken.accessToken = accessToken;
 
     resCookie(req, res, "refreshToken", refreshToken);
-    resJson(res, 201, "Success register.", { user, accessToken });
+    resJson(res, 201, "Success register.", userWithToken);
   } catch (error) {
-    error.status = error.status;
     next(error);
   }
 };
