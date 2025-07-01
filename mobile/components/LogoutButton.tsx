@@ -1,6 +1,7 @@
+import { logout } from "@/api/user";
 import { ThemedText } from "@/components/ThemedText";
-import { clearUserData } from "@/storage/authStorage";
 import { useAuthStore } from "@/stores/authStore";
+import { useChatStore } from "@/stores/chatStore";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -10,6 +11,7 @@ const router = useRouter();
 
 export const LogoutButton: React.FC = () => {
   const { clearUser } = useAuthStore();
+  const { clearChats } = useChatStore();
   const handleLogout = () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
       { text: "Cancel", style: "cancel" },
@@ -18,8 +20,13 @@ export const LogoutButton: React.FC = () => {
         style: "destructive",
         onPress: async () => {
           // api here
-          await clearUserData();
+          const data = await logout();
+          if (!data.status) {
+            Alert.alert("Error", data.message || "Failed to logout!");
+            return;
+          }
           clearUser();
+          clearChats();
           router.replace("/(auth)");
         },
       },

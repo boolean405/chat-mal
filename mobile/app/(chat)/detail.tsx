@@ -19,7 +19,6 @@ import { ListSection } from "@/components/ListSection";
 import { ToastAndroid } from "react-native";
 import { createGroup, deleteChat, getChat } from "@/api/chat";
 import { DetailItem } from "@/types";
-import { useChatData } from "@/hooks/useChatData";
 import LoadingIndicator from "@/components/LoadingIndicator";
 import { getChatPhoto } from "@/utils/getChatPhoto";
 import { getChatName } from "@/utils/getChatName";

@@ -17,7 +17,6 @@ import ChatItem from "@/components/ChatItem";
 import { APP_NAME } from "@/constants";
 import ChatEmpty from "@/components/chat/ChatEmpty";
 import ChatHeader from "@/components/chat/ChatHeader";
-import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
 import usePaginatedData from "@/hooks/usePaginateData";
 import BottomSheetAction from "@/components/BottomSheetActions";
@@ -27,6 +26,8 @@ import {
   getPaginateChats,
   leaveGroup,
 } from "@/api/chat";
+import { useChatStore } from "@/stores/chatStore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Stories data - consider moving to a separate file or API call
 const stories: Story[] = [
@@ -57,30 +58,46 @@ export default function Home() {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
   const user = useAuthStore((state) => state.user);
-  const { setChat } = useChatStore();
-  const { addOrUpdateChats, getChat } = useChatStore();
+  const {
+    chats: storedChats,
+    addChats,
+    updateChat,
+    deleteChat: deleteChatFromStore,
+    leaveGroup: leaveGroupFromStore,
+  } = useChatStore();
 
   // Paginated data handling
   const {
-    data: chats,
+    data: newChats,
     isLoading: loading,
     isRefreshing,
     isPaging,
     hasMore,
     refresh,
     loadMore,
-    setData: setChats,
   } = usePaginatedData<Chat>({
     fetchData: async (page: number) => {
       const data = await getPaginateChats(page);
-      // Update storage with new chats
-      addOrUpdateChats(data.result.chats);
       return {
         items: data.result.chats,
         totalPage: data.result.totalPage,
       };
     },
   });
+
+  useEffect(() => {
+    const checkStorage = async () => {
+      await AsyncStorage.getItem("chat-storage");
+    };
+    checkStorage();
+  }, []);
+
+  // Update store when new chats are fetched
+  useEffect(() => {
+    if (newChats.length > 0) {
+      addChats(newChats);
+    }
+  }, [newChats]);
 
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [isSheetVisible, setSheetVisible] = useState(false);
@@ -105,6 +122,84 @@ export default function Home() {
     setSheetVisible(true);
   }, []);
 
+  // Delete chat handler
+  const handleDeleteChat = useCallback(async () => {
+    if (!selectedChat) return;
+
+    Alert.alert("Delete Chat", "Are you sure?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          const data = await deleteChat(selectedChat._id);
+          if (data.status) {
+            ToastAndroid.show(data.message, ToastAndroid.SHORT);
+            deleteChatFromStore(selectedChat._id);
+          }
+        },
+      },
+    ]);
+  }, [selectedChat]);
+
+  // Create group handler
+  const handleCreateGroup = useCallback(async () => {
+    if (!selectedChat) return;
+
+    const userIds = selectedChat.users?.map((user) => user.user._id) ?? [];
+    setIsLoadingAction(true);
+
+    try {
+      const data = await createGroup(userIds);
+      if (data.status) {
+        ToastAndroid.show(data.message, ToastAndroid.SHORT);
+
+        // Manually add the new group to the top of the list
+        if (data.result) {
+          addChats([data.result]);
+        }
+        refresh(); // Optional: refresh the full list if needed
+      }
+    } catch (error: any) {
+      ToastAndroid.show(error.message, ToastAndroid.SHORT);
+    } finally {
+      setIsLoadingAction(false);
+    }
+  }, [selectedChat, addChats, refresh]);
+
+  // Leave group handler
+  const handleLeaveGroup = useCallback(async () => {
+    if (!selectedChat) return;
+
+    Alert.alert("Leave Group", "Are you sure you want to leave this group?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Leave",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            setIsLoadingAction(true);
+            const data = await leaveGroup(selectedChat._id);
+
+            if (data.status) {
+              ToastAndroid.show(data.message, ToastAndroid.SHORT);
+              leaveGroupFromStore(selectedChat._id); // Update Zustand store
+            }
+          } catch (error: any) {
+            ToastAndroid.show(error.message, ToastAndroid.SHORT);
+          } finally {
+            setIsLoadingAction(false);
+          }
+        },
+      },
+    ]);
+  }, [selectedChat, leaveGroupFromStore]);
+
+  // Filtered bottom sheet options based on chat type
+  const filteredOptions = selectedChat
+    ? getBottomSheetOptions(selectedChat.isGroupChat)
+    : [];
+
   // Handle bottom sheet actions
   const handleOptionSelect = useCallback(
     async (index: number) => {
@@ -125,7 +220,7 @@ export default function Home() {
             await handleCreateGroup();
             break;
           case "Leave group":
-            await handleLeaveGroup();
+            await handleLeaveGroup(); // This will now use the updated function
             break;
           default:
             ToastAndroid.show(
@@ -142,66 +237,8 @@ export default function Home() {
         setSelectedChat(null);
       }
     },
-    [selectedChat]
+    [selectedChat, handleDeleteChat, handleCreateGroup, handleLeaveGroup]
   );
-
-  // Delete chat handler
-  const handleDeleteChat = useCallback(async () => {
-    if (!selectedChat) return;
-
-    Alert.alert("Delete Chat", "Are you sure?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          const data = await deleteChat(selectedChat._id);
-          if (data.status) {
-            ToastAndroid.show(data.message, ToastAndroid.SHORT);
-            setChats((prev) => prev.filter((c) => c._id !== selectedChat._id));
-          }
-        },
-      },
-    ]);
-  }, [selectedChat]);
-
-  // Create group handler
-  const handleCreateGroup = useCallback(async () => {
-    if (!selectedChat) return;
-
-    const userIds = selectedChat.users?.map((user) => user.user._id) ?? [];
-    const data = await createGroup(userIds);
-
-    if (data.status) {
-      ToastAndroid.show(data.message, ToastAndroid.SHORT);
-      refresh();
-    }
-  }, [selectedChat]);
-
-  // Leave group handler
-  const handleLeaveGroup = useCallback(async () => {
-    if (!selectedChat) return;
-
-    Alert.alert("Leave Group", "Are you sure?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Leave",
-        style: "destructive",
-        onPress: async () => {
-          const data = await leaveGroup(selectedChat._id);
-          if (data.status) {
-            ToastAndroid.show(data.message, ToastAndroid.SHORT);
-            setChats((prev) => prev.filter((c) => c._id !== selectedChat._id));
-          }
-        },
-      },
-    ]);
-  }, [selectedChat]);
-
-  // Filtered bottom sheet options based on chat type
-  const filteredOptions = selectedChat
-    ? getBottomSheetOptions(selectedChat.isGroupChat)
-    : [];
 
   return (
     <ThemedView style={styles.container}>
@@ -215,9 +252,9 @@ export default function Home() {
         />
       </ThemedView>
 
-      {/* Chat List */}
+      {/* Chat List - Now using storedChats instead of chats */}
       <FlatList
-        data={chats}
+        data={storedChats || []}
         keyExtractor={(item) => item._id}
         showsVerticalScrollIndicator={false}
         refreshing={isRefreshing}

@@ -2,23 +2,24 @@ import UserDB from "../../models/user.js";
 import resJson from "../../utils/resJson.js";
 import clearCookie from "../../utils/clearCookie.js";
 
-const signout = async (req, res, next) => {
+export default async function logout(req, res, next) {
   try {
-    const decodedId = req.decodedId;
-    const user = await UserDB.findById(decodedId);
+    const userId = req.decodedId;
+    const user = await UserDB.findById(userId);
     if (!user) {
       clearCookie(req, res, "refreshToken");
-      return resJson(res, 204);
+      return resJson(res, 204, "User not found, session cleared.");
     }
-    await UserDB.findByIdAndUpdate(user._id, {
-      refreshToken: "",
-    });
+
+    // 2. Clear the refreshToken in DB (if applicable)
+    if (user.refreshToken) {
+      user.refreshToken = undefined; // or = ""
+      await user.save();
+    }
 
     clearCookie(req, res, "refreshToken");
-    resJson(res, 200, "Success signout.");
+    resJson(res, 200, "Success logout.");
   } catch (error) {
     next(error);
   }
-};
-
-export default signout;
+}

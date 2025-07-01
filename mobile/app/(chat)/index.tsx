@@ -19,14 +19,12 @@ import { Ionicons } from "@expo/vector-icons";
 import MessageItem from "@/components/MessageItem";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { useChatData } from "@/hooks/useChatData";
 import { getChatPhoto } from "@/utils/getChatPhoto";
 import { useAuthStore } from "@/stores/authStore";
 import { getChatName } from "@/utils/getChatName";
 import usePaginatedData from "@/hooks/usePaginateData";
 import { createMessage, getPaginateMessages } from "@/api/message";
 import { useMessageStore } from "@/stores/messageStore";
-import { useChatStore } from "@/stores/chatStore";
 
 export default function ChatMessage() {
   const router = useRouter();
@@ -37,7 +35,6 @@ export default function ChatMessage() {
   const user = useAuthStore((state) => state.user);
   const { chatId: rawChatId } = useLocalSearchParams();
   const chatId = Array.isArray(rawChatId) ? rawChatId[0] : rawChatId;
-  const { chat, isLoading, error } = useChatData(chatId);
 
   const {
     data: messages,
@@ -59,13 +56,6 @@ export default function ChatMessage() {
   });
   const [newMessage, setNewMessage] = useState("");
 
-  // Show error if needed
-  useEffect(() => {
-    if (error) {
-      ToastAndroid.show(error, ToastAndroid.SHORT);
-    }
-  }, [error]);
-
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
 
@@ -78,19 +68,6 @@ export default function ChatMessage() {
       useMessageStore.getState().addMessage(newMsg);
       setNewMessage("");
 
-      // Update the chat's last message preview in chat store:
-      const chatStore = useChatStore.getState();
-      const chat = chatStore.getChat(chatId);
-
-      // if (chat) {
-      //   // Update last message preview, timestamp, etc.
-      //   const updatedChat = {
-      //     ...chat,
-      //     lastMessage: newMsg.content || "", // assuming message has text property
-      //     createdAt: newMsg.createdAt || new Date().toISOString(),
-      //   };
-      //   chatStore.setChat(updatedChat);
-      // }
       setTimeout(() => {
         flatListRef.current?.scrollToIndex({ index: 0, animated: true });
       }, 100);
@@ -99,7 +76,7 @@ export default function ChatMessage() {
     }
   };
 
-  if (isLoading || !chat || !user) {
+  if (!user) {
     return null;
   }
   const chatPhoto = getChatPhoto(chat, user._id);

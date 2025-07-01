@@ -85,5 +85,6 @@ userSchema.index({ isOnline: 1 });
 // Admin filtering or moderation tools
 userSchema.index({ role: 1 });
 userSchema.index({ verified: 1 });
+userSchema.index({ refreshToken: 1 });
 
 export default mongoose.model("user", userSchema);
