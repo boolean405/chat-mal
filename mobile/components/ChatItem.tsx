@@ -66,7 +66,7 @@ export default function ChatItem({
           >
             {chat.latestMessage?.content}
           </ThemedText>
-          {true && (
+          {chat.unreadCount > 0 && (
             <ThemedView
               style={[styles.unreadBadge, { backgroundColor: color.secondary }]}
             >

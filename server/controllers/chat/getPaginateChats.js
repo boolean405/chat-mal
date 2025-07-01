@@ -11,11 +11,9 @@ export default async function getPaginateChats(req, res, next) {
     if (!(await UserDB.exists({ _id: userId })))
       throw resError(401, "Authenticated user not found!");
 
-    if (isNaN(page))
-      throw resError(400, "Page number must be a valid number!");
+    if (isNaN(page)) throw resError(400, "Page number must be a valid number!");
 
-    if (page <= 0)
-      throw resError(400, "Page number must be greater than 0!");
+    if (page <= 0) throw resError(400, "Page number must be greater than 0!");
 
     const limit = Number(process.env.PAGINATE_LIMIT) || 15;
     const skipCount = limit * (page - 1);
@@ -38,7 +36,7 @@ export default async function getPaginateChats(req, res, next) {
 
     const [chats, totalCount] = await Promise.all([
       ChatDB.find(filter)
-        .sort({ "latestMessage.createdAt": -1, createdAt: -1 })
+        .sort({ updatedAt: -1 })
         .skip(skipCount)
         .limit(limit)
         .lean()
@@ -57,11 +55,11 @@ export default async function getPaginateChats(req, res, next) {
     ]);
 
     const totalPage = Math.ceil(totalCount / limit);
-        if (page > totalPage && totalPage > 0)
-          throw resError(
-            404,
-            `Page ${page} does not exist. Total pages: ${totalPage}!`
-          );
+    if (page > totalPage && totalPage > 0)
+      throw resError(
+        404,
+        `Page ${page} does not exist. Total pages: ${totalPage}!`
+      );
 
     resJson(
       res,

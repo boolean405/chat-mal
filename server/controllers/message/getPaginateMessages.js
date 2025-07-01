@@ -27,7 +27,7 @@ export default async function getPaginateMessages(req, res, next) {
 
     const [messages, totalCount] = await Promise.all([
       MessageDB.find({ chat: chatId })
-        .sort({ createdAt: -1 })
+        .sort({ updatedAt: -1 })
         .skip(skipCount)
         .limit(limit)
         .lean()

@@ -6,17 +6,22 @@ import { Chat } from "@/types";
 
 interface ChatStore {
   chats: Chat[];
+  currentChat: Chat | null; // Add current chat tracking
   addChats: (newChats: Chat[]) => void;
   updateChat: (updatedChat: Chat) => void;
   deleteChat: (chatId: string) => void;
-  leaveGroup: (groupId: string) => void; // Add this
+  leaveGroup: (groupId: string) => void;
   clearChats: () => void;
+  // New methods
+  getChatById: (chatId: string) => Chat | undefined;
+  setCurrentChat: (chat: Chat | null) => void;
 }
 
 export const useChatStore = create<ChatStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       chats: [],
+      currentChat: null,
       addChats: (newChats) =>
         set((state) => {
           const existingIds = new Set(state.chats.map((c) => c._id));
@@ -24,40 +29,73 @@ export const useChatStore = create<ChatStore>()(
             (chat) => !existingIds.has(chat._id)
           );
 
-          // Combine and sort by createdAt (newest first)
+          // Combine and sort by lastMessage createdAt or chat createdAt
           const allChats = [...uniqueNewChats, ...state.chats].sort((a, b) => {
-            const dateA = new Date(a.createdAt || 0).getTime();
-            const dateB = new Date(b.createdAt || 0).getTime();
-            return dateB - dateA;
+            const dateA = new Date(
+              a.latestMessage?.createdAt || a.updatedAt || 0
+            ).getTime();
+            const dateB = new Date(
+              b.latestMessage?.createdAt || b.updatedAt || 0
+            ).getTime();
+            return dateB - dateA; // Newest first
           });
 
           return { chats: allChats };
         }),
       updateChat: (updatedChat) =>
-        set((state) => ({
-          chats: state.chats.map((chat) =>
+        set((state) => {
+          // Replace the chat
+          const updatedChats = state.chats.map((chat) =>
             chat._id === updatedChat._id ? updatedChat : chat
-          ),
-        })),
+          );
+          // Resort by latestMessage.createdAt or updatedAt
+          updatedChats.sort((a, b) => {
+            const dateA = new Date(
+              a.latestMessage?.createdAt || a.updatedAt || 0
+            ).getTime();
+            const dateB = new Date(
+              b.latestMessage?.createdAt || b.updatedAt || 0
+            ).getTime();
+            return dateB - dateA;
+          });
+          return {
+            chats: updatedChats,
+            currentChat:
+              state.currentChat?._id === updatedChat._id
+                ? updatedChat
+                : state.currentChat,
+          };
+        }),
       deleteChat: (chatId) =>
         set((state) => ({
           chats: state.chats.filter((chat) => chat._id !== chatId),
+          currentChat:
+            state.currentChat?._id === chatId ? null : state.currentChat,
         })),
       leaveGroup: (groupId) =>
         set((state) => ({
           chats: state.chats.filter((chat) => chat._id !== groupId),
+          currentChat:
+            state.currentChat?._id === groupId ? null : state.currentChat,
         })),
-      clearChats: () => set({ chats: [] }),
+      clearChats: () => set({ chats: [], currentChat: null }),
+      // New method implementations
+      getChatById: (chatId) => {
+        return get().chats.find((chat) => chat._id === chatId);
+      },
+      setCurrentChat: (chat) => set({ currentChat: chat }),
     }),
     {
       name: "chat-storage",
       storage: createJSONStorage(() => AsyncStorage),
-      // Add migration in case stored data is corrupted
       migrate: (persistedState: any) => {
         if (!persistedState?.chats) {
-          return { chats: [] };
+          return { chats: [], currentChat: null };
         }
-        return persistedState;
+        return {
+          ...persistedState,
+          currentChat: persistedState.currentChat || null, // Ensure currentChat exists
+        };
       },
     }
   )

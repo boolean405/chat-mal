@@ -31,12 +31,21 @@ export default function usePaginatedData<T>({
 
       const newData = result.items;
 
+      // ...existing code...
       setData((prevData) => {
         const combined = paging ? [...prevData, ...newData] : newData;
+        // Remove duplicates by _id
         return Array.from(
           new Map(combined.map((item: any) => [item._id, item])).values()
         );
       });
+      // ...existing code...
+      // setData((prevData) => {
+      //   const combined = paging ? [...prevData, ...newData] : newData;
+      //   return Array.from(
+      //     new Map(combined.map((item: any) => [item._id, item])).values()
+      //   );
+      // });
     } catch (err) {
       console.error("Pagination Error:", err);
     } finally {

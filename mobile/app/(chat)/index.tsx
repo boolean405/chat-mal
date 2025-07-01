@@ -25,6 +25,7 @@ import { getChatName } from "@/utils/getChatName";
 import usePaginatedData from "@/hooks/usePaginateData";
 import { createMessage, getPaginateMessages } from "@/api/message";
 import { useMessageStore } from "@/stores/messageStore";
+import { useChatStore } from "@/stores/chatStore";
 
 export default function ChatMessage() {
   const router = useRouter();
@@ -36,51 +37,93 @@ export default function ChatMessage() {
   const { chatId: rawChatId } = useLocalSearchParams();
   const chatId = Array.isArray(rawChatId) ? rawChatId[0] : rawChatId;
 
+  // Get chat and messages from stores
+  const { currentChat, getChatById, setCurrentChat, updateChat } =
+    useChatStore();
   const {
-    data: messages,
+    messages: storedMessages,
+    addMessage,
+    prependMessages,
+    setMessages,
+  } = useMessageStore();
+
+  // Get messages for current chat from store
+  const currentMessagesRaw = chatId ? storedMessages[chatId] || [] : [];
+  const currentMessages = Array.from(
+    new Map(currentMessagesRaw.map((msg) => [msg._id, msg])).values()
+  );
+  // Pagination handling
+  const {
     isLoading: loading,
     isRefreshing,
     isPaging,
     hasMore,
     refresh,
     loadMore,
-    setData,
   } = usePaginatedData<Message>({
     fetchData: async (page: number) => {
-      const data = await getPaginateMessages(chat?._id, page);
+      if (!chatId) return { items: [], totalPage: 0 };
+      const data = await getPaginateMessages(chatId, page);
+      // Store the messages in Zustand
+      if (page === 1) {
+        setMessages(chatId, data.result.messages);
+      } else {
+        prependMessages(chatId, data.result.messages);
+      }
       return {
         items: data.result.messages,
         totalPage: data.result.totalPage,
       };
     },
   });
+
+  // Set current chat when screen mounts
+  useEffect(() => {
+    if (chatId) {
+      const chat = getChatById(chatId);
+      if (chat) {
+        setCurrentChat(chat);
+      } else {
+        setCurrentChat(null);
+      }
+    }
+
+    return () => {
+      setCurrentChat(null);
+    };
+  }, [chatId]);
+
   const [newMessage, setNewMessage] = useState("");
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !chatId || !currentChat) return;
 
     try {
       const data = await createMessage(chatId, newMessage.trim());
       const newMsg = data.result;
-      console.log(newMsg.content);
-
-      setData((prevMessages) => [newMsg, ...prevMessages]); // PREPEND because list is inverted
-      useMessageStore.getState().addMessage(newMsg);
       setNewMessage("");
+      // Update the chat with the new last message
+      const newUpdatedChat = {
+        ...currentChat,
+        latestMessage: newMsg,
+        updatedAt: newMsg.createdAt,
+      };
+      // Add to Zustand message store
+      addMessage(chatId, newMsg);
+      updateChat(newUpdatedChat);
 
-      setTimeout(() => {
-        flatListRef.current?.scrollToIndex({ index: 0, animated: true });
-      }, 100);
-    } catch (e) {
-      ToastAndroid.show("Failed to send message", ToastAndroid.SHORT);
+      flatListRef.current?.scrollToIndex({ index: 0, animated: true });
+    } catch (error: any) {
+      ToastAndroid.show(error.message, ToastAndroid.SHORT);
     }
   };
 
-  if (!user) {
+  if (!user || !currentChat) {
     return null;
   }
-  const chatPhoto = getChatPhoto(chat, user._id);
-  const chatName = chat.name || getChatName(chat, user._id);
+
+  const chatPhoto = getChatPhoto(currentChat, user._id);
+  const chatName = currentChat.name || getChatName(currentChat, user._id);
 
   return (
     <KeyboardAvoidingView
@@ -140,26 +183,23 @@ export default function ChatMessage() {
       <FlatList
         keyboardShouldPersistTaps="handled"
         ref={flatListRef}
-        data={messages}
+        data={currentMessages}
         style={styles.chatList}
-        contentContainerStyle={{ padding: 10 }}
+        contentContainerStyle={{  padding: 10 }}
         showsVerticalScrollIndicator={false}
         refreshing={isRefreshing}
         onEndReached={loadMore}
-        onEndReachedThreshold={1}
+        onEndReachedThreshold={0.1}
         inverted={true}
         keyExtractor={(item) => item._id}
-        renderItem={({ item, index }) => {
-          return (
-            <MessageItem
-              item={item}
-              index={index}
-              messages={messages}
-              isTyping={item._id === "typing"}
-              user={user}
-            />
-          );
-        }}
+        renderItem={({ item, index }) => (
+          <MessageItem
+            item={item}
+            index={index}
+            messages={currentMessages}
+            user={user}
+          />
+        )}
         ListFooterComponent={
           hasMore && isPaging ? (
             <ActivityIndicator size="small" color={color.icon} />

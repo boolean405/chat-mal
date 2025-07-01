@@ -261,7 +261,7 @@ export default function Home() {
         ListEmptyComponent={<ChatEmpty />}
         onRefresh={refresh}
         onEndReached={loadMore}
-        onEndReachedThreshold={1}
+        onEndReachedThreshold={0.1}
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
           <ChatItem
