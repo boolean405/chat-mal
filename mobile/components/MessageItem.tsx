@@ -9,7 +9,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
 import formatDate from "@/utils/formatDate";
 
-function MessageItem({
+export default function MessageItem({
   item,
   index,
   messages,
@@ -65,7 +65,7 @@ function MessageItem({
           isTyping && styles.typingMessageContainer,
         ]}
       >
-        <ThemedText style={isTyping ? styles.typingText : undefined}>
+        <ThemedText style={isTyping ? styles.typingText : styles.contentText}>
           {isTyping ? "Typing..." : item.content}
         </ThemedText>
 
@@ -145,12 +145,15 @@ const styles = StyleSheet.create({
     marginTop: 4,
     alignSelf: "flex-end",
   },
+  contentText: {
+    lineHeight: 25,
+  },
 });
 
-export default React.memo(MessageItem, (prevProps, nextProps) => {
-  return (
-    prevProps.item._id === nextProps.item._id &&
-    prevProps.isTyping === nextProps.isTyping &&
-    prevProps.item.status === nextProps.item.status
-  );
-});
+// export default React.memo(MessageItem, (prevProps, nextProps) => {
+//   return (
+//     prevProps.item._id === nextProps.item._id &&
+//     prevProps.isTyping === nextProps.isTyping &&
+//     prevProps.item.status === nextProps.item.status
+//   );
+// });

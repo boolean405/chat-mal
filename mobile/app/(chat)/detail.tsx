@@ -1,11 +1,8 @@
 import {
-  KeyboardAvoidingView,
   TouchableOpacity,
-  Platform,
   useColorScheme,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
   Alert,
 } from "react-native";
 import React, { useEffect, useState } from "react";
@@ -17,12 +14,13 @@ import { Colors } from "@/constants/colors";
 import { Image } from "expo-image";
 import { ListSection } from "@/components/ListSection";
 import { ToastAndroid } from "react-native";
-import { createGroup, deleteChat, getChat } from "@/api/chat";
+import { createGroup, deleteChat } from "@/api/chat";
 import { DetailItem } from "@/types";
-import LoadingIndicator from "@/components/LoadingIndicator";
 import { getChatPhoto } from "@/utils/getChatPhoto";
 import { getChatName } from "@/utils/getChatName";
 import { useAuthStore } from "@/stores/authStore";
+import { useChatStore } from "@/stores/chatStore";
+import { DetailData } from "@/data";
 
 export default function Detail() {
   const router = useRouter();
@@ -30,95 +28,28 @@ export default function Detail() {
   const color = Colors[colorScheme ?? "light"];
 
   const user = useAuthStore((state) => state.user);
+  const { getChatById, addChats } = useChatStore();
+
   const { chatId: rawChatId } = useLocalSearchParams();
   const chatId = Array.isArray(rawChatId) ? rawChatId[0] : rawChatId;
-  const { chat, isLoading, error } = useChatData(chatId);
+
+  const chat = getChatById(chatId);
   if (!chat || !user) return null;
 
   const chatPhoto = getChatPhoto(chat, user._id);
   const chatName = chat.name || getChatName(chat, user._id);
 
-  // Base items
-  const baseDetails: DetailItem[] = [
-    {
-      id: "1",
-      label: "Search in chat",
-      iconName: "search-outline",
-      path: "/search",
-    },
-    {
-      id: "2",
-      label: "Archive",
-      iconName: "archive-outline",
-      path: "/archive",
-    },
-    {
-      id: "3",
-      label: "Mute",
-      iconName: "notifications-off-outline",
-      path: "/mute",
-    },
-
-    {
-      id: "8",
-      label: "Delete",
-      iconName: "trash-outline",
-      path: "/delete",
-    },
-  ];
-
-  // Group-only items
-  const groupOnlyDetails: DetailItem[] = [
-    {
-      id: "5",
-      label: "Members",
-      iconName: "people-outline",
-      path: "/members",
-    },
-    {
-      id: "7",
-      label: "Leave group",
-      iconName: "log-out-outline",
-      path: "/leave-group",
-    },
-  ];
-  const chatOnlyDetails: DetailItem[] = [
-    {
-      id: "4",
-      label: `Create group chat with ${chat?.name}`,
-      iconName: "person-outline",
-      path: "/create-group",
-    },
-    {
-      id: "6",
-      label: "Block",
-      iconName: "remove-circle-outline",
-      path: "/block",
-    },
-  ];
-
-  // Final list
-  const Details: DetailItem[] = (
-    chat?.isGroupChat
-      ? [...baseDetails, ...groupOnlyDetails]
-      : [...baseDetails, ...chatOnlyDetails]
+  // Filter based on chat type
+  const Details: DetailItem[] = DetailData.filter(
+    (item) =>
+      item.showFor === "all" ||
+      (chat?.isGroupChat && item.showFor === "group") ||
+      (!chat?.isGroupChat && item.showFor === "chat")
   ).sort((a, b) => Number(a.id) - Number(b.id));
 
-  // const [chats, setChats] = useState<Chat | null>(null);
-
-  // Fetch chat data
-  useEffect(() => {
-    if (error) {
-      ToastAndroid.show(error, ToastAndroid.SHORT);
-    }
-  }, [error]);
-
-  if (isLoading || !chat) {
-    return null;
-  }
-
-  // Handle detail
+  // Handle detail press
   const handleDetail = async (item: DetailItem) => {
+    // Member
     if (item.path === "/members")
       router.push({
         pathname: "/(chat)/member",
@@ -126,11 +57,21 @@ export default function Detail() {
           chatId: chatId,
         },
       });
+    // Create group
     else if (item.path === "/create-group") {
       try {
         const userIds = chat?.users?.map((user) => user.user._id) ?? [];
         const data = await createGroup(userIds);
-        if (data.status) ToastAndroid.show(data.message, ToastAndroid.SHORT);
+        if (data.status) {
+          ToastAndroid.show(data.message, ToastAndroid.SHORT);
+          addChats([data.result]);
+          router.replace({
+            pathname: "/(tab)",
+            params: {
+              chatId: data.result._id,
+            },
+          });
+        }
       } catch (error: any) {
         ToastAndroid.show(error.message, ToastAndroid.SHORT);
       } finally {

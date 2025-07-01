@@ -6,6 +6,7 @@ import {
   Alert,
   ToastAndroid,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
@@ -158,7 +159,6 @@ export default function Home() {
         if (data.result) {
           addChats([data.result]);
         }
-        refresh(); // Optional: refresh the full list if needed
       }
     } catch (error: any) {
       ToastAndroid.show(error.message, ToastAndroid.SHORT);
@@ -275,6 +275,17 @@ export default function Home() {
           hasMore && isPaging ? (
             <ActivityIndicator size="small" color={color.icon} />
           ) : null
+        }
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={refresh}
+            colors={[color.primary]} // Spinner color (Android)
+            progressBackgroundColor={color.background} // Background color (Android)
+            tintColor={color.primary} // Spinner color (iOS)
+            title="Refreshing..." // Optional (iOS)
+            titleColor={color.text} // Optional (iOS)
+          />
         }
       />
 

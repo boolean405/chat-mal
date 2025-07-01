@@ -136,7 +136,7 @@ export default function ChatMessage() {
         style={[styles.header, { borderBottomColor: color.borderColor }]}
       >
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="chevron-back-outline" size={24} color={color.icon} />
+          <Ionicons name="chevron-back-outline" size={22} color={color.icon} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => console.log("Profile")}>
           <Image source={chatPhoto} style={styles.chatPhoto} />
@@ -240,7 +240,7 @@ export default function ChatMessage() {
           style={[styles.sendButton, { backgroundColor: color.main }]}
           onPress={handleSendMessage}
         >
-          <Ionicons name="send-outline" size={20} color={color.icon} />
+          <Ionicons name="send-outline" size={22} color={color.icon} />
         </TouchableOpacity>
       </ThemedView>
     </KeyboardAvoidingView>

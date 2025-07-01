@@ -18,13 +18,12 @@ import { Platform } from "react-native";
 import UserItem from "@/components/UserItem";
 import { Chat, User } from "@/types";
 import { ToastAndroid } from "react-native";
-import { useChatData } from "@/hooks/useChatData";
-import LoadingIndicator from "@/components/LoadingIndicator";
 import SelectableUserItem from "@/components/user/SelectableUserItem";
 import { useUsersSearchStore } from "@/stores/usersSearchStore";
 import useDebounce from "@/hooks/useDebounce";
 import { addUsersToGroup } from "@/api/chat";
 import { useAuthStore } from "@/stores/authStore";
+import { useChatStore } from "@/stores/chatStore";
 
 export default function Member() {
   const router = useRouter();
@@ -32,18 +31,12 @@ export default function Member() {
   const color = Colors[colorScheme ?? "light"];
 
   const user = useAuthStore((state) => state.user);
+  const { getChatById } = useChatStore();
 
   const { chatId: rawChatId } = useLocalSearchParams();
   const chatId = Array.isArray(rawChatId) ? rawChatId[0] : rawChatId;
-
-  const {
-    chat,
-    isLoading: chatIsLoading,
-    error,
-    refetch,
-  } = useChatData(chatId);
-
-  if (!chat) return <></>;
+  const chat = getChatById(chatId);
+  if (!chat) return null;
 
   const [isAddMode, setIsAddMode] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
@@ -65,12 +58,6 @@ export default function Member() {
     fetchSearchUsers,
   } = useUsersSearchStore();
 
-  useEffect(() => {
-    if (error) {
-      ToastAndroid.show(error, ToastAndroid.SHORT);
-    }
-  }, [error]);
-
   const handleMembers = (user: User) => {
     console.log(user.name);
   };
@@ -87,7 +74,6 @@ export default function Member() {
         ToastAndroid.show(data.message, ToastAndroid.SHORT);
         setIsAddMode(false);
         setSelectedUsers([]);
-        await refetch();
       }
     } catch (err: any) {
       ToastAndroid.show(err.message, ToastAndroid.SHORT);

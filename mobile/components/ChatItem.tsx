@@ -53,10 +53,7 @@ export default function ChatItem({
         <ThemedView style={styles.chatBottomRow}>
           <ThemedText
             style={[
-              {
-                color: "#666",
-                flex: 1,
-              },
+              styles.unreadText,
               chat.unreadCount > 0 && {
                 fontWeight: "bold",
                 color: color.primary,
@@ -109,8 +106,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   unreadText: {
-    fontWeight: "bold",
-    color: "#000",
+    flex: 1,
+    color: "#666",
+    lineHeight: 25,
   },
   unreadBadge: {
     // backgroundColor: "#25D366",
