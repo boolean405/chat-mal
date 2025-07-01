@@ -18,7 +18,7 @@ export const LogoutButton: React.FC = () => {
         style: "destructive",
         onPress: async () => {
           // api here
-          // await clearUserData();
+          await clearUserData();
           clearUser();
           router.replace("/(auth)");
         },

@@ -80,7 +80,8 @@ export type Message = {
   sender: User;
   type: "text" | "image";
   content: string;
-  chat: Chat; // Or `Chat` if populated
+  chat: Chat;
+  status: MessageStatus;
   createdAt: Date;
   updatedAt: Date;
 };

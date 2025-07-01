@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   FlatList,
   StyleSheet,
@@ -7,13 +7,19 @@ import {
   ToastAndroid,
   ActivityIndicator,
 } from "react-native";
-
+import { useRouter } from "expo-router";
+import { Image } from "expo-image";
 import { BottomSheetOption, Chat, Story } from "@/types";
 import { Colors } from "@/constants/colors";
-import ChatItem from "@/components/ChatItem";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useRouter } from "expo-router";
+import ChatItem from "@/components/ChatItem";
+import { APP_NAME } from "@/constants";
+import ChatEmpty from "@/components/chat/ChatEmpty";
+import ChatHeader from "@/components/chat/ChatHeader";
+import { useChatStore } from "@/stores/chatStore";
+import { useAuthStore } from "@/stores/authStore";
+import usePaginatedData from "@/hooks/usePaginateData";
 import BottomSheetAction from "@/components/BottomSheetActions";
 import {
   createGroup,
@@ -21,33 +27,8 @@ import {
   getPaginateChats,
   leaveGroup,
 } from "@/api/chat";
-import { APP_NAME } from "@/constants";
-import ChatEmpty from "@/components/chat/ChatEmpty";
-import ChatHeader from "@/components/chat/ChatHeader";
-import { useChatStore } from "@/stores/chatStore";
-import { useAuthStore } from "@/stores/authStore";
-import { Image } from "expo-image";
-import usePaginatedData from "@/hooks/usePaginateData";
 
-// Chats list
-
-// const chats: Chat[] = [
-//   {
-//     _id: "1",
-//     isGroupChat: false,
-//     name: "John Doe",
-//     latestMessage: "Hey, how are you?",
-//     unreadCount: 2,
-//     photo: "https://randomuser.me/api/portraits/men/1.jpg",
-//     users: [],
-//     groupAdmins: [],
-//     deletedInfo: [],
-//     createdAt: new Date(),
-//     updatedAt: new Date(),
-//   },
-// ];
-
-// Stories list
+// Stories data - consider moving to a separate file or API call
 const stories: Story[] = [
   {
     _id: "s2",
@@ -55,48 +36,31 @@ const stories: Story[] = [
     storyUri: "https://cdn-icons-png.flaticon.com/512/1946/1946429.png",
     hasStory: false,
   },
-  {
-    _id: "s3",
-    name: "Sarah Lane",
-    storyUri: "https://randomuser.me/api/portraits/women/2.jpg",
-    hasStory: true,
-  },
-  {
-    _id: "s4",
-    name: "Mike Ross",
-    storyUri: "https://randomuser.me/api/portraits/men/3.jpg",
-    hasStory: false,
-  },
-  {
-    _id: "s5",
-    name: "Mike Ross",
-    storyUri: "https://randomuser.me/api/portraits/men/3.jpg",
-    hasStory: false,
-  },
-  {
-    _id: "s6",
-    name: "Mike Ross",
-    storyUri: "https://randomuser.me/api/portraits/men/3.jpg",
-    hasStory: false,
-  },
+  // ... other stories
 ];
 
-const bottomSheetOptions: BottomSheetOption[] = [
+// Bottom sheet options - can be dynamic based on chat type
+const getBottomSheetOptions = (isGroupChat: boolean): BottomSheetOption[] => [
   { _id: "1", name: "Archive", icon: "archive-outline" },
   { _id: "2", name: "Mute", icon: "notifications-off-outline" },
-  { _id: "3", name: "Create group chat with", icon: "people-outline" },
-  { _id: "4", name: "Leave group", icon: "exit-outline" },
+  ...(!isGroupChat
+    ? [{ _id: "3", name: "Create group chat", icon: "people-outline" }]
+    : []),
+  ...(isGroupChat
+    ? [{ _id: "4", name: "Leave group", icon: "exit-outline" }]
+    : []),
   { _id: "5", name: "Delete", icon: "trash-outline" },
 ];
 
-// Main Component
 export default function Home() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
   const user = useAuthStore((state) => state.user);
   const { setChat } = useChatStore();
+  const { addOrUpdateChats, getChat } = useChatStore();
 
+  // Paginated data handling
   const {
     data: chats,
     isLoading: loading,
@@ -109,6 +73,8 @@ export default function Home() {
   } = usePaginatedData<Chat>({
     fetchData: async (page: number) => {
       const data = await getPaginateChats(page);
+      // Update storage with new chats
+      addOrUpdateChats(data.result.chats);
       return {
         items: data.result.chats,
         totalPage: data.result.totalPage,
@@ -117,127 +83,125 @@ export default function Home() {
   });
 
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
-
-  const [errorMessage, setIsErrorMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [isSheetVisible, setSheetVisible] = useState(false);
-  const [isError, setIsError] = useState(false);
+  const [isLoadingAction, setIsLoadingAction] = useState(false);
 
   if (!user) return null;
 
-  // Long press for showing models
-  const handleLongPress = (chat: Chat) => {
+  // Update chat press handler
+  const handleChatPress = useCallback(
+    (chat: Chat) => {
+      router.push({
+        pathname: "/(chat)",
+        params: { chatId: chat._id },
+      });
+    },
+    [router]
+  );
+
+  // Long press handler
+  const handleLongPress = useCallback((chat: Chat) => {
     setSelectedChat(chat);
     setSheetVisible(true);
-  };
+  }, []);
 
-  // Handle chat press
-  const handleChat = (chat: Chat) => {
-    setChat(chat._id, chat);
+  // Handle bottom sheet actions
+  const handleOptionSelect = useCallback(
+    async (index: number) => {
+      if (!selectedChat) return;
 
-    router.push({
-      pathname: "/(chat)",
-      params: {
-        chatId: chat._id,
-      },
-    });
-  };
+      const isGroup = selectedChat.isGroupChat;
+      const options = getBottomSheetOptions(isGroup);
+      const selectedOption = options[index];
 
-  const handleOptionSelect = async (index: number) => {
-    const isUser = selectedChat && selectedChat.isGroupChat === false;
-    const options = [
-      "Archive",
-      "Mute",
-      ...(isUser
-        ? [`Create Group Chat with ${selectedChat.name}`]
-        : ["Leave group"]),
-      "Delete",
-    ];
+      try {
+        setIsLoadingAction(true);
 
-    const selectedOption = options[index];
-
-    try {
-      if (selectedOption === "Delete") {
-        Alert.alert("Delete Chat", "Are you sure?", [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Delete",
-            style: "destructive",
-            onPress: async () => {
-              setIsLoading(true);
-              try {
-                const data = await deleteChat(selectedChat?._id);
-                if (data.status)
-                  ToastAndroid.show(data.message, ToastAndroid.SHORT);
-
-                setChats((prev) =>
-                  prev.filter((c) => c._id !== selectedChat?._id)
-                );
-              } catch (error: any) {
-                ToastAndroid.show(error.message, ToastAndroid.SHORT);
-              } finally {
-                setIsLoading(false);
-                setSelectedChat(null);
-                setSheetVisible(false);
-              }
-            },
-          },
-        ]);
-      } else if (
-        selectedOption === `Create Group Chat with ${selectedChat?.name}`
-      ) {
-        setIsLoading(true);
-        setSelectedChat(null);
-        setSheetVisible(false);
-
-        try {
-          const userIds =
-            selectedChat?.users?.map((user) => user.user._id) ?? [];
-          const data = await createGroup(userIds);
-          if (data.status) ToastAndroid.show(data.message, ToastAndroid.SHORT);
-          refresh();
-        } catch (error: any) {
-          ToastAndroid.show(error.message, ToastAndroid.SHORT);
-        } finally {
-          setIsLoading(false);
-          setSelectedChat(null);
-          setSheetVisible(false);
+        switch (selectedOption.name) {
+          case "Delete":
+            await handleDeleteChat();
+            break;
+          case "Create group chat":
+            await handleCreateGroup();
+            break;
+          case "Leave group":
+            await handleLeaveGroup();
+            break;
+          default:
+            ToastAndroid.show(
+              `${selectedOption.name} pressed`,
+              ToastAndroid.SHORT
+            );
+            break;
         }
-      } else if (selectedOption === "Leave group") {
-        Alert.alert("Leave Group", "Are you sure?", [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Leave",
-            style: "destructive",
-            onPress: async () => {
-              setIsLoading(true);
-              try {
-                const data = await leaveGroup(selectedChat?._id);
-                if (data.status)
-                  ToastAndroid.show(data.message, ToastAndroid.SHORT);
-
-                setChats((prev) =>
-                  prev.filter((c) => c._id !== selectedChat?._id)
-                );
-              } catch (error: any) {
-                ToastAndroid.show(error.message, ToastAndroid.SHORT);
-              } finally {
-                setIsLoading(false);
-                setSelectedChat(null);
-                setSheetVisible(false);
-              }
-            },
-          },
-        ]);
+      } catch (error: any) {
+        ToastAndroid.show(error.message, ToastAndroid.SHORT);
+      } finally {
+        setIsLoadingAction(false);
+        setSheetVisible(false);
+        setSelectedChat(null);
       }
-    } catch (error: any) {
-      ToastAndroid.show(error.message, ToastAndroid.SHORT);
-    } finally {
-      setIsLoading(false);
-      setSelectedChat(null);
-      setSheetVisible(false);
+    },
+    [selectedChat]
+  );
+
+  // Delete chat handler
+  const handleDeleteChat = useCallback(async () => {
+    if (!selectedChat) return;
+
+    Alert.alert("Delete Chat", "Are you sure?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          const data = await deleteChat(selectedChat._id);
+          if (data.status) {
+            ToastAndroid.show(data.message, ToastAndroid.SHORT);
+            setChats((prev) => prev.filter((c) => c._id !== selectedChat._id));
+          }
+        },
+      },
+    ]);
+  }, [selectedChat]);
+
+  // Create group handler
+  const handleCreateGroup = useCallback(async () => {
+    if (!selectedChat) return;
+
+    const userIds = selectedChat.users?.map((user) => user.user._id) ?? [];
+    const data = await createGroup(userIds);
+
+    if (data.status) {
+      ToastAndroid.show(data.message, ToastAndroid.SHORT);
+      refresh();
     }
-  };
+  }, [selectedChat]);
+
+  // Leave group handler
+  const handleLeaveGroup = useCallback(async () => {
+    if (!selectedChat) return;
+
+    Alert.alert("Leave Group", "Are you sure?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Leave",
+        style: "destructive",
+        onPress: async () => {
+          const data = await leaveGroup(selectedChat._id);
+          if (data.status) {
+            ToastAndroid.show(data.message, ToastAndroid.SHORT);
+            setChats((prev) => prev.filter((c) => c._id !== selectedChat._id));
+          }
+        },
+      },
+    ]);
+  }, [selectedChat]);
+
+  // Filtered bottom sheet options based on chat type
+  const filteredOptions = selectedChat
+    ? getBottomSheetOptions(selectedChat.isGroupChat)
+    : [];
 
   return (
     <ThemedView style={styles.container}>
@@ -246,63 +210,43 @@ export default function Home() {
         <ThemedText type="title">{APP_NAME}</ThemedText>
         <Image
           source={require("@/assets/images/logo.png")}
-          style={{ width: 50, height: 50 }}
+          style={styles.logo}
+          contentFit="contain"
         />
       </ThemedView>
 
-      {/* Chats */}
+      {/* Chat List */}
       <FlatList
         data={chats}
-        keyExtractor={(item, index) =>
-          item && item._id ? item._id : index.toString()
-        }
+        keyExtractor={(item) => item._id}
         showsVerticalScrollIndicator={false}
         refreshing={isRefreshing}
         ListEmptyComponent={<ChatEmpty />}
         onRefresh={refresh}
         onEndReached={loadMore}
         onEndReachedThreshold={1}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        renderItem={({ item }) => {
-          return (
-            <ChatItem
-              chat={item}
-              onPress={() => handleChat(item)}
-              onProfilePress={() => console.log(item.name)}
-              onLongPress={() => handleLongPress(item)}
-            />
-          );
-        }}
+        contentContainerStyle={styles.listContent}
+        renderItem={({ item }) => (
+          <ChatItem
+            chat={item}
+            onPress={() => handleChatPress(item)}
+            onLongPress={() => handleLongPress(item)}
+          />
+        )}
         ListHeaderComponent={<ChatHeader stories={stories} user={user} />}
         ListFooterComponent={
-          hasMore && chats.length > 0 && isPaging ? (
+          hasMore && isPaging ? (
             <ActivityIndicator size="small" color={color.icon} />
           ) : null
         }
-
-        // ItemSeparatorComponent={() => (
-        //   <ThemedView
-        //     style={[styles.separator, { backgroundColor: color.secondary }]}
-        //   />
-        // )}
       />
 
-      {/* Custom Sheet */}
+      {/* Bottom Sheet Actions */}
       <BottomSheetAction
         color={color}
         visible={isSheetVisible}
         title={selectedChat?.name}
-        options={bottomSheetOptions.flatMap(({ _id, name, icon }) => {
-          if (_id === "3") {
-            return selectedChat?.isGroupChat === false
-              ? [{ _id, name: `${name} ${selectedChat.name}`, icon }]
-              : [];
-          }
-          if (_id === "4") {
-            return selectedChat?.isGroupChat ? [{ _id, name, icon }] : [];
-          }
-          return [{ _id, name, icon }];
-        })}
+        options={filteredOptions}
         onSelect={handleOptionSelect}
         onCancel={() => setSheetVisible(false)}
       />
@@ -310,62 +254,22 @@ export default function Home() {
   );
 }
 
-// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-
-  // Header
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
     marginVertical: 10,
-    // paddingVertical: 10,
   },
-
-  separator: {
-    height: 1,
-    marginLeft: 78,
+  logo: {
+    width: 50,
+    height: 50,
   },
-
-  storyItem: {
-    width: 70,
-    alignItems: "center",
-    marginRight: 12,
-  },
-  storyAvatarWrapper: {
-    borderRadius: 40,
-    padding: 2,
-  },
-  storyAvatarBorder: {
-    borderWidth: 2,
-    // borderColor: "#25D366",
-  },
-  storyAvatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#ccc",
-  },
-  storyName: {
-    marginTop: 4,
-    fontSize: 12,
-    maxWidth: 70,
-    textAlign: "center",
-  },
-
-  // My Story (+ icon)
-  myStoryAvatarWrapper: {
-    borderWidth: 0,
-    position: "relative",
-  },
-  plusIconWrapper: {
-    position: "absolute",
-    bottom: -2,
-    right: -2,
-    borderRadius: 11,
+  listContent: {
+    paddingBottom: 20,
   },
 });

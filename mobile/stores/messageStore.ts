@@ -1,28 +1,26 @@
-// stores/messageStore.ts
+// store/messageStore.ts
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Message } from "@/types";
 
-interface MessageStore {
+interface MessageState {
   messages: Message[];
-  setMessages: (messages: Message[]) => void;
-  addMessage: (message: Message) => void;
-  updateMessageStatus: (
-    id: string,
-    status: "sent" | "delivered" | "seen"
-  ) => void;
-  clearMessages: () => void;
+  setMessages: (msgs: Message[]) => void;
+  addMessage: (msg: Message) => void;
 }
 
-export const useMessageStore = create<MessageStore>((set) => ({
-  messages: [],
-  setMessages: (messages) => set({ messages }),
-  addMessage: (message) =>
-    set((state) => ({ messages: [...state.messages, message] })),
-  updateMessageStatus: (id, status) =>
-    set((state) => ({
-      messages: state.messages.map((msg) =>
-        msg._id === id ? { ...msg, status } : msg
-      ),
-    })),
-  clearMessages: () => set({ messages: [] }),
-}));
+export const useMessageStore = create<MessageState>()(
+  persist(
+    (set) => ({
+      messages: [],
+      setMessages: (msgs) => set({ messages: msgs }),
+      addMessage: (msg) =>
+        set((state) => ({ messages: [msg, ...state.messages] })),
+    }),
+    {
+      name: "messages-storage",
+      storage: createJSONStorage(() => AsyncStorage),
+    }
+  )
+);

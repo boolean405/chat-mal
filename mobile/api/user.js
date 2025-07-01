@@ -147,7 +147,7 @@ export async function login(email, password) {
 
     // Save user data to localstorage
     if (data.status)
-      await saveUserData(data.result.user, data.result.accessToken);
+      await saveUserData(data.result, data.result.accessToken);
 
     return data;
   } catch (error) {

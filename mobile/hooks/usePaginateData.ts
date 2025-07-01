@@ -34,7 +34,7 @@ export default function usePaginatedData<T>({
       setData((prevData) => {
         const combined = paging ? [...prevData, ...newData] : newData;
         return Array.from(
-          new Map(combined.map((item) => [JSON.stringify(item), item])).values()
+          new Map(combined.map((item: any) => [item._id, item])).values()
         );
       });
     } catch (err) {

@@ -21,14 +21,21 @@ const login = async (req, res, next) => {
       id: existUser._id.toString(),
     });
 
-    await UserDB.findByIdAndUpdate(existUser._id, {
-      refreshToken,
-    });
+    const user = await UserDB.findByIdAndUpdate(
+      existUser._id,
+      {
+        refreshToken,
+      },
+      {
+        new: true,
+      }
+    ).select("-password");
 
-    const user = await UserDB.findById(existUser._id).select("-password");
+    const userWithToken = user.toObject();
+    userWithToken.accessToken = accessToken;
 
     resCookie(req, res, "refreshToken", refreshToken);
-    resJson(res, 200, "Success signin.", { user, accessToken });
+    resJson(res, 200, "Success signin.", userWithToken);
   } catch (error) {
     next(error);
   }

@@ -20,13 +20,13 @@ import MessageItem from "@/components/MessageItem";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useChatData } from "@/hooks/useChatData";
-import LoadingIndicator from "@/components/LoadingIndicator";
 import { getChatPhoto } from "@/utils/getChatPhoto";
 import { useAuthStore } from "@/stores/authStore";
 import { getChatName } from "@/utils/getChatName";
 import usePaginatedData from "@/hooks/usePaginateData";
 import { createMessage, getPaginateMessages } from "@/api/message";
 import { useMessageStore } from "@/stores/messageStore";
+import { useChatStore } from "@/stores/chatStore";
 
 export default function ChatMessage() {
   const router = useRouter();
@@ -47,7 +47,7 @@ export default function ChatMessage() {
     hasMore,
     refresh,
     loadMore,
-    setData: setMessages,
+    setData,
   } = usePaginatedData<Message>({
     fetchData: async (page: number) => {
       const data = await getPaginateMessages(chat?._id, page);
@@ -59,13 +59,6 @@ export default function ChatMessage() {
   });
   const [newMessage, setNewMessage] = useState("");
 
-  // Show latest message
-  useEffect(() => {
-    setTimeout(() => {
-      flatListRef.current?.scrollToEnd({ animated: false });
-    }, 100);
-  }, []);
-
   // Show error if needed
   useEffect(() => {
     if (error) {
@@ -76,16 +69,42 @@ export default function ChatMessage() {
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
 
-    const data = await createMessage(chatId, newMessage.trim());
-    if (data.status) ToastAndroid.show(data.message, ToastAndroid.SHORT);
+    try {
+      const data = await createMessage(chatId, newMessage.trim());
+      const newMsg = data.result;
+      console.log(newMsg.content);
 
-    setNewMessage("");
+      setData((prevMessages) => [newMsg, ...prevMessages]); // PREPEND because list is inverted
+      useMessageStore.getState().addMessage(newMsg);
+      setNewMessage("");
+
+      // Update the chat's last message preview in chat store:
+      const chatStore = useChatStore.getState();
+      const chat = chatStore.getChat(chatId);
+
+      // if (chat) {
+      //   // Update last message preview, timestamp, etc.
+      //   const updatedChat = {
+      //     ...chat,
+      //     lastMessage: newMsg.content || "", // assuming message has text property
+      //     createdAt: newMsg.createdAt || new Date().toISOString(),
+      //   };
+      //   chatStore.setChat(updatedChat);
+      // }
+      setTimeout(() => {
+        flatListRef.current?.scrollToIndex({ index: 0, animated: true });
+      }, 100);
+    } catch (e) {
+      ToastAndroid.show("Failed to send message", ToastAndroid.SHORT);
+    }
   };
+
   if (isLoading || !chat || !user) {
     return null;
   }
   const chatPhoto = getChatPhoto(chat, user._id);
   const chatName = chat.name || getChatName(chat, user._id);
+
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: color.background }]}
@@ -148,20 +167,27 @@ export default function ChatMessage() {
         style={styles.chatList}
         contentContainerStyle={{ padding: 10 }}
         showsVerticalScrollIndicator={false}
-        onRefresh={refresh}
         refreshing={isRefreshing}
         onEndReached={loadMore}
         onEndReachedThreshold={1}
+        inverted={true}
         keyExtractor={(item) => item._id}
-        renderItem={({ item, index }) => (
-          <MessageItem
-            item={item}
-            index={index}
-            messages={messages}
-            isTyping={item._id === "typing"}
-            user={item.sender}
-          />
-        )}
+        renderItem={({ item, index }) => {
+          return (
+            <MessageItem
+              item={item}
+              index={index}
+              messages={messages}
+              isTyping={item._id === "typing"}
+              user={user}
+            />
+          );
+        }}
+        ListFooterComponent={
+          hasMore && isPaging ? (
+            <ActivityIndicator size="small" color={color.icon} />
+          ) : null
+        }
       />
 
       {/* Input Area */}

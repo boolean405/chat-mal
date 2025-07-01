@@ -35,6 +35,6 @@ export const useAuthStore = create<UserStore>((set) => ({
   },
   clearUser: async () => {
     await clearUserData();
-    set({ user: null });
+    set({ user: null, accessToken: null });
   },
 }));

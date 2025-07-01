@@ -99,3 +99,24 @@ const styles = StyleSheet.create({
     paddingLeft: 15,
   },
 });
+
+
+      // {/* Custom Sheet */}
+      // <BottomSheetAction
+      //   color={color}
+      //   visible={isSheetVisible}
+      //   title={selectedChat?.name}
+      //   options={bottomSheetOptions.flatMap(({ _id, name, icon }) => {
+      //     if (_id === "3") {
+      //       return selectedChat?.isGroupChat === false
+      //         ? [{ _id, name: `${name} ${selectedChat.name}`, icon }]
+      //         : [];
+      //     }
+      //     if (_id === "4") {
+      //       return selectedChat?.isGroupChat ? [{ _id, name, icon }] : [];
+      //     }
+      //     return [{ _id, name, icon }];
+      //   })}
+      //   onSelect={handleOptionSelect}
+      //   onCancel={() => setSheetVisible(false)}
+      // />

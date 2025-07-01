@@ -7,6 +7,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { Message, User } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
+import formatDate from "@/utils/formatDate";
 
 function MessageItem({
   item,
@@ -23,27 +24,29 @@ function MessageItem({
 }) {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
+  const isMe = item.sender._id === user._id;
 
-  const isLastOtherBeforeMe =
-    item.sender === "other" &&
-    (index === messages.length - 1 || messages[index + 1].sender === "me");
+  // For inverted list, the "last" message is actually at index 0
+  const isFirstFromSender =
+    !isMe &&
+    (index === 0 || messages[index - 1].sender._id !== item.sender._id);
 
   return (
     <ThemedView
       style={[
         {
-          flexDirection: item.sender === "me" ? "row-reverse" : "row",
+          flexDirection: isMe ? "row-reverse" : "row",
           alignItems: "flex-end",
           marginBottom: 5,
         },
       ]}
     >
-      {item.sender === "other" && (
+      {!isMe && (
         <ThemedView style={styles.avatarContainer}>
-          {isLastOtherBeforeMe ? (
+          {isFirstFromSender ? (
             <Image
               source={{
-                uri: user.profilePhoto,
+                uri: item.sender.profilePhoto,
               }}
               style={styles.avatar}
             />
@@ -56,8 +59,8 @@ function MessageItem({
       <ThemedView
         style={[
           styles.messageContainer,
-          item.sender === "me"
-            ? [styles.myMessage, { backgroundColor: "rgba(230, 70, 160, 0.5)" }]
+          isMe
+            ? [styles.myMessage, { backgroundColor: color.main }]
             : [styles.otherMessage, { backgroundColor: color.secondary }],
           isTyping && styles.typingMessageContainer,
         ]}
@@ -69,9 +72,9 @@ function MessageItem({
         {!isTyping && (
           <View style={styles.timeStatusContainer}>
             <ThemedText type="small" style={styles.timeText}>
-              {item.time}
+              {formatDate(item.createdAt)}
             </ThemedText>
-            {item.sender === "me" && (
+            {isMe && (
               <Ionicons
                 name={
                   item.status === "seen"
@@ -101,9 +104,11 @@ const styles = StyleSheet.create({
   },
   myMessage: {
     alignSelf: "flex-end",
+    borderBottomRightRadius: 0, // Pointy edge for my messages
   },
   otherMessage: {
     alignSelf: "flex-start",
+    borderBottomLeftRadius: 0, // Pointy edge for other messages
   },
   timeText: {
     color: "#888",
@@ -111,6 +116,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   avatarContainer: {
+    width: 28,
+    height: 28,
     marginRight: 8,
   },
   avatar: {
@@ -140,10 +147,10 @@ const styles = StyleSheet.create({
   },
 });
 
-// Wrap with React.memo and add a custom prop comparison
 export default React.memo(MessageItem, (prevProps, nextProps) => {
   return (
-    prevProps.item === nextProps.item &&
-    prevProps.isTyping === nextProps.isTyping
+    prevProps.item._id === nextProps.item._id &&
+    prevProps.isTyping === nextProps.isTyping &&
+    prevProps.item.status === nextProps.item.status
   );
 });
