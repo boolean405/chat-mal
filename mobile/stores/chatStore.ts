@@ -10,7 +10,7 @@ interface ChatStore {
   setChats: (newChats: Chat[]) => void;
   updateChat: (updatedChat: Chat) => void;
   clearChat: (chatId: string) => void;
-  leaveGroup: (groupId: string) => void;
+  clearGroup: (groupId: string) => void;
   clearChats: () => void;
   // New methods
   getChatById: (chatId: string) => Chat | undefined;
@@ -72,7 +72,7 @@ export const useChatStore = create<ChatStore>()(
           currentChat:
             state.currentChat?._id === chatId ? null : state.currentChat,
         })),
-      leaveGroup: (groupId) =>
+      clearGroup: (groupId) =>
         set((state) => ({
           chats: state.chats.filter((chat) => chat._id !== groupId),
           currentChat:

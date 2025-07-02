@@ -39,6 +39,7 @@ export type Chat = {
   _id: string;
   name: string;
   isGroupChat: boolean;
+  isPending: boolean;
   initiator: User;
   users: {
     user: User;
@@ -71,6 +72,7 @@ export type BottomSheetOption = {
   _id: string;
   name: string;
   icon: string;
+  path: string;
 };
 
 export type MessageStatus = "sent" | "delivered" | "seen";

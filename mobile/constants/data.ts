@@ -1,0 +1,113 @@
+import { BottomSheetOption, DetailItem } from "@/types";
+
+export const DetailsData: (DetailItem & {
+  showFor: "all" | "group" | "chat";
+})[] = [
+  {
+    id: "1",
+    label: "Search in chat",
+    iconName: "search-outline",
+    path: "/search",
+    showFor: "all",
+  },
+  {
+    id: "2",
+    label: "Archive",
+    iconName: "archive-outline",
+    path: "/archive",
+    showFor: "all",
+  },
+  {
+    id: "3",
+    label: "Mute",
+    iconName: "notifications-off-outline",
+    path: "/mute",
+    showFor: "all",
+  },
+  {
+    id: "4",
+    label: `Create group chat with`,
+    iconName: "person-outline",
+    path: "/create-group",
+    showFor: "chat",
+  },
+  {
+    id: "5",
+    label: "Members",
+    iconName: "people-outline",
+    path: "/members",
+    showFor: "group",
+  },
+  {
+    id: "6",
+    label: "Block",
+    iconName: "remove-circle-outline",
+    path: "/block",
+    showFor: "chat",
+  },
+  {
+    id: "7",
+    label: "Leave group",
+    iconName: "log-out-outline",
+    path: "/leave-group",
+    showFor: "group",
+  },
+  {
+    id: "8",
+    label: "Delete",
+    iconName: "trash-outline",
+    path: "/delete",
+    showFor: "all",
+  },
+];
+
+export const bottomSheetOptionsData: (BottomSheetOption & {
+  showFor: "all" | "group" | "chat";
+})[] = [
+  {
+    _id: "1",
+    name: "Archive",
+    icon: "archive-outline",
+    path: "/archive",
+    showFor: "all",
+  },
+  {
+    _id: "2",
+    name: "Mute",
+    icon: "notifications-off-outline",
+    path: "/mute",
+    showFor: "all",
+  },
+  {
+    _id: "3",
+    name: "Create group chat with",
+    icon: "people-outline",
+    path: "/create-group",
+    showFor: "chat",
+  },
+  {
+    _id: "4",
+    name: "Leave group",
+    icon: "exit-outline",
+    path: "/leave-group",
+    showFor: "group",
+  },
+  {
+    _id: "5",
+    name: "Delete",
+    icon: "trash-outline",
+    path: "/delete",
+    showFor: "all",
+  },
+];
+
+// Helper to get options based on chat type
+export const getBottomSheetOptions = (
+  isGroupChat: boolean
+): BottomSheetOption[] => {
+  return bottomSheetOptionsData.filter((option) => {
+    if (option._id === "3" && isGroupChat) return false; // Hide "Create group chat with" for groups
+    if (option._id === "4" && !isGroupChat) return false; // Hide "Leave group" for non-groups
+    return true;
+  });
+};

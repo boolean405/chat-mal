@@ -20,7 +20,7 @@ import { getChatPhoto } from "@/utils/getChatPhoto";
 import { getChatName } from "@/utils/getChatName";
 import { useAuthStore } from "@/stores/authStore";
 import { useChatStore } from "@/stores/chatStore";
-import { DetailData } from "@/data";
+import { DetailsData } from "@/constants/data";
 
 export default function Detail() {
   const router = useRouter();
@@ -40,7 +40,7 @@ export default function Detail() {
   const chatName = chat.name || getChatName(chat, user._id);
 
   // Filter based on chat type
-  const Details: DetailItem[] = DetailData.filter(
+  const Details: DetailItem[] = DetailsData.filter(
     (item) =>
       item.showFor === "all" ||
       (chat?.isGroupChat && item.showFor === "group") ||
