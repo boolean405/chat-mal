@@ -83,7 +83,7 @@ export default function VerifyEmailScreen() {
           const data = await registerVerify(email, code);
           if (data.status) {
             setIsVerified(true);
-            setUser(data.result, data.result.accessToken);
+            setUser(data.result.user, data.result.accessToken);
             await new Promise((r) => setTimeout(r, 1e3));
             router.replace("/(auth)/upload-photo");
           }

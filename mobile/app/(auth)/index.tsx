@@ -7,6 +7,7 @@ import { APP_NAME, APP_TAGLINE } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useAuthStore } from "@/stores/authStore";
+import { useChatStore } from "@/stores/chatStore";
 
 const { width } = Dimensions.get("window");
 
@@ -14,6 +15,8 @@ export default function FlashScreen() {
   const router = useRouter();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const loadUser = useAuthStore((state) => state.loadUser);
+  const { chats } = useChatStore();
+  console.log(`Loaded ${chats.length} chats`);
 
   useEffect(() => {
     // Pulsing animation on logo
@@ -37,6 +40,7 @@ export default function FlashScreen() {
     const checkAuth = async () => {
       try {
         await loadUser();
+
         const user = useAuthStore.getState().user;
         setTimeout(() => {
           router.replace(user ? "/(tab)" : "/(auth)/login-or-register");

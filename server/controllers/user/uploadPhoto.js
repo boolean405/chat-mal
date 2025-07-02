@@ -35,16 +35,20 @@ export default async function uploadPhoto(req, res, next) {
       );
     }
 
-    await UserDB.findByIdAndUpdate(user._id, editedPhoto);
-    const updatedUser = await UserDB.findById(user._id).select("-password");
+    // Update and return the updated user in one step
+    const updatedUser = await UserDB.findByIdAndUpdate(user._id, editedPhoto, {
+      new: true,
+      select: "-password",
+    });
 
     const accessToken = Token.makeAccessToken({
       id: updatedUser._id.toString(),
     });
-    const userWithToken = updatedUser.toObject();
-    userWithToken.accessToken = accessToken;
 
-    resJson(res, 200, "Success uupload photo.", userWithToken);
+    resJson(res, 200, "Success upload photo.", {
+      user: updatedUser,
+      accessToken,
+    });
   } catch (error) {
     next(error);
   }

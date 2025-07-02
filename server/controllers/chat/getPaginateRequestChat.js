@@ -19,17 +19,10 @@ export default async function getPaginateRequestChat(req, res, next) {
     const skipCount = limit * (page - 1);
 
     const filter = {
-      // latestMessage: { $ne: null },
+      latestMessage: { $ne: null },
       isPending: true, // only pending requests
       "users.user": userId, // user is one of the chat members
       initiator: { $ne: userId }, // NOT initiated by the current user
-      deletedInfos: {
-        $not: {
-          $elemMatch: {
-            user: userId,
-          },
-        },
-      },
     };
 
     const [chats, totalChat] = await Promise.all([

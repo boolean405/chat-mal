@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import "react-native-reanimated";
 import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
@@ -13,7 +14,6 @@ import {
 import { useColorScheme } from "@/hooks/useColorScheme";
 import SafeScreen from "@/components/SafeScreen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useEffect } from "react";
 
 SplashScreen.preventAutoHideAsync();
 

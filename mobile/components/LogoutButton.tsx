@@ -8,10 +8,9 @@ import { useRouter } from "expo-router";
 import React from "react";
 import { Alert, StyleSheet, TouchableOpacity } from "react-native";
 
-const router = useRouter();
-
 export const LogoutButton: React.FC = () => {
-  const { clearUser } = useAuthStore();
+  const router = useRouter();
+  const clearUser = useAuthStore((state) => state.clearUser);
   const { clearChats } = useChatStore();
   const { clearAllMessages } = useMessageStore();
   const handleLogout = () => {
@@ -29,9 +28,10 @@ export const LogoutButton: React.FC = () => {
             //   Alert.alert("Error", data.message || "Failed to logout!");
             //   return;
             // }
+
             clearUser();
-            clearChats();
-            clearAllMessages();
+            // clearChats();
+            // clearAllMessages();
 
             router.replace("/(auth)");
           } catch (error: any) {

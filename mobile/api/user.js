@@ -2,7 +2,6 @@ import api from "../config/axios";
 import { jwtDecode } from "jwt-decode";
 
 import {
-  clearUserData,
   getAccessToken,
   getUserData,
   saveUserData,
@@ -16,7 +15,6 @@ export async function existEmail(email) {
         email,
       },
     });
-
     return response.data;
   } catch (error) {
     const message = error.response?.data?.message || "Something went wrong";
@@ -34,7 +32,6 @@ export async function existUsername(username) {
         username,
       },
     });
-
     return response.data;
   } catch (error) {
     const message = error.response?.data?.message || "Something went wrong";
@@ -147,7 +144,8 @@ export async function login(email, password) {
     const data = response.data;
 
     // Save user data to localstorage
-    if (data.status) await saveUserData(data.result, data.result.accessToken);
+    if (data.status)
+      await saveUserData(data.result.user, data.result.accessToken);
 
     return data;
   } catch (error) {
@@ -170,8 +168,8 @@ export async function uploadPhoto(profilePhoto, coverPhoto) {
     const response = await api.patch("/api/user/upload-photo", obj);
     const data = response.data;
     // Save user data to localstorage
-    // if (data.status)
-    //   await saveUserData(data.result.user, data.result.accessToken);
+    if (data.status)
+      await saveUserData(data.result.user, data.result.accessToken);
 
     return data;
   } catch (error) {
@@ -336,25 +334,6 @@ export async function getPaginateUsers(PageNum, keyword, gender, isOnline) {
       `/api/user/paginate/${PageNum}?keyword=${keyword}&gender=${gender}&isOnline=${isOnline}`
     );
     return response.data;
-  } catch (error) {
-    const message = error.response?.data?.message || "Something went wrong";
-    const customError = new Error(message);
-    customError.status = error.response?.status;
-    throw customError;
-  }
-}
-
-// Logout
-export async function logout() {
-  try {
-    await refresh();
-    const response = await api.post("/api/user/logout");
-    const data = response.data;
-
-    // Clear user data from localstorage
-    if (data.status) await clearUserData();
-
-    return data;
   } catch (error) {
     const message = error.response?.data?.message || "Something went wrong";
     const customError = new Error(message);

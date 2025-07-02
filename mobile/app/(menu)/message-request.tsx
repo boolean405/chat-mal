@@ -62,8 +62,6 @@ export default function MessageRequest() {
     clearGroup,
   });
 
-  const pendingChats = chats.filter((chat) => chat.isPending);
-
   useEffect(() => {
     const checkStorage = async () => {
       await AsyncStorage.getItem("chat-storage");
@@ -79,6 +77,9 @@ export default function MessageRequest() {
   }, [newChats]);
 
   if (!user || !chats) return null;
+  const pendingChats = chats.filter(
+    (chat) => chat.isPending && chat.initiator?._id !== user._id
+  );
 
   // Handle chat press
   const handleChat = (chat: Chat) => {

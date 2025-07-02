@@ -22,7 +22,10 @@ export default async function deleteChat(req, res, next) {
     );
     if (!isUserInChat) throw resError(400, "You are not a user of this chat!");
 
-    // Add user to deletedInfos
+    // Remove old deletedInfos for this user, then add the new one
+    await ChatDB.findByIdAndUpdate(chatId, {
+      $pull: { deletedInfos: { user: userId } },
+    });
     await ChatDB.findByIdAndUpdate(chatId, {
       $addToSet: {
         deletedInfos: {

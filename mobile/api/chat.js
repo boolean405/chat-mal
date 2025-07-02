@@ -1,11 +1,4 @@
 import api from "@/config/axios";
-import { jwtDecode } from "jwt-decode";
-
-import {
-  getAccessToken,
-  getUserData,
-  saveUserData,
-} from "../storage/authStorage";
 import { refresh } from "@/api/user";
 
 export async function getPaginateChats(pageNum) {
@@ -98,8 +91,7 @@ export async function createOrOpen(receiverId) {
     const response = await api.post("/api/chat", {
       receiverId,
     });
-    const data = response.data;
-    return data;
+    return response;
   } catch (error) {
     const message = error.response?.data?.message || "Something went wrong";
     const customError = new Error(message);

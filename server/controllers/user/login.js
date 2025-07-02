@@ -31,11 +31,8 @@ const login = async (req, res, next) => {
       }
     ).select("-password");
 
-    const userWithToken = user.toObject();
-    userWithToken.accessToken = accessToken;
-
     resCookie(req, res, "refreshToken", refreshToken);
-    resJson(res, 200, "Success signin.", userWithToken);
+    resJson(res, 200, "Success signin.", { user, accessToken });
   } catch (error) {
     next(error);
   }

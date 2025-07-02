@@ -20,12 +20,12 @@ import MessageItem from "@/components/MessageItem";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { getChatPhoto } from "@/utils/getChatPhoto";
-import { useAuthStore } from "@/stores/authStore";
 import { getChatName } from "@/utils/getChatName";
 import usePaginatedData from "@/hooks/usePaginateData";
 import { createMessage, getPaginateMessages } from "@/api/message";
 import { useMessageStore } from "@/stores/messageStore";
 import { useChatStore } from "@/stores/chatStore";
+import { useAuthStore } from "@/stores/authStore";
 
 export default function ChatMessage() {
   const router = useRouter();
@@ -53,29 +53,23 @@ export default function ChatMessage() {
     new Map(currentMessagesRaw.map((msg) => [msg._id, msg])).values()
   );
   // Pagination handling
-  const {
-    isLoading: loading,
-    isRefreshing,
-    isPaging,
-    hasMore,
-    refresh,
-    loadMore,
-  } = usePaginatedData<Message>({
-    fetchData: async (page: number) => {
-      if (!chatId) return { items: [], totalPage: 0 };
-      const data = await getPaginateMessages(chatId, page);
-      // Store the messages in Zustand
-      if (page === 1) {
-        setMessages(chatId, data.result.messages);
-      } else {
-        prependMessages(chatId, data.result.messages);
-      }
-      return {
-        items: data.result.messages,
-        totalPage: data.result.totalPage,
-      };
-    },
-  });
+  const { isLoading, isRefreshing, isPaging, hasMore, refresh, loadMore } =
+    usePaginatedData<Message>({
+      fetchData: async (page: number) => {
+        if (!chatId) return { items: [], totalPage: 0 };
+        const data = await getPaginateMessages(chatId, page);
+        // Store the messages in Zustand
+        if (page === 1) {
+          setMessages(chatId, data.result.messages);
+        } else {
+          prependMessages(chatId, data.result.messages);
+        }
+        return {
+          items: data.result.messages,
+          totalPage: data.result.totalPage,
+        };
+      },
+    });
 
   // Set current chat when screen mounts
   useEffect(() => {
@@ -185,7 +179,7 @@ export default function ChatMessage() {
         ref={flatListRef}
         data={currentMessages}
         style={styles.chatList}
-        contentContainerStyle={{  padding: 10 }}
+        contentContainerStyle={{ padding: 10 }}
         showsVerticalScrollIndicator={false}
         refreshing={isRefreshing}
         onEndReached={loadMore}

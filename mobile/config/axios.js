@@ -1,9 +1,6 @@
 import axios from "axios";
-
-import { getAccessToken } from "@/storage/authStorage";
-
+import { useAuthStore } from "@/stores/authStore";
 const SERVER_URL = process.env.EXPO_PUBLIC_SERVER_URL;
-// const API_URL = `${SERVER_URL}/api/user`;
 
 export const api = axios.create({
   baseURL: SERVER_URL,
@@ -15,7 +12,8 @@ export const api = axios.create({
 
 // Automatically attach access token to all requests
 api.interceptors.request.use(async (config) => {
-  const accessToken = await getAccessToken();
+  const accessToken = useAuthStore.getState().accessToken;
+
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }

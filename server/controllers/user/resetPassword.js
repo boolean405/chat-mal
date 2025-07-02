@@ -11,7 +11,7 @@ import sendEmail from "../../utils/sendEmail.js";
 import resCookie from "../../utils/resCookie.js";
 import { APP_NAME } from "../../constants/index.js";
 
-const resetPassword = async (req, res, next) => {
+export default async function resetPassword(req, res, next) {
   try {
     const { email, newPassword } = req.body;
 
@@ -20,9 +20,6 @@ const resetPassword = async (req, res, next) => {
 
     // Password Encryption
     const newHashedPassword = Encoder.encode(newPassword);
-    await UserDB.findByIdAndUpdate(user._id, {
-      password: newHashedPassword,
-    });
 
     const refreshToken = Token.makeRefreshToken({
       id: user._id.toString(),
@@ -31,12 +28,14 @@ const resetPassword = async (req, res, next) => {
       id: user._id.toString(),
     });
 
-    await UserDB.findByIdAndUpdate(user._id, {
-      refreshToken,
-    });
+    // Update password and refreshToken, return updated user (excluding password)
+    const updatedUser = await UserDB.findByIdAndUpdate(
+      user._id,
+      { password: newHashedPassword, refreshToken },
+      { new: true, select: "-password" }
+    );
 
     // Send verified email
-    // Load the HTML file
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
     let htmlFile = fs.readFileSync(
@@ -44,12 +43,6 @@ const resetPassword = async (req, res, next) => {
       "utf8"
     );
 
-    // htmlFile = htmlFile.replace(
-    //   "{verifiedImage}",
-    //   `${process.env.SERVER_URL}/image/verified`
-    // );
-
-    const updatedUser = await UserDB.findById(user._id).select("-password");
     await sendEmail(
       updatedUser.email,
       `[${APP_NAME}] Password Successfully Changed`,
@@ -65,6 +58,4 @@ const resetPassword = async (req, res, next) => {
     error.status = error.status;
     next(error);
   }
-};
-
-export default resetPassword;
+}

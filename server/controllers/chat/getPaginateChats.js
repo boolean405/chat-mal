@@ -25,13 +25,6 @@ export default async function getPaginateChats(req, res, next) {
         { initiator: userId }, // show pending requests only if user initiated
       ],
       // latestMessage: { $ne: null },
-      deletedInfos: {
-        $not: {
-          $elemMatch: {
-            user: userId,
-          },
-        },
-      },
     };
 
     const [chats, totalCount] = await Promise.all([

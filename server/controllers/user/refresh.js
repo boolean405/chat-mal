@@ -4,30 +4,28 @@ import Token from "../../utils/token.js";
 import resError from "../../utils/resError.js";
 import resCookie from "../../utils/resCookie.js";
 
-const refresh = async (req, res, next) => {
+export default async function refresh(req, res, next) {
   try {
-    const decodedId = req.decodedId;
-    const user = await UserDB.findById(decodedId);
-    if (!user) throw resError(404, "User not found!");
+    const userId = req.decodedId;
+    const user = await UserDB.exists({ _id: userId });
+    if (!user) throw resError(404, "Authenticated user not found!");
 
     const accessToken = Token.makeAccessToken({
-      id: user._id.toString(),
+      id: userId,
     });
     const refreshToken = Token.makeRefreshToken({
-      id: user._id.toString(),
+      id: userId,
     });
 
-    await UserDB.findByIdAndUpdate(user._id, { refreshToken });
-    const updatedUser = await UserDB.findById(user._id).select("-password");
-
-    const userWithToken = updatedUser.toObject();
-    userWithToken.accessToken = accessToken;
+    const updatedUser = await UserDB.findByIdAndUpdate(
+      user._id,
+      { refreshToken },
+      { new: true, select: "-password" }
+    );
 
     resCookie(req, res, "refreshToken", refreshToken);
-    resJson(res, 200, "Success refresh.", userWithToken);
+    resJson(res, 200, "Success refresh.", { user: updatedUser, accessToken });
   } catch (error) {
     next(error);
   }
-};
-
-export default refresh;
+}

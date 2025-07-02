@@ -25,8 +25,23 @@ export default async function getPaginateMessages(req, res, next) {
     const limit = Number(process.env.PAGINATE_LIMIT) || 15;
     const skipCount = limit * (page - 1);
 
+    // Find deletedAt for this user in this chat
+    let deletedAt = null;
+    if (dbChat.deletedInfos && dbChat.deletedInfos.length > 0) {
+      const info = dbChat.deletedInfos.find(
+        (i) => i.user.toString() === userId.toString()
+      );
+      if (info) deletedAt = info.deletedAt;
+    }
+
+    // Only fetch messages after deletedAt if exists
+    let messageFilter = { chat: chatId };
+    if (deletedAt) {
+      messageFilter.createdAt = { $gt: deletedAt };
+    }
+
     const [messages, totalCount] = await Promise.all([
-      MessageDB.find({ chat: chatId })
+      MessageDB.find(messageFilter)
         .sort({ updatedAt: -1 })
         .skip(skipCount)
         .limit(limit)

@@ -20,12 +20,14 @@ import UserItem from "@/components/UserItem";
 import { useUsersSearchStore } from "@/stores/usersSearchStore";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { User } from "@/types";
+import { useChatStore } from "@/stores/chatStore";
 
 export default function Search() {
   const router = useRouter();
   const inputRef = useRef<TextInput>(null);
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
+  const { setChats, getChatById } = useChatStore();
 
   const {
     results,
@@ -59,11 +61,21 @@ export default function Search() {
 
   const handleResult = async (user: User) => {
     try {
-      const data = await createOrOpen(user._id);
-      if (data.status) {
+      const response = await createOrOpen(user._id);
+      const chat = response.data.result;
+      if (response.status === 200) {
+        if (chat.isPending && !getChatById(chat._id)) {
+          setChats([chat]);
+        }
         router.push({
           pathname: "/(chat)",
-          params: { chatId: data.result._id },
+          params: { chatId: chat._id },
+        });
+      } else if (response.status === 201) {
+        setChats([response.data.result]);
+        router.push({
+          pathname: "/(chat)",
+          params: { chatId: chat._id },
         });
       }
     } catch (err: any) {

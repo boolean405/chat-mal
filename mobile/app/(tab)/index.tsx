@@ -49,6 +49,7 @@ export default function Home() {
   const color = Colors[colorScheme ?? "light"];
   const user = useAuthStore((state) => state.user);
   const { chats, setChats, updateChat, clearChat, clearGroup } = useChatStore();
+  if (!user) return null;
 
   // Paginated data handling
   const {
@@ -83,13 +84,6 @@ export default function Home() {
     clearGroup,
   });
 
-  useEffect(() => {
-    const checkStorage = async () => {
-      await AsyncStorage.getItem("chat-storage");
-    };
-    checkStorage();
-  }, []);
-
   // Update store when new chats are fetched
   useEffect(() => {
     if (newChats.length > 0) {
@@ -97,9 +91,9 @@ export default function Home() {
     }
   }, [newChats]);
 
-  const allChats = chats.filter((chat) => !chat.isPending);
-
-  if (!user) return null;
+  const allChats = chats.filter(
+    (chat) => !chat.isPending || chat.initiator?._id === user._id
+  );
 
   // Update chat press handler
   const handleChatPress = useCallback(
