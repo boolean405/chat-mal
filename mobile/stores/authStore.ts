@@ -1,40 +1,37 @@
 import { create } from "zustand";
-import {
-  clearUserData,
-  getAccessToken,
-  getUserData,
-  saveUserData,
-} from "@/storage/authStorage";
-import { User } from "@/types";
+import { persist, createJSONStorage } from "zustand/middleware";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-type UserStore = {
+type User = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+type UserState = {
   user: User | null;
   accessToken: string | null;
-  isLoading: boolean;
-  setUser: (user: User | null, accessToken: string | null) => void;
-  loadUser: () => Promise<void>;
+  setUser: (user: User, accessToken: string) => void;
   clearUser: () => void;
 };
 
-export const useAuthStore = create<UserStore>((set) => ({
-  user: null,
-  accessToken: null,
-  isLoading: false,
-  setUser: async (user, accessToken) => {
-    set({ user, accessToken });
-    if (user && accessToken) {
-      await saveUserData(user, accessToken);
-    } else {
-      clearUserData(); // optional: clear if null is passed
+export const useAuthStore = create<UserState>()(
+  persist(
+    (set) => ({
+      user: null,
+      accessToken: null,
+
+      setUser: (user, accessToken) => {
+        set({ user, accessToken });
+      },
+
+      clearUser: () => {
+        set({ user: null, accessToken: null });
+      },
+    }),
+    {
+      name: "user-storage",
+      storage: createJSONStorage(() => AsyncStorage),
     }
-  },
-  loadUser: async () => {
-    const user = await getUserData();
-    const accessToken = await getAccessToken();
-    set({ user, accessToken });
-  },
-  clearUser: async () => {
-    await clearUserData();
-    set({ user: null });
-  },
-}));
+  )
+);
