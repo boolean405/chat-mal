@@ -61,9 +61,9 @@ export default function Home() {
   const user = useAuthStore((state) => state.user);
   const {
     chats: storedChats,
-    addChats,
+    setChats,
     updateChat,
-    deleteChat: deleteChatFromStore,
+    clearChat,
     leaveGroup: leaveGroupFromStore,
   } = useChatStore();
 
@@ -96,7 +96,7 @@ export default function Home() {
   // Update store when new chats are fetched
   useEffect(() => {
     if (newChats.length > 0) {
-      addChats(newChats);
+      setChats(newChats);
     }
   }, [newChats]);
 
@@ -136,7 +136,7 @@ export default function Home() {
           const data = await deleteChat(selectedChat._id);
           if (data.status) {
             ToastAndroid.show(data.message, ToastAndroid.SHORT);
-            deleteChatFromStore(selectedChat._id);
+            clearChat(selectedChat._id);
           }
         },
       },
@@ -157,7 +157,7 @@ export default function Home() {
 
         // Manually add the new group to the top of the list
         if (data.result) {
-          addChats([data.result]);
+          setChats([data.result]);
         }
       }
     } catch (error: any) {
@@ -165,7 +165,7 @@ export default function Home() {
     } finally {
       setIsLoadingAction(false);
     }
-  }, [selectedChat, addChats, refresh]);
+  }, [selectedChat, setChats, refresh]);
 
   // Leave group handler
   const handleLeaveGroup = useCallback(async () => {

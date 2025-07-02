@@ -7,9 +7,9 @@ import { Chat } from "@/types";
 interface ChatStore {
   chats: Chat[];
   currentChat: Chat | null; // Add current chat tracking
-  addChats: (newChats: Chat[]) => void;
+  setChats: (newChats: Chat[]) => void;
   updateChat: (updatedChat: Chat) => void;
-  deleteChat: (chatId: string) => void;
+  clearChat: (chatId: string) => void;
   leaveGroup: (groupId: string) => void;
   clearChats: () => void;
   // New methods
@@ -22,7 +22,7 @@ export const useChatStore = create<ChatStore>()(
     (set, get) => ({
       chats: [],
       currentChat: null,
-      addChats: (newChats) =>
+      setChats: (newChats) =>
         set((state) => {
           const existingIds = new Set(state.chats.map((c) => c._id));
           const uniqueNewChats = newChats.filter(
@@ -66,7 +66,7 @@ export const useChatStore = create<ChatStore>()(
                 : state.currentChat,
           };
         }),
-      deleteChat: (chatId) =>
+      clearChat: (chatId) =>
         set((state) => ({
           chats: state.chats.filter((chat) => chat._id !== chatId),
           currentChat:

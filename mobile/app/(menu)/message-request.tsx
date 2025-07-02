@@ -46,7 +46,7 @@ export default function MessageRequest() {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
   const user = useAuthStore((state) => state.user);
-  const { setChat } = useChatStore();
+  const { setChats } = useChatStore();
 
   const {
     data: chats,
@@ -56,7 +56,7 @@ export default function MessageRequest() {
     hasMore,
     refresh,
     loadMore,
-    setData: setChats,
+    setData,
   } = usePaginatedData<Chat>({
     fetchData: async (page: number) => {
       const data = await getPaginateRequestChats(page);
@@ -84,7 +84,7 @@ export default function MessageRequest() {
 
   // Handle chat press
   const handleChat = (chat: Chat) => {
-    setChat(chat._id, chat);
+    setChats([chat]); // Add chat to store
 
     router.push({
       pathname: "/(chat)",
@@ -121,7 +121,7 @@ export default function MessageRequest() {
                 if (data.status)
                   ToastAndroid.show(data.message, ToastAndroid.SHORT);
 
-                setChats((prev) =>
+                setData((prev) =>
                   prev.filter((c) => c._id !== selectedChat?._id)
                 );
               } catch (error: any) {
@@ -167,7 +167,7 @@ export default function MessageRequest() {
                 if (data.status)
                   ToastAndroid.show(data.message, ToastAndroid.SHORT);
 
-                setChats((prev) =>
+                setData((prev) =>
                   prev.filter((c) => c._id !== selectedChat?._id)
                 );
               } catch (error: any) {
