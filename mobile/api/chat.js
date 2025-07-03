@@ -131,3 +131,19 @@ export async function addUsersToGroup(groupId, userIds) {
     throw customError;
   }
 }
+
+// Accept chat request
+export async function acceptChatRequest(chatId) {
+  try {
+    await refresh();
+    const response = await api.patch("/api/chat/accept-chat-request", {
+      chatId,
+    });
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Something went wrong";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}

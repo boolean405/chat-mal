@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -13,7 +14,7 @@ import {
   useColorScheme,
 } from "react-native";
 
-import { Message } from "@/types";
+import { Chat, Message } from "@/types";
 import { Colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import MessageItem from "@/components/MessageItem";
@@ -26,6 +27,7 @@ import { createMessage, getPaginateMessages } from "@/api/message";
 import { useMessageStore } from "@/stores/messageStore";
 import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
+import { acceptChatRequest, deleteChat } from "@/api/chat";
 
 export default function ChatMessage() {
   const router = useRouter();
@@ -36,9 +38,8 @@ export default function ChatMessage() {
   const user = useAuthStore((state) => state.user);
   const { chatId: rawChatId } = useLocalSearchParams();
   const chatId = Array.isArray(rawChatId) ? rawChatId[0] : rawChatId;
-
   // Get chat and messages from stores
-  const { currentChat, getChatById, setCurrentChat, updateChat } =
+  const { currentChat, getChatById, setCurrentChat, updateChat, clearChat } =
     useChatStore();
   const {
     messages: storedMessages,
@@ -52,24 +53,33 @@ export default function ChatMessage() {
   const currentMessages = Array.from(
     new Map(currentMessagesRaw.map((msg) => [msg._id, msg])).values()
   );
+  const [newMessage, setNewMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
   // Pagination handling
-  const { isLoading, isRefreshing, isPaging, hasMore, refresh, loadMore } =
-    usePaginatedData<Message>({
-      fetchData: async (page: number) => {
-        if (!chatId) return { items: [], totalPage: 0 };
-        const data = await getPaginateMessages(chatId, page);
-        // Store the messages in Zustand
-        if (page === 1) {
-          setMessages(chatId, data.result.messages);
-        } else {
-          prependMessages(chatId, data.result.messages);
-        }
-        return {
-          items: data.result.messages,
-          totalPage: data.result.totalPage,
-        };
-      },
-    });
+  const {
+    isLoading: loading,
+    isRefreshing,
+    isPaging,
+    hasMore,
+    refresh,
+    loadMore,
+  } = usePaginatedData<Message>({
+    fetchData: async (page: number) => {
+      if (!chatId) return { items: [], totalPage: 0 };
+      const data = await getPaginateMessages(chatId, page);
+      // Store the messages in Zustand
+      if (page === 1) {
+        setMessages(chatId, data.result.messages);
+      } else {
+        prependMessages(chatId, data.result.messages);
+      }
+      return {
+        items: data.result.messages,
+        totalPage: data.result.totalPage,
+      };
+    },
+  });
 
   // Set current chat when screen mounts
   useEffect(() => {
@@ -87,8 +97,13 @@ export default function ChatMessage() {
     };
   }, [chatId]);
 
-  const [newMessage, setNewMessage] = useState("");
+  if (!user || !currentChat) return null;
+  const chatPhoto = getChatPhoto(currentChat, user._id);
+  const chatName = currentChat.name || getChatName(currentChat, user._id);
+  const isPendingChat =
+    currentChat.isPending && currentChat.initiator?._id !== user._id;
 
+  // Handle send message
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !chatId || !currentChat) return;
 
@@ -112,10 +127,47 @@ export default function ChatMessage() {
     }
   };
 
-  if (!user || !currentChat) return null;
+  // Handle request chat
+  const handleAccept = async () => {
+    setIsLoading(true);
+    try {
+      await acceptChatRequest(chatId);
+      const newUpdatedChat = {
+        ...currentChat,
+        isPending: false,
+      };
+      updateChat(newUpdatedChat);
+    } catch (error: any) {
+      ToastAndroid.show(error.message, ToastAndroid.SHORT);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const chatPhoto = getChatPhoto(currentChat, user._id);
-  const chatName = currentChat.name || getChatName(currentChat, user._id);
+  // Handle delete chat
+  const handleDelete = () => {
+    Alert.alert("Delete Chat", "Are you sure you want to delete this chat?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          // Call async logic but don't make onPress async
+          setIsLoading(true);
+          try {
+            const data = await deleteChat(chatId);
+            ToastAndroid.show(data.message, ToastAndroid.SHORT);
+            clearChat(chatId);
+            router.back();
+          } catch (error: any) {
+            ToastAndroid.show(error.message, ToastAndroid.SHORT);
+          } finally {
+            setIsLoading(false);
+          }
+        },
+      },
+    ]);
+  };
 
   return (
     <KeyboardAvoidingView
@@ -136,39 +188,42 @@ export default function ChatMessage() {
         <ThemedText type="subtitle" style={styles.headerTitle}>
           {chatName}
         </ThemedText>
-        <ThemedView style={styles.headerIcons}>
-          <TouchableOpacity onPress={() => console.log("Voice call")}>
-            <Ionicons
-              name="call-outline"
-              size={22}
-              style={styles.icon}
-              color={color.icon}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => console.log("Video call")}>
-            <Ionicons
-              name="videocam-outline"
-              size={22}
-              style={styles.icon}
-              color={color.icon}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() =>
-              router.push({
-                pathname: "/(chat)/detail",
-                params: { chatId },
-              })
-            }
-          >
-            <Ionicons
-              name="ellipsis-vertical-outline"
-              size={22}
-              style={styles.icon}
-              color={color.icon}
-            />
-          </TouchableOpacity>
-        </ThemedView>
+        {/* Header icons */}
+        {!isPendingChat && (
+          <ThemedView style={styles.headerIcons}>
+            <TouchableOpacity onPress={() => console.log("Voice call")}>
+              <Ionicons
+                name="call-outline"
+                size={22}
+                style={styles.icon}
+                color={color.icon}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => console.log("Video call")}>
+              <Ionicons
+                name="videocam-outline"
+                size={22}
+                style={styles.icon}
+                color={color.icon}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: "/(chat)/detail",
+                  params: { chatId },
+                })
+              }
+            >
+              <Ionicons
+                name="ellipsis-vertical-outline"
+                size={22}
+                style={styles.icon}
+                color={color.icon}
+              />
+            </TouchableOpacity>
+          </ThemedView>
+        )}
       </ThemedView>
 
       {/* Messages */}
@@ -199,42 +254,75 @@ export default function ChatMessage() {
         }
       />
 
-      {/* Input Area */}
-      <ThemedView style={[styles.inputContainer]}>
-        <ThemedView
-          style={[
-            styles.inputTextContainer,
-            { backgroundColor: color.secondary },
-          ]}
-        >
-          <TouchableOpacity style={styles.imageButton}>
-            <Ionicons name="happy-outline" size={22} color={color.icon} />
-          </TouchableOpacity>
-          <TextInput
-            value={newMessage}
-            onChangeText={setNewMessage}
-            style={[styles.textInput, { color: color.text }]}
-            placeholder="Type a message"
-            placeholderTextColor="gray"
-            multiline
-          />
+      {/* Input Area and requset icon*/}
+      {isPendingChat ? (
+        <ThemedView style={styles.pendingButtonContainer}>
           <TouchableOpacity
-            onPress={() => console.log("image")}
-            style={styles.imageButton}
+            disabled={isLoading}
+            style={[styles.pendingButton, { backgroundColor: color.secondary }]}
+            onPress={() => console.log("Block User")}
           >
-            <Ionicons name="image-outline" size={22} color={color.icon} />
+            <ThemedText type="defaultBold" style={styles.blockText}>
+              Block
+            </ThemedText>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.imageButton}>
-            <Ionicons name="camera-outline" size={22} color={color.icon} />
+          <TouchableOpacity
+            disabled={isLoading}
+            style={[styles.pendingButton, { backgroundColor: color.secondary }]}
+            onPress={handleDelete}
+          >
+            <ThemedText type="defaultBold" style={styles.deleteText}>
+              Delete
+            </ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            disabled={isLoading}
+            style={[styles.pendingButton, { backgroundColor: color.secondary }]}
+            onPress={handleAccept}
+          >
+            <ThemedText type="defaultBold" style={styles.acceptText}>
+              Accept
+            </ThemedText>
           </TouchableOpacity>
         </ThemedView>
-        <TouchableOpacity
-          style={[styles.sendButton, { backgroundColor: color.main }]}
-          onPress={handleSendMessage}
-        >
-          <Ionicons name="send-outline" size={22} color={color.icon} />
-        </TouchableOpacity>
-      </ThemedView>
+      ) : (
+        // Input container
+        <ThemedView style={[styles.inputContainer]}>
+          <ThemedView
+            style={[
+              styles.inputTextContainer,
+              { backgroundColor: color.secondary },
+            ]}
+          >
+            <TouchableOpacity style={styles.imageButton}>
+              <Ionicons name="happy-outline" size={22} color={color.icon} />
+            </TouchableOpacity>
+            <TextInput
+              value={newMessage}
+              onChangeText={setNewMessage}
+              style={[styles.textInput, { color: color.text }]}
+              placeholder="Type a message"
+              placeholderTextColor="gray"
+              multiline
+            />
+            <TouchableOpacity
+              onPress={() => console.log("image")}
+              style={styles.imageButton}
+            >
+              <Ionicons name="image-outline" size={22} color={color.icon} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.imageButton}>
+              <Ionicons name="camera-outline" size={22} color={color.icon} />
+            </TouchableOpacity>
+          </ThemedView>
+          <TouchableOpacity
+            style={[styles.sendButton, { backgroundColor: color.main }]}
+            onPress={handleSendMessage}
+          >
+            <Ionicons name="send-outline" size={22} color={color.icon} />
+          </TouchableOpacity>
+        </ThemedView>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -309,5 +397,28 @@ const styles = StyleSheet.create({
   typingText: {
     fontStyle: "italic",
     fontSize: 14,
+  },
+
+  pendingButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    padding: 10,
+  },
+  pendingButton: {
+    flex: 1,
+    padding: 10,
+    borderRadius: 10,
+    marginHorizontal: 5,
+    alignItems: "center",
+  },
+  acceptText: {
+    color: "green",
+  },
+  deleteText: {
+    color: "gray",
+  },
+  blockText: {
+    color: "red",
   },
 });

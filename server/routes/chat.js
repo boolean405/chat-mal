@@ -18,6 +18,7 @@ import deleteChat from "../controllers/chat/deleteChat.js";
 import getPaginateChats from "../controllers/chat/getPaginateChats.js";
 import getChat from "../controllers/chat/getChat.js";
 import getPaginateRequestChats from "../controllers/chat/getPaginateRequestChat.js";
+import acceptChatRequest from "../controllers/chat/acceptChatRequest.js";
 
 router.post(
   "/",
@@ -88,6 +89,12 @@ router.patch(
   validateBody(ChatSchema.deleteChat),
   validateToken(),
   deleteChat
+);
+router.patch(
+  "/accept-chat-request",
+  validateToken(),
+  validateBody(ChatSchema.acceptChatRequest),
+  acceptChatRequest
 );
 
 export default router;

@@ -40,7 +40,7 @@ export function useBottomSheetActions({
   // Handler logic inside the hook
   const handleDeleteChat = (chat: Chat) => {
     return new Promise<void>((resolve) => {
-      Alert.alert("Delete Chat", "Are you sure?", [
+      Alert.alert("Delete Chat", "Are you sure you want to delete this chat?", [
         { text: "Cancel", style: "cancel", onPress: () => resolve() },
         {
           text: "Delete",
@@ -100,6 +100,34 @@ export function useBottomSheetActions({
       ]);
     });
   };
+
+  // Handle restrict
+  // const handleRestrict = async (chat: Chat) => {
+  //   return new Promise<void>((resolve) => {
+  //     Alert.alert(
+  //       "Restrict Chat",
+  //       "Chat will be restricted, can undo in message request.",
+  //       [
+  //         { text: "Cancel", style: "cancel", onPress: () => resolve() },
+  //         {
+  //           text: "Restrict",
+  //           style: "destructive",
+  //           onPress: () => {
+  //             // Call async logic but don't make onPress async
+  //             (async () => {
+  //               const data = await deleteChat(chat._id);
+  //               if (data.status) {
+  //                 ToastAndroid.show(data.message, ToastAndroid.SHORT);
+  //                 restrictChat(chat._id);
+  //               }
+  //               resolve();
+  //             })();
+  //           },
+  //         },
+  //       ]
+  //     );
+  //   });
+  // };
 
   const handleOptionSelect = useCallback(
     async (index: number) => {

@@ -170,6 +170,10 @@ export const ChatSchema = {
     groupId: Joi.string().length(24).hex().required(),
   }),
 
+  acceptChatRequest: Joi.object({
+    chatId: Joi.string().length(24).hex().required(),
+  }),
+
   params: {
     pageNum: Joi.object({
       pageNum: Joi.string().min(1).required(),

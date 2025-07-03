@@ -29,8 +29,8 @@ export const LogoutButton: React.FC = () => {
             // }
 
             clearUser();
-            // clearChats();
-            // clearAllMessages();
+            clearChats();
+            clearAllMessages();
 
             router.replace("/(auth)");
           } catch (error: any) {
