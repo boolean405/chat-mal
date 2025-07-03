@@ -17,6 +17,11 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 
 export default function ResetPassword() {
+  const colorScheme = useColorScheme();
+  const color = colorScheme === "dark" ? "white" : "black";
+  const router = useRouter();
+
+  const { email } = useLocalSearchParams();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -25,12 +30,6 @@ export default function ResetPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-  const colorScheme = useColorScheme();
-  const color = colorScheme === "dark" ? "white" : "black";
-  const router = useRouter();
-
-  const { email } = useLocalSearchParams();
 
   useEffect(() => {
     password.length < 8 || confirmPassword.length < 8

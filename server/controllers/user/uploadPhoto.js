@@ -1,4 +1,3 @@
-import Token from "../../utils/token.js";
 import UserDB from "../../models/user.js";
 import resJson from "../../utils/resJson.js";
 import resError from "../../utils/resError.js";
@@ -41,13 +40,8 @@ export default async function uploadPhoto(req, res, next) {
       select: "-password",
     });
 
-    const accessToken = Token.makeAccessToken({
-      id: updatedUser._id.toString(),
-    });
-
     resJson(res, 200, "Success upload photo.", {
       user: updatedUser,
-      accessToken,
     });
   } catch (error) {
     next(error);

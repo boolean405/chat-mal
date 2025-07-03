@@ -36,13 +36,6 @@ export default function Member() {
   const { chatId: rawChatId } = useLocalSearchParams();
   const chatId = Array.isArray(rawChatId) ? rawChatId[0] : rawChatId;
   const chat = getChatById(chatId);
-  if (!chat) return null;
-
-  const [isAddMode, setIsAddMode] = useState(false);
-  const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
-  const [popoverUserId, setPopoverUserId] = useState<string | null>(null);
-  const moreButtonRefs = useRef<{ [key: string]: React.RefObject<any> }>({});
-  const groupCreator = chat.initiator._id === user?._id;
 
   const {
     results,
@@ -57,6 +50,19 @@ export default function Member() {
     setSelectedFilter,
     fetchSearchUsers,
   } = useUsersSearchStore();
+
+  const [isAddMode, setIsAddMode] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
+  const [popoverUserId, setPopoverUserId] = useState<string | null>(null);
+  const moreButtonRefs = useRef<{ [key: string]: React.RefObject<any> }>({});
+
+  const debouncedKeyword = useDebounce(keyword, 400);
+
+  useEffect(() => {
+    fetchSearchUsers(false);
+  }, [debouncedKeyword, selectedFilter]);
+
+  if (!user || !chat) return null;
 
   const handleMembers = (user: User) => {
     console.log(user.name);
@@ -79,12 +85,6 @@ export default function Member() {
       ToastAndroid.show(err.message, ToastAndroid.SHORT);
     }
   };
-
-  const debouncedKeyword = useDebounce(keyword, 400);
-
-  useEffect(() => {
-    fetchSearchUsers(false);
-  }, [debouncedKeyword, selectedFilter]);
 
   const handleLoadMore = async () => {
     if (hasMore && !isPaging && !isLoading) {

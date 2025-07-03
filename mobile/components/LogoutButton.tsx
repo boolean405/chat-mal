@@ -1,11 +1,10 @@
-import { logout } from "@/api/user";
+import React from "react";
 import { ThemedText } from "@/components/ThemedText";
 import { useAuthStore } from "@/stores/authStore";
 import { useChatStore } from "@/stores/chatStore";
 import { useMessageStore } from "@/stores/messageStore";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
 import { Alert, StyleSheet, TouchableOpacity } from "react-native";
 
 export const LogoutButton: React.FC = () => {

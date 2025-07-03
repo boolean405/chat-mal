@@ -37,13 +37,13 @@ export default function FlashScreen() {
     const timeout = setTimeout(() => {
       if (checkAuth()) router.replace("/(tab)");
       else router.replace("/(auth)/login-or-register");
-    }, 1000);
+    }, 500);
 
     return () => {
       loadingFlash.stop();
       clearTimeout(timeout);
     };
-  }, [checkAuth, router, scaleAnim]);
+  }, [scaleAnim, checkAuth, router]);
 
   return (
     <ThemedView style={styles.container}>

@@ -21,7 +21,7 @@ import forgotPassword from "../controllers/user/forgotPassword.js";
 import resetPassword from "../controllers/user/resetPassword.js";
 import changeNames from "../controllers/user/changeNames.js";
 import registerVerify from "../controllers/user/registerVerify.js";
-import deletePhoto from "../controllers/user/deltePhoto.js";
+import deletePhoto from "../controllers/user/deletePhoto.js";
 import getPaginateUsers from "../controllers/user/getPaginateUsers.js";
 import forgotPasswordVerify from "../controllers/user/forgotPasswrodVerify.js";
 

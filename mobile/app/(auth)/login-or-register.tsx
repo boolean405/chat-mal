@@ -19,16 +19,15 @@ import { ThemedView } from "@/components/ThemedView";
 import { APP_NAME, APP_TAGLINE } from "@/constants";
 
 export default function LoginOrRegister() {
+  const colorScheme = useColorScheme();
+  const color = colorScheme === "dark" ? "white" : "black";
+
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isInvalidEmail, setIsInvalidEmail] = useState(false);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-  const colorScheme = useColorScheme();
-  const color = colorScheme === "dark" ? "white" : "black";
-
-  const router = useRouter();
 
   useEffect(() => {
     const validateEmail = (email: string) => {

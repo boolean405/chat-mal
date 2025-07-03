@@ -16,6 +16,12 @@ import { ThemedView } from "@/components/ThemedView";
 import { forgotPassword, forgotPasswordVerify } from "@/api/user";
 
 export default function VerifyEmailScreen() {
+  const router = useRouter();
+  const colorScheme = useColorScheme();
+  const color = colorScheme === "dark" ? "white" : "black";
+  const inputs = useRef<Array<TextInput | null>>([]);
+  const { email } = useLocalSearchParams();
+
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [isVerified, setIsVerified] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -23,13 +29,6 @@ export default function VerifyEmailScreen() {
   const [canResend, setCanResend] = useState(false);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const inputs = useRef<Array<TextInput | null>>([]);
-
-  const router = useRouter();
-  const colorScheme = useColorScheme();
-  const color = colorScheme === "dark" ? "white" : "black";
-
-  const { email } = useLocalSearchParams();
 
   useEffect(() => {
     let timer: any;

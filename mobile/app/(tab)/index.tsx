@@ -3,8 +3,6 @@ import {
   FlatList,
   StyleSheet,
   useColorScheme,
-  Alert,
-  ToastAndroid,
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
@@ -21,15 +19,8 @@ import ChatHeader from "@/components/chat/ChatHeader";
 import { useAuthStore } from "@/stores/authStore";
 import usePaginatedData from "@/hooks/usePaginateData";
 import BottomSheetAction from "@/components/BottomSheetActions";
-import {
-  createGroup,
-  deleteChat,
-  getPaginateChats,
-  leaveGroup,
-} from "@/api/chat";
+import { getPaginateChats } from "@/api/chat";
 import { useChatStore } from "@/stores/chatStore";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { bottomSheetOptionsData } from "@/constants/data";
 import { useBottomSheetActions } from "@/hooks/useBottomSheetActions";
 
 // Stories data - consider moving to a separate file or API call
@@ -49,7 +40,6 @@ export default function Home() {
   const color = Colors[colorScheme ?? "light"];
   const user = useAuthStore((state) => state.user);
   const { chats, setChats, updateChat, clearChat, clearGroup } = useChatStore();
-  if (!user) return null;
 
   // Paginated data handling
   const {
@@ -91,10 +81,6 @@ export default function Home() {
     }
   }, [newChats]);
 
-  const allChats = chats.filter(
-    (chat) => !chat.isPending || chat.initiator?._id === user._id
-  );
-
   // Update chat press handler
   const handleChatPress = useCallback(
     (chat: Chat) => {
@@ -104,6 +90,11 @@ export default function Home() {
       });
     },
     [router]
+  );
+  if (!user) return null;
+
+  const allChats = chats.filter(
+    (chat) => !chat.isPending || chat.initiator?._id === user?._id
   );
 
   return (
@@ -132,6 +123,7 @@ export default function Home() {
         renderItem={({ item }) => (
           <ChatItem
             chat={item}
+            user={user}
             onPress={() => handleChatPress(item)}
             onLongPress={() => openSheet(item)}
           />

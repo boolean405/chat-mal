@@ -20,7 +20,6 @@ import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
 import usePaginatedData from "@/hooks/usePaginateData";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useBottomSheetActions } from "@/hooks/useBottomSheetActions";
 
 export default function MessageRequest() {
@@ -62,13 +61,6 @@ export default function MessageRequest() {
     clearGroup,
   });
 
-  useEffect(() => {
-    const checkStorage = async () => {
-      await AsyncStorage.getItem("chat-storage");
-    };
-    checkStorage();
-  }, []);
-
   // Update store when new chats are fetched
   useEffect(() => {
     if (newChats.length > 0) {
@@ -76,7 +68,7 @@ export default function MessageRequest() {
     }
   }, [newChats]);
 
-  if (!user || !chats) return null;
+  if (!user) return null;
   const pendingChats = chats.filter(
     (chat) => chat.isPending && chat.initiator?._id !== user._id
   );
@@ -125,6 +117,7 @@ export default function MessageRequest() {
           return (
             <ChatItem
               chat={item}
+              user={user}
               onPress={() => handleChat(item)}
               onProfilePress={() => console.log(item.name)}
               onLongPress={() => openSheet(item)}

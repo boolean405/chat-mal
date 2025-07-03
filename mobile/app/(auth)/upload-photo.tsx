@@ -27,7 +27,7 @@ export default function UploadPhoto() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
-  const { user, setUser } = useAuthStore();
+  const { user, setUserOnly } = useAuthStore();
 
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -77,7 +77,7 @@ export default function UploadPhoto() {
           : undefined;
 
       const data = await uploadPhoto(profilePhotoUrl, coverPhotoUrl);
-      setUser(data.result.user, data.result.accessToken);
+      setUserOnly(data.result.user);
       router.replace("/(tab)");
     } catch (error: any) {
       setIsError(true);

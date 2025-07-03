@@ -1,4 +1,3 @@
-import Token from "../../utils/token.js";
 import UserDB from "../../models/user.js";
 import resJson from "../../utils/resJson.js";
 import resError from "../../utils/resError.js";
@@ -14,7 +13,7 @@ export default async function deletePhoto(req, res, next) {
     const profilePhoto = body.profilePhoto;
 
     const user = await UserDB.findById(userId);
-    if (!user) throw resError(404, "Authenticated user not found!");
+    if (!user) throw resError(401, "Authenticated user not found!");
 
     const editedPhoto = {};
 
@@ -31,12 +30,8 @@ export default async function deletePhoto(req, res, next) {
     await UserDB.findByIdAndUpdate(user._id, editedPhoto);
     const updatedUser = await UserDB.findById(user._id).select("-password");
 
-    const accessToken = Token.makeAccessToken({
-      id: updatedUser._id.toString(),
-    });
     resJson(res, 200, "Success deleted photo.", {
       user: updatedUser,
-      accessToken,
     });
   } catch (error) {
     next(error);

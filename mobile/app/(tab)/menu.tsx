@@ -54,8 +54,7 @@ export default function Menu() {
   const colorScheme = useColorScheme();
   const colors = colorScheme === "dark" ? Colors.dark : Colors.light;
   const router = useRouter();
-  const user = useAuthStore((state) => state.user);
-  if (!user) return null;
+  const { user } = useAuthStore();
 
   const walletBalance = 250.75;
   const isOnline = true;
@@ -70,6 +69,7 @@ export default function Menu() {
     setIsRefreshing(false);
     ToastAndroid.show("Refreshed", ToastAndroid.SHORT);
   };
+  if (!user) return null;
 
   return (
     <ScrollView
@@ -96,7 +96,7 @@ export default function Menu() {
           secondary={colors.secondary}
           onUsernameCopied={handleUsernameCopied}
           profilePhoto={user?.profilePhoto}
-          onPress={() => router.push("/(menu)/profile")}
+          onPress={() => router.push("/(setting)/edit-profile")}
         />
 
         <WalletTab

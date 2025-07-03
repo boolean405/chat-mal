@@ -1,5 +1,4 @@
 import { useRouter } from "expo-router";
-import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import React, { useEffect, useState } from "react";
 import {
@@ -21,19 +20,20 @@ import {
 import pickImage from "@/utils/pickImage";
 import { Colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
-import { getUserData } from "@/storage/authStorage";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { changeNames, deletePhoto, uploadPhoto } from "@/api/user";
 import { ThemedButton } from "@/components/ThemedButton";
 import getImageMimeType from "@/utils/getImageMimeType";
+import { useAuthStore } from "@/stores/authStore";
 
 const screenWidth = Dimensions.get("window").width;
 
-const EditProfile: React.FC = () => {
+export default function EditProfile() {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
   const router = useRouter();
+  const { user, setUserOnly } = useAuthStore();
 
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
@@ -57,12 +57,11 @@ const EditProfile: React.FC = () => {
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        const userData = await getUserData();
-        if (userData) {
-          setName(userData.name || "");
-          setUsername(userData.username || "");
-          setProfilePhoto(userData.profilePhoto || null);
-          setCoverPhoto(userData.coverPhoto || null);
+        if (user) {
+          setName(user.name || "");
+          setUsername(user.username || "");
+          setProfilePhoto(user.profilePhoto || null);
+          setCoverPhoto(user.coverPhoto || null);
         }
       } catch (error) {
         console.error("Failed to load user data:", error);
@@ -74,8 +73,7 @@ const EditProfile: React.FC = () => {
 
   useEffect(() => {
     const validateInputs = async () => {
-      const user = await getUserData();
-      if (user.name !== name || user.username !== username) {
+      if (user?.name !== name || user.username !== username) {
         setCanChange(true);
       } else {
         setCanChange(false);
@@ -108,12 +106,13 @@ const EditProfile: React.FC = () => {
     setIsLoading(true);
     try {
       const data = await changeNames(name, username);
+      console.log(data.result.user);
 
-      if (data.status) {
-        Alert.alert("Success", data.message);
-        router.back();
-        return;
-      }
+      setUserOnly(data.result.user);
+
+      Alert.alert("Success", data.message);
+      router.back();
+      return;
       // router.push("/(tab)");
     } catch (error: any) {
       setIsError(true);
@@ -141,6 +140,7 @@ const EditProfile: React.FC = () => {
 
               if (data.status) {
                 setCoverPhoto(null);
+                setUserOnly(data.result.user);
                 ToastAndroid.show("Cover photo deleted", ToastAndroid.SHORT);
               } else {
                 ToastAndroid.show(
@@ -181,6 +181,7 @@ const EditProfile: React.FC = () => {
 
               if (data.status) {
                 setProfilePhoto(null);
+                setUserOnly(data.result.user);
                 ToastAndroid.show("Profile photo deleted", ToastAndroid.SHORT);
               } else {
                 ToastAndroid.show(
@@ -215,9 +216,8 @@ const EditProfile: React.FC = () => {
         uri && base64 ? `data:${coverImageType};base64,${base64}` : undefined;
 
       const data = await uploadPhoto(null, coverPhotoUrl);
-      data.status &&
-        ToastAndroid.show("Cover photo uploaded", ToastAndroid.SHORT);
-      !data.status && Alert.alert("Upload Error", data.message);
+      setUserOnly(data.result.user);
+      ToastAndroid.show(data.message, ToastAndroid.SHORT);
     } catch (error: any) {
       setIsError(true);
       setErrorMessage(error.message);
@@ -239,9 +239,8 @@ const EditProfile: React.FC = () => {
         uri && base64 ? `data:${profileImageType};base64,${base64}` : undefined;
 
       const data = await uploadPhoto(profilePhotoUrl, null);
-      data.status &&
-        ToastAndroid.show("Profile photo uploaded", ToastAndroid.SHORT);
-      !data.status && Alert.alert("Profile photo upload Error", data.message);
+      setUserOnly(data.result.user);
+      ToastAndroid.show(data.message, ToastAndroid.SHORT);
     } catch (error: any) {
       setIsError(true);
       setErrorMessage(error.message);
@@ -254,7 +253,7 @@ const EditProfile: React.FC = () => {
   return (
     <KeyboardAvoidingView
       style={[{ flex: 1 }]}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
     >
       <ScrollView
@@ -480,9 +479,7 @@ const EditProfile: React.FC = () => {
       </ScrollView>
     </KeyboardAvoidingView>
   );
-};
-
-export default EditProfile;
+}
 
 const styles = StyleSheet.create({
   scrollContainer: {
@@ -493,6 +490,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingBottom: 60,
   },
 
   addPhotoText: {

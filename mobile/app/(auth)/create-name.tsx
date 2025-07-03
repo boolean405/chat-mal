@@ -17,6 +17,12 @@ import { ThemedButton } from "@/components/ThemedButton";
 import { existUsername } from "@/api/user";
 
 export default function CreateName() {
+  const colorScheme = useColorScheme();
+  const color = colorScheme === "dark" ? "white" : "black";
+  const router = useRouter();
+
+  const { email } = useLocalSearchParams();
+  
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [isInvalidName, setIsInvalidName] = useState(false);
@@ -24,12 +30,6 @@ export default function CreateName() {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-  const colorScheme = useColorScheme();
-  const color = colorScheme === "dark" ? "white" : "black";
-  const router = useRouter();
-
-  const { email } = useLocalSearchParams();
 
   useEffect(() => {
     const validName = (str: string) => /^[A-Za-z ]{1,20}$/.test(str);

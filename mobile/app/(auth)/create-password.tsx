@@ -14,9 +14,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedButton } from "@/components/ThemedButton";
-import { register } from "@/api/user"
+import { register } from "@/api/user";
 
 export default function CreatePassword() {
+  const colorScheme = useColorScheme();
+  const color = colorScheme === "dark" ? "white" : "black";
+  const router = useRouter();
+
+  const { name, username, email } = useLocalSearchParams();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -25,12 +30,6 @@ export default function CreatePassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-  const colorScheme = useColorScheme();
-  const color = colorScheme === "dark" ? "white" : "black";
-  const router = useRouter();
-
-  const { name, username, email } = useLocalSearchParams();
 
   useEffect(() => {
     password.length < 8 || confirmPassword.length < 8

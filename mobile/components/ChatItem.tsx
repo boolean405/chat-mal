@@ -2,7 +2,7 @@ import React from "react";
 import { Image } from "expo-image";
 import { TouchableOpacity, StyleSheet, useColorScheme } from "react-native";
 
-import { Chat } from "@/types";
+import { Chat, User } from "@/types";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import formatDate from "@/utils/formatDate";
@@ -13,19 +13,22 @@ import { useAuthStore } from "@/stores/authStore";
 
 export default function ChatItem({
   chat,
+  user,
   onPress,
   onProfilePress,
   onLongPress,
 }: {
   chat: Chat;
+  user: User;
   onPress?: () => void;
   onProfilePress?: () => void;
   onLongPress?: () => void;
 }) {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
-  const user = useAuthStore((state) => state.user);
-  if (!user) return null;
+  if (!chat || !user) return null;
+
+
   const chatPhoto = getChatPhoto(chat, user._id) ?? "";
   const chatName = chat.name || getChatName(chat, user._id) || "Unknown";
 

@@ -112,9 +112,7 @@ export default function ChatMessage() {
     }
   };
 
-  if (!user || !currentChat) {
-    return null;
-  }
+  if (!user || !currentChat) return null;
 
   const chatPhoto = getChatPhoto(currentChat, user._id);
   const chatName = currentChat.name || getChatName(currentChat, user._id);
