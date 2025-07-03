@@ -1,10 +1,5 @@
-import React from "react";
-import { Text, View } from "react-native";
+import Maintenance from "@/components/Maintenance";
 
 export default function Discover() {
-  return (
-    <View>
-      <Text>Discover</Text>
-    </View>
-  );
+  return <Maintenance title="Discover" />;
 }

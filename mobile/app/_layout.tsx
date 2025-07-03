@@ -14,7 +14,6 @@ import {
 import { useColorScheme } from "@/hooks/useColorScheme";
 import SafeScreen from "@/components/SafeScreen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useAuthStore } from "@/stores/authStore";
 
 SplashScreen.preventAutoHideAsync();
 
