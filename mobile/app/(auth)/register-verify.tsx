@@ -20,9 +20,9 @@ export default function VerifyEmailScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const color = colorScheme === "dark" ? "white" : "black";
+  const { setUser } = useAuthStore();
 
   const { name, username, email, password } = useLocalSearchParams();
-  const { setUser } = useAuthStore();
 
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [isVerified, setIsVerified] = useState(false);
@@ -81,12 +81,10 @@ export default function VerifyEmailScreen() {
         setIsLoading(true);
         try {
           const data = await registerVerify(email, code);
-          if (data.status) {
-            setIsVerified(true);
-            setUser(data.result.user, data.result.accessToken);
-            await new Promise((r) => setTimeout(r, 1e3));
-            router.replace("/(auth)/upload-photo");
-          }
+          setIsVerified(true);
+          setUser(data.result.user, data.result.accessToken);
+          await new Promise((r) => setTimeout(r, 1e3));
+          router.replace("/(auth)/upload-photo");
         } catch (error: any) {
           setIsError(true);
           setErrorMessage(error.message);

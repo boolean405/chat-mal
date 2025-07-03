@@ -13,7 +13,7 @@ import {
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { forgotPassword, forgotPasswordVerify } from "@/api/user"
+import { forgotPassword, forgotPasswordVerify } from "@/api/user";
 
 export default function VerifyEmailScreen() {
   const [code, setCode] = useState(["", "", "", "", "", ""]);

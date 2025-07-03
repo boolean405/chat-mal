@@ -53,6 +53,8 @@ export default function UploadPhoto() {
     requestPermission();
   }, []);
 
+  if (!user) return null;
+
   const handleContinue = async () => {
     if (!profilePhoto && !coverPhoto) {
       return router.replace("/(tab)");
@@ -75,10 +77,8 @@ export default function UploadPhoto() {
           : undefined;
 
       const data = await uploadPhoto(profilePhotoUrl, coverPhotoUrl);
-      if (data.status) {
-       setUser(data.result.user, data.result.accessToken);
-        router.replace("/(tab)");
-      }
+      setUser(data.result.user, data.result.accessToken);
+      router.replace("/(tab)");
     } catch (error: any) {
       setIsError(true);
       setErrorMessage(error.message);

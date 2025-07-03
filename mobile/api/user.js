@@ -1,11 +1,7 @@
 import api from "../config/axios";
 import { jwtDecode } from "jwt-decode";
 
-import {
-  getAccessToken,
-  getUserData,
-  saveUserData,
-} from "../storage/authStorage";
+import { useAuthStore } from "@/stores/authStore";
 
 // Check user exist or not
 export async function existEmail(email) {
@@ -15,6 +11,7 @@ export async function existEmail(email) {
         email,
       },
     });
+
     return response.data;
   } catch (error) {
     const message = error.response?.data?.message || "Something went wrong";
@@ -50,6 +47,7 @@ export async function register(name, username, email, password) {
       email,
       password,
     });
+
     return response.data;
   } catch (error) {
     const message = error.response?.data?.message || "Something went wrong";
@@ -66,13 +64,8 @@ export async function registerVerify(email, code) {
       email,
       code,
     });
-    const data = response.data;
-    // Save user data to localstorage
-    // if (data.status) {
-    //   await saveUserData(data.result.user, data.result.accessToken);
-    // }
 
-    return data;
+    return response.data;
   } catch (error) {
     const message = error.response?.data?.message || "Something went wrong";
     const customError = new Error(message);
@@ -87,6 +80,7 @@ export async function forgotPassword(email) {
     const response = await api.post("/api/user/forgot-password", {
       email,
     });
+
     return response.data;
   } catch (error) {
     const message = error.response?.data?.message || "Something went wrong";
@@ -120,12 +114,8 @@ export async function resetPassword(email, password) {
       email,
       newPassword: password,
     });
-    const data = response.data;
-    // Save user data to localstorage
-    if (data.status)
-      await saveUserData(data.result.user, data.result.accessToken);
 
-    return data;
+    return response.data;
   } catch (error) {
     const message = error.response?.data?.message || "Something went wrong";
     const customError = new Error(message);
@@ -141,13 +131,8 @@ export async function login(email, password) {
       email,
       password,
     });
-    const data = response.data;
 
-    // Save user data to localstorage
-    if (data.status)
-      await saveUserData(data.result.user, data.result.accessToken);
-
-    return data;
+    return response.data;
   } catch (error) {
     const message = error.response?.data?.message || "Something went wrong";
     const customError = new Error(message);
@@ -166,12 +151,8 @@ export async function uploadPhoto(profilePhoto, coverPhoto) {
     if (coverPhoto) obj.coverPhoto = coverPhoto;
 
     const response = await api.patch("/api/user/upload-photo", obj);
-    const data = response.data;
-    // Save user data to localstorage
-    if (data.status)
-      await saveUserData(data.result.user, data.result.accessToken);
 
-    return data;
+    return response.data;
   } catch (error) {
     const message = error.response?.data?.message || "Something went wrong";
     const customError = new Error(message);
@@ -222,17 +203,19 @@ export async function uploadPhoto(profilePhoto, coverPhoto) {
 // Refresh access token
 export async function refresh() {
   try {
-    const accessToken = await getAccessToken();
+    const accessToken = useAuthStore.getState().accessToken;
+    const setUser = useAuthStore.getState().setUser;
     if (accessToken) {
       const decoded = jwtDecode(accessToken);
 
       if (decoded.exp < Date.now() / 1000) {
         const response = await api.post("/api/user/refresh");
         const data = response.data;
-        // Save user data to localstorage
-        if (data.status)
-          await saveUserData(data.result.user, data.result.accessToken);
-        return data.result.accessToken;
+        if (data.status) {
+          setUser(data.result.user, data.result.accessToken);
+          return data.result.accessToken;
+        }
+        throw new Error(data.message || "Failed to refresh token!");
       }
     }
     return accessToken;
@@ -248,7 +231,7 @@ export async function refresh() {
 export async function changeNames(name, username) {
   try {
     await refresh();
-    const user = await getUserData();
+    const user = useAuthStore.getState().user;
     const payload = {};
 
     if (name && user.name !== name) payload.name = name;
@@ -258,13 +241,9 @@ export async function changeNames(name, username) {
       throw new Error("Nothing to update!");
     }
 
-    await refresh();
     const response = await api.patch("/api/user/change-names", payload);
-    const data = response.data;
-    // Save user data to localstorage
-    await saveUserData(data.result.user);
 
-    return data;
+    return response.data;
   } catch (error) {
     const message = error.response?.data?.message || "Something went wrong";
     const customError = new Error(message);
@@ -313,9 +292,6 @@ export async function deletePhoto(photo, type) {
 
     const response = await api.patch("/api/user/delete-photo", obj);
     const data = response.data;
-    // Save user data to localstorage
-    if (data.status)
-      await saveUserData(data.result.user, data.result.accessToken);
 
     return data;
   } catch (error) {

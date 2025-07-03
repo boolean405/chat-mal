@@ -24,7 +24,7 @@ export default function LoginPassword() {
   const router = useRouter();
   const color = colorScheme === "dark" ? "white" : "black";
 
-  const setUser = useAuthStore((state) => state.setUser);
+  const { setUser } = useAuthStore();
 
   const { email } = useLocalSearchParams();
   const [password, setPassword] = useState("");
@@ -67,10 +67,8 @@ export default function LoginPassword() {
     setIsLoading(true);
     try {
       const data = await login(email, password);
-      if (data.status) {
-        setUser(data.result.user, data.result.accessToken);
-        router.replace("/(tab)");
-      }
+      setUser(data.result.user, data.result.accessToken);
+      router.replace("/(tab)");
     } catch (error: any) {
       setIsError(true);
       setErrorMessage(error.message);

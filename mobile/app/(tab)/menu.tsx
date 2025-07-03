@@ -4,7 +4,7 @@ import { ProfileHeader } from "@/components/ProfileHeader";
 import { ThemedView } from "@/components/ThemedView";
 import { WalletTab } from "@/components/WalletTab";
 import { Colors } from "@/constants/colors";
-import { getUserData } from "@/storage/authStorage";
+import { useAuthStore } from "@/stores/authStore";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
@@ -49,39 +49,24 @@ const MENUS: {
 ];
 
 export default function Menu() {
-  const [copiedText, setCopiedText] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [user, setUser] = useState<any>(null);
 
   const colorScheme = useColorScheme();
   const colors = colorScheme === "dark" ? Colors.dark : Colors.light;
   const router = useRouter();
+  const user = useAuthStore((state) => state.user);
+  if (!user) return null;
 
   const walletBalance = 250.75;
   const isOnline = true;
 
-  // Reload data
-  useFocusEffect(
-    useCallback(() => {
-      fetchUserData();
-    }, [])
-  );
-
-  // Fetch user data from SecureStore
-  async function fetchUserData() {
-    setUser(await getUserData());
-  }
-
   const handleUsernameCopied = (username: string) => {
-    setCopiedText(username);
     ToastAndroid.show("Username copied!", ToastAndroid.SHORT);
-    console.log("Copied Username:", username);
   };
 
   const onRefresh = async () => {
     setIsRefreshing(true);
     // need to call api
-    await fetchUserData();
     setIsRefreshing(false);
     ToastAndroid.show("Refreshed", ToastAndroid.SHORT);
   };

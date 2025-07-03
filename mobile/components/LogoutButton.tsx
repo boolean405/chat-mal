@@ -10,7 +10,7 @@ import { Alert, StyleSheet, TouchableOpacity } from "react-native";
 
 export const LogoutButton: React.FC = () => {
   const router = useRouter();
-  const clearUser = useAuthStore((state) => state.clearUser);
+  const { clearUser } = useAuthStore();
   const { clearChats } = useChatStore();
   const { clearAllMessages } = useMessageStore();
   const handleLogout = () => {

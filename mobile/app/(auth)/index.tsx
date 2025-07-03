@@ -1,20 +1,19 @@
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useRef } from "react";
-import { Animated, Dimensions, StyleSheet, ToastAndroid } from "react-native";
+import { Animated, Dimensions, StyleSheet } from "react-native";
 
 import { APP_NAME, APP_TAGLINE } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useAuthStore } from "@/stores/authStore";
-import { useChatStore } from "@/stores/chatStore";
 
 const { width } = Dimensions.get("window");
 
 export default function FlashScreen() {
   const router = useRouter();
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const user = useAuthStore((state) => state.user);
+  const checkAuth = useAuthStore((state) => state.checkAuth);
 
   useEffect(() => {
     // Pulsing animation on logo
@@ -35,20 +34,16 @@ export default function FlashScreen() {
 
     loadingFlash.start();
 
-    const checkAuth = async () => {
-      try {
-        setTimeout(() => {
-          router.replace(user ? "/(tab)" : "/(auth)/login-or-register");
-        }, 500);
-      } catch (error: any) {
-        ToastAndroid.show(error.message, ToastAndroid.SHORT);
-      }
+    const timeout = setTimeout(() => {
+      if (checkAuth()) router.replace("/(tab)");
+      else router.replace("/(auth)/login-or-register");
+    }, 1000);
+
+    return () => {
+      loadingFlash.stop();
+      clearTimeout(timeout);
     };
-
-    checkAuth();
-
-    return () => loadingFlash.stop();
-  }, [user]);
+  }, [checkAuth, router, scaleAnim]);
 
   return (
     <ThemedView style={styles.container}>
