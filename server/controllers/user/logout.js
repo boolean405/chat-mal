@@ -5,20 +5,17 @@ import clearCookie from "../../utils/clearCookie.js";
 export default async function logout(req, res, next) {
   try {
     const userId = req.decodedId;
-    const user = await UserDB.findById(userId);
-    if (!user) {
-      clearCookie(req, res, "refreshToken");
-      return resJson(res, 204, "User not found, session cleared.");
-    }
 
-    // 2. Clear the refreshToken in DB (if applicable)
-    if (user.refreshToken) {
-      user.refreshToken = undefined; // or = ""
-      await user.save();
-    }
-
+    const user = await UserDB.findByIdAndUpdate(
+      userId,
+      { $unset: { refreshToken: "" } },
+      { new: true }
+    );
     clearCookie(req, res, "refreshToken");
-    resJson(res, 200, "Success logout.");
+
+    if (!user) return res.status(204).end();
+
+    return resJson(res, 200, "Successfully logged out.");
   } catch (error) {
     next(error);
   }

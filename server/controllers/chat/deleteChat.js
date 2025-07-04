@@ -8,19 +8,20 @@ export default async function deleteChat(req, res, next) {
     const userId = req.userId;
     const chatId = req.body.chatId;
 
-    const [userExists, dbChat] = await Promise.all([
-      UserDB.exists({ _id: userId }),
+    const [user, chat] = await Promise.all([
+      UserDB.findById(userId),
       ChatDB.findById(chatId),
     ]);
 
-    if (!userExists) throw resError(401, "Authenticated user not found!");
-    if (!dbChat) throw resError(404, "Chat not found!");
+    if (!user) throw resError(401, "Authenticated user not found!");
+    if (!chat) throw resError(404, "Chat not found!");
 
     // Check user in group or not
-    const isUserInChat = dbChat.users.some(
-      (entry) => entry.user.toString() === userId.toString()
+    const isUserInChat = chat.users.some((entry) =>
+      entry.user.equals(user._id)
     );
-    if (!isUserInChat) throw resError(400, "You are not a user of this chat!");
+    if (!isUserInChat)
+      throw resError(400, "You are not a member of this chat!");
 
     // Remove old deletedInfos for this user, then add the new one
     await ChatDB.findByIdAndUpdate(chatId, {
@@ -33,9 +34,10 @@ export default async function deleteChat(req, res, next) {
           deletedAt: new Date(),
         },
       },
+      $unset: { latestMessage: "" },
     });
 
-    resJson(res, 200, "Success deleted chat.");
+    return resJson(res, 200, "Success deleted chat.");
   } catch (error) {
     next(error);
   }
