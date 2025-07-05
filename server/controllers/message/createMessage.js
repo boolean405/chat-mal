@@ -31,10 +31,10 @@ export default async function createMessage(req, res, next) {
       })
       .populate({
         path: "chat",
-        // populate: {
-        //   path: "users.user",
-        //   select: "-password",
-        // },
+        populate: {
+          path: "users.user",
+          select: "-password",
+        },
       });
 
     if (message)

@@ -5,8 +5,7 @@ export async function getPaginateChats(pageNum) {
   try {
     await refresh();
     const response = await api.get(`/api/chat/paginate/${pageNum}`);
-    const data = response.data;
-    return data;
+    return response.data;
   } catch (error) {
     const message = error.response?.data?.message || "Something went wrong";
     const customError = new Error(message);
@@ -19,8 +18,7 @@ export async function getPaginateRequestChats(pageNum) {
   try {
     await refresh();
     const response = await api.get(`/api/chat/request/paginate/${pageNum}`);
-    const data = response.data;
-    return data;
+    return response.data;
   } catch (error) {
     const message = error.response?.data?.message || "Something went wrong";
     const customError = new Error(message);
@@ -36,8 +34,7 @@ export async function deleteChat(chatId) {
     const response = await api.patch("/api/chat/delete-chat", {
       chatId,
     });
-    const data = response.data;
-    return data;
+    return response.data;
   } catch (error) {
     const message = error.response?.data?.message || "Something went wrong";
     const customError = new Error(message);

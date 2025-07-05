@@ -27,7 +27,8 @@ export default function MessageRequest() {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
   const user = useAuthStore((state) => state.user);
-  const { setChats, chats, clearChat, clearGroup } = useChatStore();
+  const { setChats, chats, clearChat, clearGroup, getChatById } =
+    useChatStore();
 
   const {
     data: newChats,
@@ -75,8 +76,10 @@ export default function MessageRequest() {
 
   // Handle chat press
   const handleChat = (chat: Chat) => {
-    setChats([chat]); // Add chat to store
-
+    if (!getChatById(chat._id)) {
+      console.log("added new one");
+      setChats([chat]);
+    }
     router.push({
       pathname: "/(chat)",
       params: {

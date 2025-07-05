@@ -64,8 +64,9 @@ export default function Search() {
       const response = await createOrOpen(user._id);
       const chat = response.data.result;
       if (response.status === 200) {
-        if (chat.isPending && !getChatById(chat._id)) {
+        if (!getChatById(chat._id)) {
           setChats([chat]);
+          console.log("added to chats");
         }
         router.push({
           pathname: "/(chat)",

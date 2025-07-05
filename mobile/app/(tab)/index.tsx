@@ -120,6 +120,7 @@ export default function Home() {
         onEndReached={loadMore}
         onEndReachedThreshold={0.1}
         contentContainerStyle={styles.listContent}
+        
         renderItem={({ item }) => (
           <ChatItem
             chat={item}

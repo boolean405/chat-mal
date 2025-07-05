@@ -65,6 +65,8 @@ export const ListSection: React.FC<Props> = ({ title, data, onItemPress }) => {
         renderItem={renderItem}
         scrollEnabled={false}
         style={styles.list}
+        showsVerticalScrollIndicator={false}
+        
         // ItemSeparatorComponent={() => (
         //   <ThemedView
         //     style={[styles.separator, { backgroundColor: color.secondary }]}

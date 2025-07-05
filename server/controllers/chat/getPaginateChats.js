@@ -7,6 +7,8 @@ export default async function getPaginateChats(req, res, next) {
   try {
     const userId = req.userId;
     const page = parseInt(req.params.pageNum);
+    const limit = Number(process.env.PAGINATE_LIMIT) || 15;
+    const skipCount = limit * (page - 1);
 
     const user = await UserDB.findById(userId);
     if (!user) throw resError(401, "Authenticated user not found!");
@@ -15,16 +17,16 @@ export default async function getPaginateChats(req, res, next) {
 
     if (page <= 0) throw resError(400, "Page number must be greater than 0!");
 
-    const limit = Number(process.env.PAGINATE_LIMIT) || 15;
-    const skipCount = limit * (page - 1);
+    // Step 1: Base match
+    const baseMatch = {
+      "users.user": user._id,
+      $or: [{ isPending: false }, { initiator: user._id }],
+    };
 
-    const result = await ChatDB.aggregate([
-      {
-        $match: {
-          "users.user": user._id,
-          $or: [{ isPending: false }, { initiator: user._id }],
-        },
-      },
+    const basePipeline = [
+      { $match: baseMatch },
+
+      // Lookup latestMessage
       {
         $lookup: {
           from: "messages",
@@ -34,55 +36,192 @@ export default async function getPaginateChats(req, res, next) {
         },
       },
       { $unwind: { path: "$latestMessage", preserveNullAndEmptyArrays: true } },
+
+      // Lookup sender inside latestMessage
+      {
+        $lookup: {
+          from: "users",
+          localField: "latestMessage.sender",
+          foreignField: "_id",
+          as: "latestMessage.sender",
+        },
+      },
+      {
+        $unwind: {
+          path: "$latestMessage.sender",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          "latestMessage.sender.password": 0,
+        },
+      },
+
+      // Filter deletedInfos for this user
       {
         $addFields: {
-          deletedInfo: {
-            $filter: {
-              input: "$deletedInfos",
-              as: "entry",
-              cond: { $eq: ["$$entry.user", user._id] },
+          deletedInfoForUser: {
+            $first: {
+              $filter: {
+                input: "$deletedInfos",
+                as: "info",
+                cond: { $eq: ["$$info.user", user._id] },
+              },
             },
           },
         },
       },
-      { $unwind: { path: "$deletedInfo", preserveNullAndEmptyArrays: true } },
+
+      // Filter chats by deletedInfo date
       {
         $match: {
           $or: [
-            { deletedInfo: { $eq: null } },
+            { deletedInfoForUser: { $exists: false } },
+            { deletedInfoForUser: null },
             {
               $expr: {
-                $gt: ["$latestMessage.createdAt", "$deletedInfo.deletedAt"],
+                $and: [
+                  { $ifNull: ["$latestMessage.createdAt", false] },
+                  { $ifNull: ["$deletedInfoForUser.deletedAt", false] },
+                  {
+                    $gt: [
+                      "$latestMessage.createdAt",
+                      "$deletedInfoForUser.deletedAt",
+                    ],
+                  },
+                ],
               },
             },
           ],
+        },
+      },
+
+      // Populate users.user
+      {
+        $lookup: {
+          from: "users",
+          localField: "users.user",
+          foreignField: "_id",
+          as: "populatedUsers",
         },
       },
       {
-        $facet: {
-          metadata: [{ $count: "total" }],
-          data: [
-            { $sort: { updatedAt: -1 } },
-            { $skip: skipCount },
-            { $limit: limit },
-            // Add $lookup stages here for users.user, initiator, groupAdmins.user, deletedInfos.user, and nested latestMessage.sender
-            {
-              $lookup: {
-                from: "users",
-                localField: "users.user",
-                foreignField: "_id",
-                as: "users.user",
+        $addFields: {
+          users: {
+            $map: {
+              input: "$users",
+              as: "userItem",
+              in: {
+                $mergeObjects: [
+                  "$$userItem",
+                  {
+                    user: {
+                      $arrayElemAt: [
+                        {
+                          $filter: {
+                            input: "$populatedUsers",
+                            as: "u",
+                            cond: { $eq: ["$$u._id", "$$userItem.user"] },
+                          },
+                        },
+                        0,
+                      ],
+                    },
+                  },
+                ],
               },
             },
-            // ...repeat $lookup for other population needs as necessary
-          ],
+          },
         },
       },
+
+      // Populate groupAdmins.user
+      {
+        $lookup: {
+          from: "users",
+          localField: "groupAdmins.user",
+          foreignField: "_id",
+          as: "populatedAdmins",
+        },
+      },
+      {
+        $addFields: {
+          groupAdmins: {
+            $map: {
+              input: "$groupAdmins",
+              as: "adminItem",
+              in: {
+                $mergeObjects: [
+                  "$$adminItem",
+                  {
+                    user: {
+                      $arrayElemAt: [
+                        {
+                          $filter: {
+                            input: "$populatedAdmins",
+                            as: "a",
+                            cond: { $eq: ["$$a._id", "$$adminItem.user"] },
+                          },
+                        },
+                        0,
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+
+      // Populate initiator
+      {
+        $lookup: {
+          from: "users",
+          localField: "initiator",
+          foreignField: "_id",
+          as: "initiator",
+        },
+      },
+      {
+        $unwind: { path: "$initiator", preserveNullAndEmptyArrays: true },
+      },
+
+      // Exclude passwords from all user fields
+      {
+        $project: {
+          "users.user.password": 0,
+          "users.user.refreshToken": 0,
+          "groupAdmins.user.password": 0,
+          "groupAdmins.user.refreshToken": 0,
+          "initiator.password": 0,
+          "initiator.refreshToken": 0,
+          "latestMessage.sender.password": 0,
+          "latestMessage.sender.refreshToken": 0,
+        },
+      },
+      { $sort: { updatedAt: -1 } },
+      { $skip: skipCount },
+      { $limit: limit },
+    ];
+
+    // Count pipeline (reuse filtering stages before pagination)
+    const countPipeline = [
+      { $match: baseMatch },
+      ...basePipeline
+        .slice(1)
+        .filter((stage) => !stage.$skip && !stage.$limit && !stage.$sort),
+      { $count: "totalCount" },
+    ];
+
+    const [chats, countResult] = await Promise.all([
+      ChatDB.aggregate(basePipeline),
+      ChatDB.aggregate(countPipeline),
     ]);
 
-    const totalCount = result[0].metadata[0]?.total || 0;
+    const totalCount = countResult[0]?.totalCount || 0;
     const totalPage = Math.ceil(totalCount / limit);
-    const chats = result[0].data;
 
     resJson(
       res,

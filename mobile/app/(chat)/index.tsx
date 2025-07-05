@@ -54,6 +54,7 @@ export default function ChatMessage() {
     new Map(currentMessagesRaw.map((msg) => [msg._id, msg])).values()
   );
   const [newMessage, setNewMessage] = useState("");
+  const [isSentMessage, setIsSentMessage] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   // Pagination handling
@@ -97,31 +98,40 @@ export default function ChatMessage() {
     };
   }, [chatId]);
 
+  useEffect(() => {
+    if (isSentMessage && currentMessages.length > 0) {
+      flatListRef.current?.scrollToIndex({ index: 0, animated: true });
+      setIsSentMessage(false); // Reset the flag
+    }
+  }, [currentMessages, isSentMessage]);
+
   if (!user || !currentChat) return null;
   const chatPhoto = getChatPhoto(currentChat, user._id);
   const chatName = currentChat.name || getChatName(currentChat, user._id);
   const isPendingChat =
-    currentChat.isPending && currentChat.initiator?._id !== user._id;
+    currentChat.isPending && currentChat.initiator._id !== user._id;
 
   // Handle send message
+
   const handleSendMessage = async () => {
+    setIsSentMessage(true);
     if (!newMessage.trim() || !chatId || !currentChat) return;
 
     try {
       const data = await createMessage(chatId, newMessage.trim());
       const newMsg = data.result;
       setNewMessage("");
-      // Update the chat with the new last message
+
       const newUpdatedChat = {
         ...currentChat,
         latestMessage: newMsg,
         updatedAt: newMsg.createdAt,
       };
-      // Add to Zustand message store
+
       addMessage(chatId, newMsg);
       updateChat(newUpdatedChat);
 
-      flatListRef.current?.scrollToIndex({ index: 0, animated: true });
+      // Trigger scroll only after the message is added/rendered
     } catch (error: any) {
       ToastAndroid.show(error.message, ToastAndroid.SHORT);
     }

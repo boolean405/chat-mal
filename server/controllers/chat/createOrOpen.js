@@ -31,12 +31,25 @@ export default async function createOrOpen(req, res, next) {
         select: "-password",
       })
       .populate({
+        path: "groupAdmins.user",
+        select: "-password",
+      })
+      .populate({
+        path: "deletedInfos.user",
+        select: "-password",
+      })
+      .populate({
+        path: "initiator",
+        select: "-password",
+      })
+      .populate({
         path: "latestMessage",
         populate: {
           path: "sender",
           select: "-password",
         },
-      });
+      })
+      .lean();
 
     if (isChat) {
       return resJson(res, 200, "Success open PM chat.", isChat);
@@ -44,9 +57,7 @@ export default async function createOrOpen(req, res, next) {
       const receiverPrivacy = await UserPrivacyDB.findOne({ user: receiverId });
 
       let isPending = false;
-      if (receiverPrivacy?.isRequestMessage) {
-        isPending = true;
-      }
+      if (receiverPrivacy?.isRequestMessage) isPending = true;
 
       const newChat = {
         users: [{ user: userId }, { user: receiverId }],
@@ -56,11 +67,30 @@ export default async function createOrOpen(req, res, next) {
 
       const dbChat = await ChatDB.create(newChat);
       const chat = await ChatDB.findById(dbChat._id)
-        .populate("latestMessage")
         .populate({
-          path: "users.user initiator",
+          path: "users.user",
           select: "-password",
-        });
+        })
+        .populate({
+          path: "groupAdmins.user",
+          select: "-password",
+        })
+        .populate({
+          path: "deletedInfos.user",
+          select: "-password",
+        })
+        .populate({
+          path: "initiator",
+          select: "-password",
+        })
+        .populate({
+          path: "latestMessage",
+          populate: {
+            path: "sender",
+            select: "-password",
+          },
+        })
+        .lean();
 
       resJson(
         res,

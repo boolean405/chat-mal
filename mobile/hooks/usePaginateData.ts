@@ -46,8 +46,8 @@ export default function usePaginatedData<T>({
       //     new Map(combined.map((item: any) => [item._id, item])).values()
       //   );
       // });
-    } catch (err) {
-      console.error("Pagination Error:", err);
+    } catch (error: any) {
+      console.error("Pagination Error:", error.message);
     } finally {
       setIsLoading(false);
       setIsPaging(false);
