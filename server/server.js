@@ -4,9 +4,9 @@ import mongoose from "mongoose";
 import { Server } from "socket.io";
 
 import app from "./app.js";
-import connectDB from "./config/db.js";
+import connectDB from "./config/connectDB.js";
 import { Migrator } from "./migrations/migrator.js";
-import { setupSocket } from "./socket/index.js";
+import connectSocket from "./config/connectSocket.js";
 
 const port = process.env.PORT || 3000;
 const server = http.createServer(app);
@@ -24,4 +24,4 @@ mongoose.connection.once("open", () => {
 });
 
 // Setup socket
-setupSocket(io);
+connectSocket(io);

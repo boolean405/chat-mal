@@ -11,14 +11,13 @@ export default function Notification() {
   useEffect(() => {
     const setupSocket = async () => {
       const socket = await connectSocket();
-      if (!socket) return;
 
+      if (!socket) return;
       socketRef.current = socket;
 
       socket.on("connect", () => {
         console.log("✅ Connected to socket:", socket.id);
-        console.log("User => " , socket.user.name);
-        
+        console.log("User => ", socket);
       });
 
       socket.on("disconnect", () => {

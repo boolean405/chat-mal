@@ -6,7 +6,6 @@ import { SERVER_URL } from "@/constants";
 export const connectSocket = async (): Promise<Socket | null> => {
   try {
     const accessToken = useAuthStore.getState().accessToken;
-    console.log("Access Token:", accessToken);
 
     if (!accessToken) {
       console.warn("⚠️ Access token not found in Zustand store.");
@@ -19,8 +18,6 @@ export const connectSocket = async (): Promise<Socket | null> => {
         accessToken,
       },
     });
-    console.log(socket);
-    
 
     return socket;
   } catch (error: any) {

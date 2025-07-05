@@ -1,8 +1,8 @@
 import UserDB from "../models/user.js";
 import Token from "../utils/token.js";
-import { initialize } from "./chat.js";
+import { initialize } from "../socket/chat.js";
 
-export function setupSocket(io) {
+export default function connectSocket(io) {
   io.of("/api/socket/chat")
     .use(async (socket, next) => {
       try {
