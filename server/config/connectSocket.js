@@ -1,6 +1,5 @@
 import UserDB from "../models/user.js";
 import Token from "../utils/token.js";
-import { initialize } from "../socket/chat.js";
 
 export default function connectSocket(io) {
   io.of("/api/socket/chat")
@@ -23,7 +22,31 @@ export default function connectSocket(io) {
       }
     })
     .on("connection", (socket) => {
-      console.log("User connected in server => ", socket.user.name);
-      // initialize(io, socket);
+      console.log("User connected =>", socket.user.name);
+
+      socket.on("join-chat", (chatId) => {
+        socket.join(chatId);
+        console.log(socket.user.name, "joined chat =>", chatId);
+
+        socket.emit("join-chat");
+      });
+
+      socket.on("send-message", (chatId, message) => {
+        socket.to(chatId).emit("receive-message", message);
+      });
+
+      // ✅ Listen for typing events
+      socket.on("typing", (chatId) => {
+        socket.to(chatId).emit("typing", chatId, socket.user._id);
+      });
+
+      // ✅ Listen for stop typing events
+      socket.on("stop-typing", (chatId) => {
+        socket.to(chatId).emit("stop-typing", chatId, socket.user._id);
+      });
+
+      socket.on("disconnect", () => {
+        console.log("User disconnected =>", socket.user.name);
+      });
     });
 }

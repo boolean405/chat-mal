@@ -28,7 +28,6 @@ export default function ChatItem({
   const color = Colors[colorScheme ?? "light"];
   if (!chat || !user) return null;
 
-
   const chatPhoto = getChatPhoto(chat, user._id) ?? "";
   const chatName = chat.name || getChatName(chat, user._id) || "Unknown";
 

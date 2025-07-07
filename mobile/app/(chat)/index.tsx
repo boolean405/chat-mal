@@ -28,6 +28,7 @@ import { useMessageStore } from "@/stores/messageStore";
 import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
 import { acceptChatRequest, deleteChat } from "@/api/chat";
+import { getSocket } from "@/config/socket";
 
 export default function ChatMessage() {
   const router = useRouter();
@@ -56,6 +57,7 @@ export default function ChatMessage() {
   const [newMessage, setNewMessage] = useState("");
   const [isSentMessage, setIsSentMessage] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
 
   // Pagination handling
   const {
@@ -81,6 +83,63 @@ export default function ChatMessage() {
       };
     },
   });
+
+  // Socketio
+  useEffect(() => {
+    const socket = getSocket();
+    if (chatId && socket) {
+      socket.emit("join-chat", chatId);
+    }
+
+    return () => {
+      socket?.off("receive-message");
+    };
+  }, [chatId]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket || !chatId || !currentChat || !currentChat._id) return;
+
+    socket.on("receive-message", (message: Message) => {
+      if (message.chat._id === chatId) {
+        addMessage(chatId, message);
+
+        const updatedChat: Chat = {
+          ...currentChat,
+          _id: currentChat._id, // ensures _id is included
+          latestMessage: message,
+          updatedAt: message.createdAt,
+        };
+
+        updateChat(updatedChat);
+      }
+    });
+
+    return () => {
+      socket.off("receive-message");
+    };
+  }, [chatId, currentChat]);
+  // or
+
+  // useEffect(() => {
+  //   const socket = getSocket();
+  //   if (!socket) return;
+
+  //   socket.on("receive-message", (message: Message) => {
+  //     if (message.chat._id === chatId) {
+  //       addMessage(chatId, message);
+  //       updateChat({
+  //         ...currentChat,
+  //         latestMessage: message,
+  //         updatedAt: message.createdAt,
+  //       } as Chat);
+  //     }
+  //   });
+
+  //   return () => {
+  //     socket.off("receive-message");
+  //   };
+  // }, [chatId, currentChat]);
 
   // Set current chat when screen mounts
   useEffect(() => {
@@ -112,15 +171,14 @@ export default function ChatMessage() {
     currentChat.isPending && currentChat.initiator._id !== user._id;
 
   // Handle send message
-
   const handleSendMessage = async () => {
     setIsSentMessage(true);
     if (!newMessage.trim() || !chatId || !currentChat) return;
 
     try {
+      setNewMessage("");
       const data = await createMessage(chatId, newMessage.trim());
       const newMsg = data.result;
-      setNewMessage("");
 
       const newUpdatedChat = {
         ...currentChat,
@@ -130,6 +188,10 @@ export default function ChatMessage() {
 
       addMessage(chatId, newMsg);
       updateChat(newUpdatedChat);
+
+      // ✅ Emit to socket
+      const socket = getSocket();
+      socket?.emit("send-message", chatId, newMsg);
 
       // Trigger scroll only after the message is added/rendered
     } catch (error: any) {
@@ -183,7 +245,7 @@ export default function ChatMessage() {
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: color.background }]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 20}
     >
       {/* Header */}
       <ThemedView

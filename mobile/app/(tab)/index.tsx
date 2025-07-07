@@ -39,7 +39,8 @@ export default function Home() {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
   const user = useAuthStore((state) => state.user);
-  const { chats, setChats, updateChat, clearChat, clearGroup } = useChatStore();
+  const { chats, setChats, updateChat, clearChat, clearGroup, clearChats } =
+    useChatStore();
 
   // Paginated data handling
   const {
@@ -77,6 +78,7 @@ export default function Home() {
   // Update store when new chats are fetched
   useEffect(() => {
     if (newChats.length > 0) {
+      clearChats();
       setChats(newChats);
     }
   }, [newChats]);
@@ -120,7 +122,6 @@ export default function Home() {
         onEndReached={loadMore}
         onEndReachedThreshold={0.1}
         contentContainerStyle={styles.listContent}
-        
         renderItem={({ item }) => (
           <ChatItem
             chat={item}
