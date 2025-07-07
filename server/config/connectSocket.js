@@ -35,14 +35,12 @@ export default function connectSocket(io) {
         socket.to(chatId).emit("receive-message", message);
       });
 
-      // ✅ Listen for typing events
-      socket.on("typing", (chatId) => {
-        socket.to(chatId).emit("typing", chatId, socket.user._id);
+      socket.on("typing", ({ chatId,user }) => {
+        socket.to(chatId).emit("typing", { chatId,user });
       });
 
-      // ✅ Listen for stop typing events
-      socket.on("stop-typing", (chatId) => {
-        socket.to(chatId).emit("stop-typing", chatId, socket.user._id);
+      socket.on("stop-typing", ({ chatId,user }) => {
+        socket.to(chatId).emit("stop-typing", { chatId,user });
       });
 
       socket.on("disconnect", () => {

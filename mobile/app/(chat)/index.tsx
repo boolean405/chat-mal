@@ -14,7 +14,7 @@ import {
   useColorScheme,
 } from "react-native";
 
-import { Chat, Message } from "@/types";
+import { Chat, Message, User } from "@/types";
 import { Colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import MessageItem from "@/components/MessageItem";
@@ -58,6 +58,7 @@ export default function ChatMessage() {
   const [isSentMessage, setIsSentMessage] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [typingUser, setTypingUser] = useState<User | null>(null);
 
   // Pagination handling
   const {
@@ -141,6 +142,54 @@ export default function ChatMessage() {
   //   };
   // }, [chatId, currentChat]);
 
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket || !chatId) return;
+
+    const handleTyping = ({
+      chatId: typingChatId,
+      user: typingUserData,
+    }: {
+      chatId: string;
+      user: User;
+    }) => {
+      if (typingChatId === chatId && typingUserData._id !== user?._id) {
+        setIsTyping(true);
+        setTypingUser(typingUserData);
+      }
+    };
+
+    const handleStopTyping = ({
+      chatId: stopTypingChatId,
+    }: {
+      chatId: string;
+    }) => {
+      if (stopTypingChatId === chatId) {
+        setIsTyping(false);
+        setTypingUser(null);
+      }
+    };
+
+    socket.on("typing", handleTyping);
+    socket.on("stop-typing", handleStopTyping);
+
+    return () => {
+      socket.off("typing", handleTyping);
+      socket.off("stop-typing", handleStopTyping);
+    };
+  }, [chatId, user]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket || !chatId) return;
+
+    if (newMessage.trim().length > 0) {
+      socket.emit("typing", { chatId, user });
+    } else {
+      socket.emit("stop-typing", { chatId, user });
+    }
+  }, [newMessage]);
+
   // Set current chat when screen mounts
   useEffect(() => {
     if (chatId) {
@@ -176,7 +225,10 @@ export default function ChatMessage() {
     if (!newMessage.trim() || !chatId || !currentChat) return;
 
     try {
+      const socket = getSocket();
       setNewMessage("");
+      socket?.emit("stop-typing", { chatId });
+
       const data = await createMessage(chatId, newMessage.trim());
       const newMsg = data.result;
 
@@ -190,7 +242,6 @@ export default function ChatMessage() {
       updateChat(newUpdatedChat);
 
       // ✅ Emit to socket
-      const socket = getSocket();
       socket?.emit("send-message", chatId, newMsg);
 
       // Trigger scroll only after the message is added/rendered
@@ -325,6 +376,15 @@ export default function ChatMessage() {
           ) : null
         }
       />
+      {isTyping && typingUser && (
+        <ThemedView style={styles.typingIndicatorContainer}>
+          <Image
+            source={{ uri: typingUser.profilePhoto }}
+            style={styles.typingAvatar}
+          />
+          <ThemedText type="smallItalic">Typing...</ThemedText>
+        </ThemedView>
+      )}
 
       {/* Input Area and requset icon*/}
       {isPendingChat ? (
@@ -466,11 +526,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
 
-  typingText: {
-    fontStyle: "italic",
-    fontSize: 14,
-  },
-
   pendingButtonContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -492,5 +547,11 @@ const styles = StyleSheet.create({
   },
   blockText: {
     color: "red",
+  },
+  typingAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    marginRight: 8,
   },
 });
