@@ -23,7 +23,6 @@
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
-      "softwareKeyboardLayoutMode": "resize",
       "package": "com.chat.mal"
     },
     "web": {

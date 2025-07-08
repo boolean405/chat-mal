@@ -11,10 +11,8 @@ export type ThemedTextProps = TextProps & {
     | "defaultItalic"
     | "defaultBold"
     | "subtitle"
-    | "param"
     | "link"
     | "linkItalic"
-    | "paramItalic"
     | "small"
     | "smallItalic"
     | "extraSmallBold";
@@ -38,8 +36,6 @@ export function ThemedText({
         type === "defaultBold" ? styles.defaultBold : undefined,
         type === "title" ? styles.title : undefined,
         type === "subtitle" ? styles.subtitle : undefined,
-        type === "param" ? styles.param : undefined,
-        type === "paramItalic" ? styles.paramItalic : undefined,
         type === "small" ? styles.small : undefined,
         type === "smallItalic" ? styles.smallItalic : undefined,
         type === "extraSmallBold" ? styles.extraSmallBold : undefined,
@@ -55,36 +51,27 @@ export function ThemedText({
 
 const styles = StyleSheet.create({
   default: {
-    fontSize: 16,
+    fontSize: 14,
     // lineHeight: 24,
   },
   defaultItalic: {
-    fontSize: 16,
+    fontSize: 14,
     // lineHeight: 24,
     fontStyle: "italic",
   },
   defaultBold: {
-    fontSize: 16,
+    fontSize: 14,
     // lineHeight: 24,
     fontWeight: "bold",
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "bold",
     lineHeight: 32,
   },
   subtitle: {
     fontSize: 20,
-    fontWeight: "500",
-  },
-  param: {
-    fontSize: 14,
-    // fontWeight: "500",
-  },
-  paramItalic: {
-    fontSize: 14,
-    fontStyle: "italic",
-    // fontWeight: "500",
+    fontWeight: "semibold",
   },
   small: {
     fontSize: 12,
@@ -94,12 +81,12 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
   },
   link: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "500",
     color: "#21b0b0",
   },
   linkItalic: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "500",
     color: "#21b0b0",
     fontStyle: "italic",

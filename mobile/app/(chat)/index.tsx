@@ -296,7 +296,7 @@ export default function ChatMessage() {
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: color.background }]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 20}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
     >
       {/* Header */}
       <ThemedView
@@ -461,7 +461,7 @@ export default function ChatMessage() {
 
 // Styles
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingBottom: 20 },
+  container: { flex: 1 },
   header: {
     padding: 15,
     // paddingRight: 20,
@@ -479,8 +479,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    // paddingVertical: 15,
-    // marginVertical: 10,
+
+    paddingBottom: 35,
+    paddingTop: 5,
   },
   inputTextContainer: {
     height: 40,

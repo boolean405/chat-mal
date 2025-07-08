@@ -1,8 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
 import React from "react";
+import { Tabs } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { Platform, Text } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HapticTab } from "@/components/HapticTab";
 import { Colors } from "@/constants/colors";
@@ -12,14 +11,10 @@ export default function TabLayout() {
   // Get current color scheme (light or dark)
   const colorScheme = useColorScheme();
 
-  // Get safe area insets for padding (e.g., bottom space on iPhone X)
-  const insets = useSafeAreaInsets();
-
-  // Custom label function that only shows label when tab is focused
   const tabBarLabel =
     (label: string) =>
     ({ focused, color }: any) =>
-      focused ? <Text style={{ color }}>{label}</Text> : null;
+      focused ? <Text style={{ color, fontSize: 12 }}>{label}</Text> : null;
 
   return (
     <Tabs
@@ -33,9 +28,6 @@ export default function TabLayout() {
             backgroundColor: Colors[colorScheme ?? "light"].background,
           },
           default: {
-            paddingTop: 10,
-            paddingBottom: insets.bottom,
-            height: 60 + insets.bottom, // Adjust height for Android and safe area
             backgroundColor: Colors[colorScheme ?? "light"].background,
           },
         }),

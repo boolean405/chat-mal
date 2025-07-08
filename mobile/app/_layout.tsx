@@ -14,6 +14,7 @@ import {
 import { useColorScheme } from "@/hooks/useColorScheme";
 import SafeScreen from "@/components/SafeScreen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -41,19 +42,24 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <SafeAreaProvider>
-          <SafeScreen>
-            <Stack>
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              <Stack.Screen name="(tab)" options={{ headerShown: false }} />
-              <Stack.Screen name="(chat)" options={{ headerShown: false }} />
-              <Stack.Screen name="(menu)" options={{ headerShown: false }} />
-              <Stack.Screen name="(setting)" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-            <StatusBar style="auto" />
-          </SafeScreen>
-        </SafeAreaProvider>
+        <KeyboardProvider>
+          <SafeAreaProvider style={{ flex: 1 }}>
+            <SafeScreen>
+              <Stack>
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen name="(tab)" options={{ headerShown: false }} />
+                <Stack.Screen name="(chat)" options={{ headerShown: false }} />
+                <Stack.Screen name="(menu)" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="(setting)"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+              <StatusBar style="auto" />
+            </SafeScreen>
+          </SafeAreaProvider>
+        </KeyboardProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );
