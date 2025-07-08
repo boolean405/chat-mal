@@ -49,6 +49,10 @@ export default async function createOrOpen(req, res, next) {
           select: "-password",
         },
       })
+      .populate({
+        path: "unreadCounts.user",
+        select: "-password",
+      })
       .lean();
 
     if (isChat) {
@@ -63,6 +67,10 @@ export default async function createOrOpen(req, res, next) {
         users: [{ user: userId }, { user: receiverId }],
         isPending,
         initiator: userId,
+        unreadCounts: [
+          { user: userId, count: 0 },
+          { user: receiverId, count: 0 },
+        ],
       };
 
       const dbChat = await ChatDB.create(newChat);
@@ -89,6 +97,10 @@ export default async function createOrOpen(req, res, next) {
             path: "sender",
             select: "-password",
           },
+        })
+        .populate({
+          path: "unreadCounts.user",
+          select: "-password",
         })
         .lean();
 

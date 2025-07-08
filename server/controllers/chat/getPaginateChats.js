@@ -187,6 +187,9 @@ export default async function getPaginateChats(req, res, next) {
       {
         $unwind: { path: "$initiator", preserveNullAndEmptyArrays: true },
       },
+      {
+        $unset: ["populatedUsers", "populatedAdmins"],
+      },
 
       // Exclude passwords from all user fields
       {

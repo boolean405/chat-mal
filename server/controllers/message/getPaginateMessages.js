@@ -50,7 +50,12 @@ export default async function getPaginateMessages(req, res, next) {
           },
           {
             path: "chat",
-            select: "_id name isGroupChat",
+            populate: [
+              {
+                path: "users.user groupAdmins.user deletedInfos.user initiator unreadCounts.user latestMessage.sender",
+                select: "-password",
+              },
+            ],
           },
         ]),
       MessageDB.countDocuments(messageFilter),
