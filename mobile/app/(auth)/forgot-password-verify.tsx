@@ -117,10 +117,7 @@ export default function VerifyEmailScreen() {
             Enter verify code, check in your email
           </ThemedText>
           <ThemedText>"{email}"</ThemedText>
-          <ThemedText
-            type="defaultItalic"
-            style={{ marginBottom: 20, marginTop: 5 }}
-          >
+          <ThemedText style={styles.checkSpamText}>
             Don't forget to check also in your spam folder
           </ThemedText>
 
@@ -204,5 +201,10 @@ const styles = StyleSheet.create({
   resendContainer: {
     alignItems: "center",
     marginTop: 10,
+  },
+  checkSpamText: {
+    marginBottom: 20,
+    marginTop: 5,
+    fontStyle: "italic",
   },
 });

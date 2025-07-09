@@ -11,7 +11,6 @@ import {
 import { Story, User } from "@/types";
 import { Colors } from "@/constants/colors";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-// import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import StoryItem from "@/components/StoryItem";
 import MyStoryItem from "@/components/MyStoryItem";
 import { ThemedView } from "@/components/ThemedView";
@@ -36,7 +35,7 @@ export default function ChatHeader({ stories, user }: Props) {
           style={[
             styles.inputContainer,
             {
-              borderColor: color.borderColor,
+              borderColor: color.border,
               backgroundColor: color.secondary,
             },
           ]}
@@ -69,15 +68,11 @@ export default function ChatHeader({ stories, user }: Props) {
         horizontal
         keyExtractor={(item) => item._id}
         showsHorizontalScrollIndicator={false}
-        style={[styles.storyList, { borderBottomColor: color.borderColor }]}
+        style={[styles.storyList, { borderBottomColor: color.border }]}
         contentContainerStyle={{ paddingHorizontal: 12 }}
         ListHeaderComponent={user && <MyStoryItem user={user} />}
         renderItem={({ item }) => (
-          <StoryItem
-            story={item}
-            color={color}
-            onPress={() => console.log(item.name)}
-          />
+          <StoryItem story={item} onPress={() => console.log(item.name)} />
         )}
       />
     </>

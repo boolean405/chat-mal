@@ -20,6 +20,8 @@ interface Props {
   onPressMore?: () => void;
   moreButtonRef?: React.RefObject<any>;
   tag?: string;
+  isOnline?: boolean;
+  lastOnlineAt?: Date;
 }
 
 const UserItem: React.FC<Props> = ({
@@ -29,6 +31,8 @@ const UserItem: React.FC<Props> = ({
   onPressMore,
   tag,
   moreButtonRef,
+  isOnline,
+  lastOnlineAt,
 }) => {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
@@ -39,11 +43,13 @@ const UserItem: React.FC<Props> = ({
           source={{ uri: user.profilePhoto }}
           style={styles.profilePhoto}
         />
-        {user.isOnline ? (
-          <ThemedView style={styles.onlineIndicator} />
+        {isOnline ? (
+          <ThemedView
+            style={[styles.onlineIndicator, { borderColor: color.secondary }]}
+          />
         ) : (
-          <ThemedText type="extraSmallBold" style={styles.lastOnlineText}>
-            {getLastTime(user.createdAt)}
+          <ThemedText type="smallest" style={styles.lastOnlineText}>
+            {getLastTime(lastOnlineAt || user.updatedAt)}
           </ThemedText>
         )}
       </ThemedView>
@@ -52,7 +58,7 @@ const UserItem: React.FC<Props> = ({
           {tag ? `${user.name} ${tag}` : user.name}
         </ThemedText>
 
-        <ThemedText type="smallItalic">
+        <ThemedText type="small" style={{ fontStyle: "italic" }}>
           {user.username && `@${user.username}`}
         </ThemedText>
       </ThemedView>
@@ -111,15 +117,14 @@ const styles = StyleSheet.create({
     right: 15,
     width: 10,
     height: 10,
-    backgroundColor: "limegreen",
     borderRadius: 5,
-    // borderWidth: 2,
-    // borderColor: "white",
+    backgroundColor: "limegreen",
+    borderWidth: 1,
   },
   lastOnlineText: {
     position: "absolute",
     bottom: 0,
-    right: 10,
+    right: 15,
     color: "gray",
   },
 

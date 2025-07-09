@@ -1,5 +1,4 @@
 import React from "react";
-import { useColorScheme } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedView } from "./ThemedView";
 

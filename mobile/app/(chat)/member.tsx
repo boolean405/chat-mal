@@ -140,9 +140,7 @@ export default function Member() {
       keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
     >
       {/* Header */}
-      <ThemedView
-        style={[styles.header, { borderBottomColor: color.borderColor }]}
-      >
+      <ThemedView style={[styles.header, { borderBottomColor: color.border }]}>
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back-outline" size={22} color={color.icon} />
         </TouchableOpacity>
@@ -216,7 +214,7 @@ export default function Member() {
               <ThemedView
                 style={[
                   styles.titleTextContainer,
-                  { borderColor: color.borderColor },
+                  { borderColor: color.border },
                 ]}
               >
                 <Ionicons name="people-outline" size={22} color={color.icon} />
@@ -283,10 +281,7 @@ export default function Member() {
           onEndReachedThreshold={1}
           ListHeaderComponent={
             <ThemedView
-              style={[
-                styles.titleTextContainer,
-                { borderColor: color.borderColor },
-              ]}
+              style={[styles.titleTextContainer, { borderColor: color.border }]}
             >
               <Ionicons name="laptop-outline" size={22} color={color.icon} />
               <ThemedText style={{ marginLeft: 10 }}>Admins</ThemedText>
@@ -316,7 +311,7 @@ export default function Member() {
                 <ThemedView
                   style={[
                     styles.titleTextContainer,
-                    { borderColor: color.borderColor },
+                    { borderColor: color.border },
                   ]}
                 >
                   <Ionicons

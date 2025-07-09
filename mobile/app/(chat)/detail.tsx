@@ -130,9 +130,7 @@ export default function Detail() {
   return (
     <>
       {/* Header */}
-      <ThemedView
-        style={[styles.header, { borderBottomColor: color.borderColor }]}
-      >
+      <ThemedView style={[styles.header, { borderBottomColor: color.border }]}>
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back-outline" size={22} color={color.icon} />
         </TouchableOpacity>
@@ -148,10 +146,7 @@ export default function Detail() {
         <ThemedView style={styles.container}>
           {/* Profile photo */}
           <TouchableOpacity
-            style={[
-              styles.profileImageWrapper,
-              { borderColor: color.borderColor },
-            ]}
+            style={[styles.profileImageWrapper, { borderColor: color.border }]}
           >
             <Image source={chatPhoto} style={styles.profilePhoto} />
           </TouchableOpacity>

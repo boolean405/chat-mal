@@ -9,6 +9,7 @@ import formatDate from "@/utils/formatDate";
 import { Colors } from "@/constants/colors";
 import { getChatPhoto } from "@/utils/getChatPhoto";
 import { getChatName } from "@/utils/getChatName";
+import getLastTime from "@/utils/getLastTime";
 
 export default function ChatItem({
   chat,
@@ -16,12 +17,16 @@ export default function ChatItem({
   onPress,
   onProfilePress,
   onLongPress,
+  isOnline,
+  lastOnlineAt,
 }: {
   chat: Chat;
   user: User;
   onPress?: () => void;
   onProfilePress?: () => void;
   onLongPress?: () => void;
+  isOnline?: boolean;
+  lastOnlineAt?: Date;
 }) {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
@@ -42,13 +47,20 @@ export default function ChatItem({
       onLongPress={onLongPress}
     >
       <TouchableOpacity onPress={onProfilePress}>
-        <Image
-          source={{
-            uri: chatPhoto,
-          }}
-          style={styles.photo}
-        />
+        <ThemedView style={styles.photoContainer}>
+          <Image source={{ uri: chatPhoto }} style={styles.photo} />
+          {isOnline ? (
+            <ThemedView
+              style={[styles.onlineIndicator, { borderColor: color.secondary }]}
+            />
+          ) : (
+            <ThemedText type="extraSmall" style={styles.lastOnlineText}>
+              {getLastTime(lastOnlineAt || user.createdAt)}
+            </ThemedText>
+          )}
+        </ThemedView>
       </TouchableOpacity>
+
       <ThemedView style={styles.chatContent}>
         <ThemedView style={styles.chatTopRow}>
           <ThemedText type="defaultBold">{chatName}</ThemedText>
@@ -73,7 +85,9 @@ export default function ChatItem({
             <ThemedView
               style={[styles.unreadBadge, { backgroundColor: color.secondary }]}
             >
-              <ThemedText type="defaultBold">{unreadCount}</ThemedText>
+              <ThemedText style={{ fontWeight: "bold" }}>
+                {unreadCount}
+              </ThemedText>
             </ThemedView>
           )}
         </ThemedView>
@@ -125,5 +139,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 6,
     marginLeft: 8,
+  },
+  photoContainer: {
+    position: "relative",
+  },
+  onlineIndicator: {
+    position: "absolute",
+    bottom: 0,
+    right: 15,
+    width: 12,
+    height: 12,
+    backgroundColor: "limegreen",
+    borderRadius: 6,
+    borderWidth: 2,
+    // or use theme background
+  },
+  lastOnlineText: {
+    position: "absolute",
+    bottom: 0,
+    right: 10,
+    color: "gray",
+    fontWeight: "bold",
   },
 });

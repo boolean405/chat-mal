@@ -1,27 +1,28 @@
 import React from "react";
 import { Image } from "expo-image";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import { StyleSheet, TouchableOpacity, useColorScheme } from "react-native";
 
 import { Story } from "@/types";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
+import { Colors } from "@/constants/colors";
 
 export default function StoryItem({
   story,
-  color,
   onPress,
 }: {
   story: Story;
-  color: any;
   onPress: () => void;
 }) {
+  const colorScheme = useColorScheme();
+  const color = Colors[colorScheme ?? "light"];
   return (
     <TouchableOpacity style={styles.storyItem} onPress={onPress}>
       <ThemedView
         style={[
           styles.storyAvatarWrapper,
           story.hasStory && styles.storyAvatarBorder,
-          { borderColor: color.main },
+          { borderColor: color.storyBorder },
         ]}
       >
         <Image source={{ uri: story.storyUri }} style={styles.storyAvatar} />

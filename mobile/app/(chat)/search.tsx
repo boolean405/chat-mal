@@ -68,8 +68,8 @@ export default function Search() {
           setChats([chat]);
           console.log("added to chats");
         }
-        console.log('routing');
-        
+        console.log("routing");
+
         router.push({
           pathname: "/(chat)",
           params: { chatId: chat._id },
@@ -129,17 +129,14 @@ export default function Search() {
       </ThemedView>
 
       <ThemedView
-        style={[
-          styles.filterContainer,
-          { borderBottomColor: color.borderColor },
-        ]}
+        style={[styles.filterContainer, { borderBottomColor: color.border }]}
       >
         {filterTypes.map((filter) => (
           <TouchableOpacity
             key={filter}
             style={[
               styles.filterButton,
-              { borderColor: color.borderColor },
+              { borderColor: color.border },
               selectedFilter === filter && { backgroundColor: color.primary },
             ]}
             onPress={() => setSelectedFilter(filter)}

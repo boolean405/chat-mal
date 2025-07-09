@@ -91,9 +91,7 @@ export default function MessageRequest() {
   return (
     <ThemedView style={styles.container}>
       {/* Header */}
-      <ThemedView
-        style={[styles.header, { borderBottomColor: color.borderColor }]}
-      >
+      <ThemedView style={[styles.header, { borderBottomColor: color.border }]}>
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back-outline" size={22} color={color.icon} />
         </TouchableOpacity>
@@ -129,7 +127,7 @@ export default function MessageRequest() {
         }}
         ListHeaderComponent={
           <ThemedView style={styles.headerContainer}>
-            <ThemedText type="param">
+            <ThemedText>
               Open a chat for more info to see. Sender won't know you've seen
               the message until you reply or accept the request.
             </ThemedText>

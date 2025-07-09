@@ -148,7 +148,7 @@ export default function UploadPhoto() {
             [1, 1]
           )
         }
-        style={[styles.profileImageWrapper, { borderColor: color.borderColor }]}
+        style={[styles.profileImageWrapper, { borderColor: color.border }]}
       >
         {profilePhoto ? (
           <>

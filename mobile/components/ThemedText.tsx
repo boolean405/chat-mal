@@ -8,14 +8,17 @@ export type ThemedTextProps = TextProps & {
   type?:
     | "default"
     | "title"
-    | "defaultItalic"
-    | "defaultBold"
     | "subtitle"
     | "link"
     | "linkItalic"
     | "small"
-    | "smallItalic"
-    | "extraSmallBold";
+    | "smallest"
+    | "large"
+    | "largest"
+    | "extraLarge"
+    | "defaultBold"
+    | "defaultItalic"
+    | "extraSmall";
 };
 
 export function ThemedText({
@@ -32,15 +35,18 @@ export function ThemedText({
       style={[
         { color },
         type === "default" ? styles.default : undefined,
-        type === "defaultItalic" ? styles.defaultItalic : undefined,
-        type === "defaultBold" ? styles.defaultBold : undefined,
         type === "title" ? styles.title : undefined,
         type === "subtitle" ? styles.subtitle : undefined,
+        type === "largest" ? styles.largest : undefined,
+        type === "extraLarge" ? styles.extraLarge : undefined,
+        type === "large" ? styles.large : undefined,
+        type === "extraSmall" ? styles.extraSmall : undefined,
         type === "small" ? styles.small : undefined,
-        type === "smallItalic" ? styles.smallItalic : undefined,
-        type === "extraSmallBold" ? styles.extraSmallBold : undefined,
         type === "link" ? styles.link : undefined,
         type === "linkItalic" ? styles.linkItalic : undefined,
+        type === "smallest" ? styles.smallest : undefined,
+        type === "defaultBold" ? styles.defaultBold : undefined,
+        type === "defaultItalic" ? styles.defaultItalic : undefined,
 
         style,
       ]}
@@ -50,49 +56,52 @@ export function ThemedText({
 }
 
 const styles = StyleSheet.create({
-  default: {
-    fontSize: 14,
-    // lineHeight: 24,
-  },
-  defaultItalic: {
-    fontSize: 14,
-    // lineHeight: 24,
-    fontStyle: "italic",
-  },
-  defaultBold: {
-    fontSize: 14,
-    // lineHeight: 24,
-    fontWeight: "bold",
-  },
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    lineHeight: 32,
   },
   subtitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "semibold",
+  },
+  largest: {
+    fontSize: 20,
+  },
+  extraLarge: {
+    fontSize: 18,
+  },
+  large: {
+    fontSize: 16,
+  },
+  default: {
+    fontSize: 14,
+  },
+  defaultBold: {
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  defaultItalic: {
+    fontSize: 14,
+    fontStyle: "italic",
   },
   small: {
     fontSize: 12,
   },
-  smallItalic: {
-    fontSize: 12,
-    fontStyle: "italic",
+  extraSmall: {
+    fontSize: 10,
+  },
+  smallest: {
+    fontSize: 8,
   },
   link: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: "semibold",
     color: "#21b0b0",
   },
   linkItalic: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: "semibold",
     color: "#21b0b0",
     fontStyle: "italic",
-  },
-  extraSmallBold: {
-    fontSize: 10,
-    fontWeight: "bold",
   },
 });

@@ -322,10 +322,7 @@ export default function EditProfile() {
                 handleProfileUpload
               )
             }
-            style={[
-              styles.profileImageWrapper,
-              { borderColor: color.borderColor },
-            ]}
+            style={[styles.profileImageWrapper, { borderColor: color.border }]}
           >
             {isProfileLoading && (
               <ActivityIndicator
@@ -378,10 +375,7 @@ export default function EditProfile() {
 
             {/* Name Input */}
             <ThemedView
-              style={[
-                styles.inputContainer,
-                { borderColor: color.borderColor },
-              ]}
+              style={[styles.inputContainer, { borderColor: color.border }]}
             >
               <Ionicons
                 name="person-outline"
@@ -412,7 +406,7 @@ export default function EditProfile() {
             <ThemedView
               style={[
                 styles.inputContainer,
-                { borderColor: isExistUsername ? "red" : color.borderColor },
+                { borderColor: isExistUsername ? "red" : color.border },
               ]}
             >
               <Ionicons

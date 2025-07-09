@@ -29,9 +29,9 @@ import { useBottomSheetActions } from "@/hooks/useBottomSheetActions";
 const stories: Story[] = [
   {
     _id: "s2",
-    name: "Family Group",
-    storyUri: "https://cdn-icons-png.flaticon.com/512/1946/1946429.png",
-    hasStory: false,
+    name: "John Doe",
+    storyUri: `${process.env.EXPO_PUBLIC_SERVER_URL}/image/profile-photo`,
+    hasStory: true,
   },
   // ... other stories
 ];

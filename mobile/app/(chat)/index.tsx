@@ -382,7 +382,9 @@ export default function ChatMessage() {
             source={{ uri: typingUser.profilePhoto }}
             style={styles.typingAvatar}
           />
-          <ThemedText type="smallItalic">Typing...</ThemedText>
+          <ThemedText type="small" style={{ fontStyle: "italic" }}>
+            Typing...
+          </ThemedText>
         </ThemedView>
       )}
 
@@ -448,7 +450,10 @@ export default function ChatMessage() {
             </TouchableOpacity>
           </ThemedView>
           <TouchableOpacity
-            style={[styles.sendButton, { backgroundColor: color.main }]}
+            style={[
+              styles.sendButton,
+              { backgroundColor: color.messageBackground },
+            ]}
             onPress={handleSendMessage}
           >
             <Ionicons name="send-outline" size={22} color={color.icon} />

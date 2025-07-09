@@ -4,7 +4,6 @@ import {
   Image,
   StyleSheet,
   useColorScheme,
-  View,
 } from "react-native";
 
 import { Colors } from "@/constants/colors";
@@ -19,6 +18,8 @@ interface Props {
   joinedAt?: Date;
   selected?: boolean;
   onSelect?: () => void;
+  isOnline?: boolean;
+  lastOnlineAt?: Date;
 }
 
 const SelectableUserItem: React.FC<Props> = ({
@@ -26,6 +27,8 @@ const SelectableUserItem: React.FC<Props> = ({
   joinedAt,
   selected = false,
   onSelect,
+  isOnline,
+  lastOnlineAt,
 }) => {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
@@ -38,11 +41,11 @@ const SelectableUserItem: React.FC<Props> = ({
           source={{ uri: user.profilePhoto }}
           style={styles.profilePhoto}
         />
-        {user.isOnline ? (
+        {isOnline ? (
           <ThemedView style={styles.onlineIndicator} />
         ) : (
-          <ThemedText type="extraSmallBold" style={styles.lastOnlineText}>
-            {getLastTime(user.createdAt)}
+          <ThemedText type="extraSmall" style={styles.lastOnlineText}>
+            {getLastTime(lastOnlineAt || user.updatedAt)}
           </ThemedText>
         )}
       </ThemedView>
@@ -51,7 +54,9 @@ const SelectableUserItem: React.FC<Props> = ({
       <ThemedView style={styles.textContainer}>
         <ThemedText type="defaultBold">{user.name}</ThemedText>
         {!!user.username && (
-          <ThemedText type="smallItalic">@{user.username}</ThemedText>
+          <ThemedText type="small" style={{ fontStyle: "italic" }}>
+            @{user.username}
+          </ThemedText>
         )}
       </ThemedView>
 
@@ -113,5 +118,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     right: 10,
     color: "gray",
+    fontWeight: "bold",
   },
 });
