@@ -6,5 +6,5 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts", "utils/getImageMimeType.ts", "api/user.js", "api/chat.js"]
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts", "utils/getImageMimeType.ts", "api/user.js", "api/chat.js", "socket"]
 }

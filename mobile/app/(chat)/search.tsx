@@ -21,13 +21,15 @@ import { useUsersSearchStore } from "@/stores/usersSearchStore";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { User } from "@/types";
 import { useChatStore } from "@/stores/chatStore";
+import { useAuthStore } from "@/stores/authStore";
 
 export default function Search() {
   const router = useRouter();
   const inputRef = useRef<TextInput>(null);
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
-  const { setChats, getChatById } = useChatStore();
+  const { user } = useAuthStore();
+  const { setChats, getChatById, onlineUserIds } = useChatStore();
 
   const {
     results,
@@ -85,6 +87,7 @@ export default function Search() {
       ToastAndroid.show(err.message, ToastAndroid.SHORT);
     }
   };
+  if (!user) return null;
 
   const filterTypes = ["All", "Online", "Male", "Female", "Group"];
 
@@ -165,9 +168,18 @@ export default function Search() {
       <FlatList
         data={results}
         keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <UserItem user={item} onPress={() => handleResult(item)} />
-        )}
+        renderItem={({ item }) => {
+          let isOnline = false;
+          const otherUserId = item._id !== user._id ? item._id : null;
+          if (otherUserId) isOnline = onlineUserIds.includes(otherUserId);
+          return (
+            <UserItem
+              user={item}
+              isOnline={isOnline}
+              onPress={() => handleResult(item)}
+            />
+          );
+        }}
         ListEmptyComponent={
           debouncedKeyword && !isLoading ? (
             <ThemedText style={{ textAlign: "center", marginVertical: 10 }}>

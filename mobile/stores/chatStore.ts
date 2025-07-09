@@ -6,6 +6,8 @@ import { Chat } from "@/types";
 
 interface ChatStore {
   chats: Chat[];
+  onlineUserIds: string[];
+  setOnlineUserIds: (ids: string[]) => void;
   currentChat: Chat | null; // Add current chat tracking
   setChats: (newChats: Chat[]) => void;
   updateChat: (updatedChat: Chat) => void;
@@ -21,7 +23,13 @@ export const useChatStore = create<ChatStore>()(
   persist(
     (set, get) => ({
       chats: [],
+
+      onlineUserIds: [],
+
+      setOnlineUserIds: (ids) => set({ onlineUserIds: ids }),
+
       currentChat: null,
+
       setChats: (newChats) =>
         set((state) => {
           const existingIds = new Set(state.chats.map((c) => c._id));
@@ -42,6 +50,7 @@ export const useChatStore = create<ChatStore>()(
 
           return { chats: allChats };
         }),
+
       updateChat: (updatedChat) =>
         set((state) => {
           // Replace the chat
@@ -66,23 +75,27 @@ export const useChatStore = create<ChatStore>()(
                 : state.currentChat,
           };
         }),
+
       clearChat: (chatId) =>
         set((state) => ({
           chats: state.chats.filter((chat) => chat._id !== chatId),
           currentChat:
             state.currentChat?._id === chatId ? null : state.currentChat,
         })),
+
       clearGroup: (groupId) =>
         set((state) => ({
           chats: state.chats.filter((chat) => chat._id !== groupId),
           currentChat:
             state.currentChat?._id === groupId ? null : state.currentChat,
         })),
+
       clearChats: () => set({ chats: [], currentChat: null }),
-      // New method implementations
+
       getChatById: (chatId) => {
         return get().chats.find((chat) => chat._id === chatId);
       },
+
       setCurrentChat: (chat) => set({ currentChat: chat }),
     }),
     {

@@ -9,9 +9,8 @@ export default async function createOrOpen(req, res, next) {
     const user = req.user;
     const receiverId = req.body.receiverId;
 
-    const dbReceiver = await UserDB.findById(receiverId);
-
-    if (!dbReceiver) throw resError(404, "Receiver not found!");
+    if (!(await UserDB.exists({ _id: receiverId })))
+      throw resError(404, "Receiver not found!");
 
     const isChat = await ChatDB.findOne({
       isGroupChat: false,
@@ -24,20 +23,26 @@ export default async function createOrOpen(req, res, next) {
     });
 
     if (isChat) {
-      await ChatDB.updateOne(
-        { _id: isChat._id },
-        {
-          $set: {
-            "unreadCounts.$[elem].count": 0,
-          },
-        },
-        {
-          arrayFilters: [{ "elem.user": user._id }],
-        }
+      const myUnread = isChat?.unreadCounts?.find(
+        (uc) => uc.user.toString() === user._id.toString() && uc.count > 0
       );
 
+      if (myUnread) {
+        await ChatDB.findByIdAndUpdate(
+          isChat._id,
+          {
+            $set: {
+              "unreadCounts.$[elem].count": 0,
+            },
+          },
+          {
+            arrayFilters: [{ "elem.user": user._id }],
+          }
+        );
+      }
+
       // 🧠 Re-fetch with updated unreadCounts
-      const updatedChat = await ChatDB.findById(isChat._id)
+      const chat = await ChatDB.findById(isChat._id)
         .populate({
           path: "users.user",
           select: "-password",
@@ -67,7 +72,7 @@ export default async function createOrOpen(req, res, next) {
         })
         .lean();
 
-      return resJson(res, 200, "Success open PM chat.", updatedChat);
+      return resJson(res, 200, "Success open PM chat.", chat);
     } else {
       const receiverPrivacy = await UserPrivacyDB.findOne({ user: receiverId });
 

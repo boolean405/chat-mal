@@ -14,8 +14,10 @@ export default function Maintenance({ title = "This page" }) {
         source={require("../assets/images/maintenance.png")}
         style={styles.image}
       />
-      <ThemedText type="title">Coming Soon</ThemedText>
-      <ThemedText type="subtitle" style={styles.subtitle}>
+      <ThemedText type="largest" style={{ fontWeight: "bold" }}>
+        Coming Soon
+      </ThemedText>
+      <ThemedText type="large" style={styles.subtitle}>
         {`${title} is not available yet. Stay tuned!`}
       </ThemedText>
 

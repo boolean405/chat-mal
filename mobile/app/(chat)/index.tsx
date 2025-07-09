@@ -28,7 +28,8 @@ import { useMessageStore } from "@/stores/messageStore";
 import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
 import { acceptChatRequest, deleteChat } from "@/api/chat";
-import { getSocket } from "@/config/socket";
+import { getSocket } from "@/config/getSocket";
+import getLastTime from "@/utils/getLastTime";
 
 export default function ChatMessage() {
   const router = useRouter();
@@ -40,8 +41,15 @@ export default function ChatMessage() {
   const { chatId: rawChatId } = useLocalSearchParams();
   const chatId = Array.isArray(rawChatId) ? rawChatId[0] : rawChatId;
   // Get chat and messages from stores
-  const { currentChat, getChatById, setCurrentChat, updateChat, clearChat } =
-    useChatStore();
+  const {
+    currentChat,
+    onlineUserIds,
+    getChatById,
+    setCurrentChat,
+    updateChat,
+    clearChat,
+  } = useChatStore();
+
   const {
     messages: storedMessages,
     addMessage,
@@ -54,6 +62,7 @@ export default function ChatMessage() {
   const currentMessages = Array.from(
     new Map(currentMessagesRaw.map((msg) => [msg._id, msg])).values()
   );
+
   const [newMessage, setNewMessage] = useState("");
   const [isSentMessage, setIsSentMessage] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -291,7 +300,11 @@ export default function ChatMessage() {
       },
     ]);
   };
+  const otherUserId = currentChat.users.find((u) => u.user._id !== user._id)
+    ?.user._id;
 
+  let isOnline = false;
+  if (otherUserId) isOnline = onlineUserIds.includes(otherUserId);
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: color.background }]}
@@ -299,16 +312,30 @@ export default function ChatMessage() {
       keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
     >
       {/* Header */}
-      <ThemedView
-        style={[styles.header, { borderBottomColor: color.borderColor }]}
-      >
+      <ThemedView style={[styles.header, { borderBottomColor: color.border }]}>
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back-outline" size={22} color={color.icon} />
         </TouchableOpacity>
+
+        {/* Profile avatar */}
         <TouchableOpacity onPress={() => console.log("Profile")}>
-          <Image source={chatPhoto} style={styles.chatPhoto} />
+          <ThemedView style={styles.profilePhotoContainer}>
+            <Image source={{ uri: chatPhoto }} style={styles.profilePhoto} />
+            {!currentChat.isGroupChat && isOnline ? (
+              <ThemedView
+                style={[
+                  styles.onlineIndicator,
+                  { borderColor: color.secondary },
+                ]}
+              />
+            ) : !currentChat.isGroupChat ? (
+              <ThemedText type="smallest" style={styles.lastOnlineText}>
+                {getLastTime(user.updatedAt)}
+              </ThemedText>
+            ) : null}
+          </ThemedView>
         </TouchableOpacity>
-        <ThemedText type="subtitle" style={styles.headerTitle}>
+        <ThemedText type="larger" style={styles.headerTitle}>
           {chatName}
         </ThemedText>
         {/* Header icons */}
@@ -429,7 +456,11 @@ export default function ChatMessage() {
             ]}
           >
             <TouchableOpacity style={styles.imageButton}>
-              <Ionicons name="happy-outline" size={22} color={color.icon} />
+              <Ionicons
+                name="add-circle-outline"
+                size={22}
+                color={color.icon}
+              />
             </TouchableOpacity>
             <TextInput
               value={newMessage}
@@ -524,13 +555,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#ccc", // Or avatar placeholder color
     marginRight: 8,
   },
-  chatPhoto: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#ccc", // Or avatar placeholder color
-    marginLeft: 10,
-  },
+  // chatPhoto: {
+  //   width: 40,
+  //   height: 40,
+  //   borderRadius: 20,
+  //   backgroundColor: "#ccc", // Or avatar placeholder color
+  //   marginLeft: 10,
+  // },
 
   pendingButtonContainer: {
     flexDirection: "row",
@@ -559,5 +590,44 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 14,
     marginRight: 8,
+  },
+
+  profilePhoto: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    // marginRight: 15,
+  },
+  textContainer: {
+    flex: 1,
+  },
+  dateContainer: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    // alignContent: "center",
+    alignItems: "center",
+  },
+  profilePhotoContainer: {
+    position: "relative",
+    marginLeft: 10,
+  },
+
+  onlineIndicator: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "limegreen",
+    borderWidth: 1,
+  },
+  lastOnlineText: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    color: "gray",
+    fontWeight: "bold",
   },
 });

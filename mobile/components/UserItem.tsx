@@ -126,6 +126,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     right: 15,
     color: "gray",
+    fontWeight: "bold",
   },
 
   // iconContainer: {

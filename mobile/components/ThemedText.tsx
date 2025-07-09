@@ -17,6 +17,8 @@ export type ThemedTextProps = TextProps & {
     | "largest"
     | "extraLarge"
     | "defaultBold"
+    | "smaller"
+    | "larger"
     | "defaultItalic"
     | "extraSmall";
 };
@@ -38,10 +40,10 @@ export function ThemedText({
         type === "title" ? styles.title : undefined,
         type === "subtitle" ? styles.subtitle : undefined,
         type === "largest" ? styles.largest : undefined,
-        type === "extraLarge" ? styles.extraLarge : undefined,
         type === "large" ? styles.large : undefined,
-        type === "extraSmall" ? styles.extraSmall : undefined,
         type === "small" ? styles.small : undefined,
+        type === "smaller" ? styles.smaller : undefined,
+        type === "larger" ? styles.larger : undefined,
         type === "link" ? styles.link : undefined,
         type === "linkItalic" ? styles.linkItalic : undefined,
         type === "smallest" ? styles.smallest : undefined,
@@ -67,7 +69,7 @@ const styles = StyleSheet.create({
   largest: {
     fontSize: 20,
   },
-  extraLarge: {
+  larger: {
     fontSize: 18,
   },
   large: {
@@ -87,7 +89,7 @@ const styles = StyleSheet.create({
   small: {
     fontSize: 12,
   },
-  extraSmall: {
+  smaller: {
     fontSize: 10,
   },
   smallest: {

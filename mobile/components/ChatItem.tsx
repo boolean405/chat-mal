@@ -30,10 +30,13 @@ export default function ChatItem({
 }) {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
+
   if (!chat || !user) return null;
 
   const chatPhoto = getChatPhoto(chat, user._id) ?? "";
+
   const chatName = chat.name || getChatName(chat, user._id) || "Unknown";
+
   // Find the current user's unread count from the array
   const currentUserUnread = chat.unreadCounts?.find(
     (uc) => uc.user._id === user._id || uc.user?._id === user._id
@@ -49,15 +52,15 @@ export default function ChatItem({
       <TouchableOpacity onPress={onProfilePress}>
         <ThemedView style={styles.photoContainer}>
           <Image source={{ uri: chatPhoto }} style={styles.photo} />
-          {isOnline ? (
+          {!chat.isGroupChat && isOnline ? (
             <ThemedView
               style={[styles.onlineIndicator, { borderColor: color.secondary }]}
             />
-          ) : (
-            <ThemedText type="extraSmall" style={styles.lastOnlineText}>
+          ) : !chat.isGroupChat ? (
+            <ThemedText type="smaller" style={styles.lastOnlineText}>
               {getLastTime(lastOnlineAt || user.createdAt)}
             </ThemedText>
-          )}
+          ) : null}
         </ThemedView>
       </TouchableOpacity>
 
@@ -85,9 +88,7 @@ export default function ChatItem({
             <ThemedView
               style={[styles.unreadBadge, { backgroundColor: color.secondary }]}
             >
-              <ThemedText style={{ fontWeight: "bold" }}>
-                {unreadCount}
-              </ThemedText>
+              <ThemedText type="defaultBold">{unreadCount}</ThemedText>
             </ThemedView>
           )}
         </ThemedView>
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
   lastOnlineText: {
     position: "absolute",
     bottom: 0,
-    right: 10,
+    right: 15,
     color: "gray",
     fontWeight: "bold",
   },

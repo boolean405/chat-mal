@@ -24,6 +24,7 @@ import BottomSheetAction from "@/components/BottomSheetActions";
 import { createOrOpen, getPaginateChats, readChat } from "@/api/chat";
 import { useChatStore } from "@/stores/chatStore";
 import { useBottomSheetActions } from "@/hooks/useBottomSheetActions";
+import { socket } from "@/config/socket";
 
 // Stories data - consider moving to a separate file or API call
 const stories: Story[] = [
@@ -41,8 +42,18 @@ export default function Home() {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
   const user = useAuthStore((state) => state.user);
-  const { chats, setChats, updateChat, clearChat, clearGroup, clearChats } =
-    useChatStore();
+  const accessToken = useAuthStore((state) => state.accessToken);
+
+  const {
+    chats,
+    onlineUserIds,
+    setChats,
+    updateChat,
+    clearChat,
+    clearGroup,
+    clearChats,
+    setOnlineUserIds,
+  } = useChatStore();
 
   // Paginated data handling
   const {
@@ -77,6 +88,32 @@ export default function Home() {
     clearGroup,
   });
 
+  // Socket io
+  useEffect(() => {
+    if (!accessToken) return;
+
+    socket.io.opts.query = { accessToken };
+    socket.connect();
+
+    socket.on("connect", () => {
+      console.log("✅ Connected to socket.io server");
+    });
+
+    socket.on("connect_error", (err) => {
+      console.log("❌ Socket connection error:", err.message);
+    });
+
+    socket.on("online-users", (userIds: string[]) => {
+      console.log("🟢 Online users:", userIds);
+      setOnlineUserIds(userIds);
+    });
+
+    return () => {
+      socket.disconnect();
+      socket.off("online-users");
+    };
+  }, [accessToken]);
+
   // Update store when new chats are fetched
   useEffect(() => {
     if (newChats.length > 0) {
@@ -86,7 +123,7 @@ export default function Home() {
   }, [newChats]);
 
   // Update chat press handler
-  const handleChatPress = async (chat: Chat) => {
+  const handleChatPress = async (chat: Chat, isOnline: boolean) => {
     if (chat.unreadCounts?.length) {
       const myUnread = chat.unreadCounts.find(
         (uc) => uc.user._id === user?._id && uc.count > 0
@@ -104,8 +141,6 @@ export default function Home() {
 
         // ✅ Then sync with backend
         try {
-          console.log("server passing");
-
           const updatedChat = await readChat(chat._id);
           updateChat(updatedChat); // ensure correct state from server
         } catch (error: any) {
@@ -117,7 +152,9 @@ export default function Home() {
     // Navigate to the chat screen
     router.push({
       pathname: "/(chat)",
-      params: { chatId: chat._id },
+      params: {
+        chatId: chat._id,
+      },
     });
   };
 
@@ -150,14 +187,22 @@ export default function Home() {
         onEndReached={loadMore}
         onEndReachedThreshold={0.1}
         contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <ChatItem
-            chat={item}
-            user={user}
-            onPress={() => handleChatPress(item)}
-            onLongPress={() => openSheet(item)}
-          />
-        )}
+        renderItem={({ item }) => {
+          let isOnline = false;
+          const otherUserId = item.users.find((u) => u.user._id !== user._id)
+            ?.user._id;
+
+          if (otherUserId) isOnline = onlineUserIds.includes(otherUserId);
+          return (
+            <ChatItem
+              chat={item}
+              user={user}
+              onPress={() => handleChatPress(item, isOnline)}
+              onLongPress={() => openSheet(item)}
+              isOnline={isOnline}
+            />
+          );
+        }}
         ListHeaderComponent={<ChatHeader stories={stories} user={user} />}
         ListFooterComponent={
           hasMore && isPaging ? (

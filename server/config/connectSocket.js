@@ -4,7 +4,7 @@ import Token from "../utils/token.js";
 let onlineUsers = new Map();
 
 export default function connectSocket(io) {
-  io.of("/api/socket/chat")
+  io.of("/")
     .use(async (socket, next) => {
       try {
         const accessToken = socket.handshake.query.accessToken;
@@ -24,12 +24,12 @@ export default function connectSocket(io) {
       }
     })
     .on("connection", (socket) => {
-      const userId = socket.user._id;
+      const user = socket.user;
       console.log("User connected =>", socket.user.name);
 
       // Online user
-      onlineUsers.set(socket.user.id, socket.id);
-      io.emit("user-online", userId);
+      onlineUsers.set(user._id, socket.id);
+      io.of("/").emit("online-users", Array.from(onlineUsers.keys()));
 
       // Join chat
       socket.on("join-chat", (chatId) => {
@@ -48,16 +48,16 @@ export default function connectSocket(io) {
         socket.to(chatId).emit("typing", { chatId, user });
       });
 
+      // Stop typing
       socket.on("stop-typing", ({ chatId, user }) => {
         socket.to(chatId).emit("stop-typing", { chatId, user });
       });
 
       // Disconnect
       socket.on("disconnect", () => {
-        onlineUsers.delete(userId);
-        // Notify others
-        io.emit("user-offline", userId);
-        console.log("User disconnected =>", socket.user.name);
+        console.log("User disconnected:", user._id);
+        onlineUsers.delete(user._id);
+        io.emit("online-users", Array.from(onlineUsers.keys()));
       });
     });
 }

@@ -15,7 +15,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import SafeScreen from "@/components/SafeScreen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
-import { getSocket } from "@/config/socket";
+import { getSocket } from "@/config/getSocket";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -30,7 +30,7 @@ export default function RootLayout() {
   useEffect(() => {
     const prepare = async () => {
       if (fontsLoaded) {
-        getSocket();
+        // getSocket();
         await SplashScreen.hideAsync();
       }
     };
