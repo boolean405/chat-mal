@@ -9,7 +9,6 @@ import formatDate from "@/utils/formatDate";
 import { Colors } from "@/constants/colors";
 import { getChatPhoto } from "@/utils/getChatPhoto";
 import { getChatName } from "@/utils/getChatName";
-import { useAuthStore } from "@/stores/authStore";
 
 export default function ChatItem({
   chat,
@@ -30,6 +29,11 @@ export default function ChatItem({
 
   const chatPhoto = getChatPhoto(chat, user._id) ?? "";
   const chatName = chat.name || getChatName(chat, user._id) || "Unknown";
+  // Find the current user's unread count from the array
+  const currentUserUnread = chat.unreadCounts?.find(
+    (uc) => uc.user._id === user._id || uc.user?._id === user._id
+  );
+  const unreadCount = currentUserUnread?.count ?? 0;
 
   return (
     <TouchableOpacity
@@ -56,7 +60,7 @@ export default function ChatItem({
           <ThemedText
             style={[
               styles.unreadText,
-              chat.unreadCount > 0 && {
+              unreadCount > 0 && {
                 fontWeight: "bold",
                 color: color.primary,
               },
@@ -65,11 +69,11 @@ export default function ChatItem({
           >
             {chat.latestMessage?.content}
           </ThemedText>
-          {chat.unreadCount > 0 && (
+          {unreadCount > 0 && (
             <ThemedView
               style={[styles.unreadBadge, { backgroundColor: color.secondary }]}
             >
-              <ThemedText type="defaultBold">{chat.unreadCount}</ThemedText>
+              <ThemedText type="defaultBold">{unreadCount}</ThemedText>
             </ThemedView>
           )}
         </ThemedView>

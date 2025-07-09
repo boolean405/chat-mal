@@ -68,6 +68,8 @@ export default function Search() {
           setChats([chat]);
           console.log("added to chats");
         }
+        console.log('routing');
+        
         router.push({
           pathname: "/(chat)",
           params: { chatId: chat._id },

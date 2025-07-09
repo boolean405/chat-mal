@@ -19,6 +19,7 @@ import getPaginateChats from "../controllers/chat/getPaginateChats.js";
 import getChat from "../controllers/chat/getChat.js";
 import getPaginateRequestChats from "../controllers/chat/getPaginateRequestChat.js";
 import acceptChatRequest from "../controllers/chat/acceptChatRequest.js";
+import readChat from "../controllers/chat/readChat.js";
 
 router.post(
   "/",
@@ -95,6 +96,12 @@ router.patch(
   validateToken(),
   validateBody(ChatSchema.acceptChatRequest),
   acceptChatRequest
+);
+router.patch(
+  "/read-chat",
+  validateToken(),
+  validateBody(ChatSchema.readChat),
+  readChat
 );
 
 export default router;

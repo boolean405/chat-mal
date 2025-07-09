@@ -46,8 +46,11 @@ export type Chat = {
     joinedAt: Date;
   }[];
   groupPhoto?: string;
-  unreadCount: number;
-  deletedInfo: {
+  unreadCounts: {
+    user: User;
+    count: number;
+  }[];
+  deletedInfos: {
     user: User;
     deletedAt: Date;
   }[];
@@ -75,15 +78,13 @@ export type BottomSheetOption = {
   path: string;
 };
 
-export type MessageStatus = "sent" | "delivered" | "seen";
-
 export type Message = {
   _id: string;
   sender: User;
   type: "text" | "image";
   content: string;
   chat: Chat;
-  status: MessageStatus;
+  status: "sent" | "delivered" | "seen";
   createdAt: Date;
   updatedAt: Date;
 };

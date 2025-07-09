@@ -6,57 +6,68 @@ import UserPrivacyDB from "../../models/userPrivacy.js";
 
 export default async function createOrOpen(req, res, next) {
   try {
-    const userId = req.userId;
+    const user = req.user;
     const receiverId = req.body.receiverId;
 
-    const [userExists, dbReceiver] = await Promise.all([
-      UserDB.exists({ _id: userId }),
-      UserDB.findById(receiverId),
-    ]);
+    const dbReceiver = await UserDB.findById(receiverId);
 
-    if (!userExists) throw resError(401, "Authenticated user not found!");
     if (!dbReceiver) throw resError(404, "Receiver not found!");
 
     const isChat = await ChatDB.findOne({
       isGroupChat: false,
       users: {
         $all: [
-          { $elemMatch: { user: userId } },
+          { $elemMatch: { user: user._id } },
           { $elemMatch: { user: receiverId } },
         ],
       },
-    })
-      .populate({
-        path: "users.user",
-        select: "-password",
-      })
-      .populate({
-        path: "groupAdmins.user",
-        select: "-password",
-      })
-      .populate({
-        path: "deletedInfos.user",
-        select: "-password",
-      })
-      .populate({
-        path: "initiator",
-        select: "-password",
-      })
-      .populate({
-        path: "latestMessage",
-        populate: {
-          path: "sender",
-          select: "-password",
-        },
-      })
-      .populate({
-        path: "unreadCounts.user",
-        select: "-password",
-      })
-      .lean();
+    });
 
     if (isChat) {
-      return resJson(res, 200, "Success open PM chat.", isChat);
+      await ChatDB.updateOne(
+        { _id: isChat._id },
+        {
+          $set: {
+            "unreadCounts.$[elem].count": 0,
+          },
+        },
+        {
+          arrayFilters: [{ "elem.user": user._id }],
+        }
+      );
+
+      // 🧠 Re-fetch with updated unreadCounts
+      const updatedChat = await ChatDB.findById(isChat._id)
+        .populate({
+          path: "users.user",
+          select: "-password",
+        })
+        .populate({
+          path: "groupAdmins.user",
+          select: "-password",
+        })
+        .populate({
+          path: "deletedInfos.user",
+          select: "-password",
+        })
+        .populate({
+          path: "initiator",
+          select: "-password",
+        })
+        .populate({
+          path: "latestMessage",
+          populate: {
+            path: "sender",
+            select: "-password",
+          },
+        })
+        .populate({
+          path: "unreadCounts.user",
+          select: "-password",
+        })
+        .lean();
+
+      return resJson(res, 200, "Success open PM chat.", updatedChat);
     } else {
       const receiverPrivacy = await UserPrivacyDB.findOne({ user: receiverId });
 
@@ -64,11 +75,11 @@ export default async function createOrOpen(req, res, next) {
       if (receiverPrivacy?.isRequestMessage) isPending = true;
 
       const newChat = {
-        users: [{ user: userId }, { user: receiverId }],
+        users: [{ user: user._id }, { user: receiverId }],
         isPending,
-        initiator: userId,
+        initiator: user._id,
         unreadCounts: [
-          { user: userId, count: 0 },
+          { user: user._id, count: 0 },
           { user: receiverId, count: 0 },
         ],
       };

@@ -19,7 +19,7 @@ import ChatHeader from "@/components/chat/ChatHeader";
 import { useAuthStore } from "@/stores/authStore";
 import usePaginatedData from "@/hooks/usePaginateData";
 import BottomSheetAction from "@/components/BottomSheetActions";
-import { getPaginateChats } from "@/api/chat";
+import { createOrOpen, getPaginateChats } from "@/api/chat";
 import { useChatStore } from "@/stores/chatStore";
 import { useBottomSheetActions } from "@/hooks/useBottomSheetActions";
 
@@ -84,15 +84,22 @@ export default function Home() {
   }, [newChats]);
 
   // Update chat press handler
-  const handleChatPress = useCallback(
-    (chat: Chat) => {
-      router.push({
-        pathname: "/(chat)",
-        params: { chatId: chat._id },
-      });
-    },
-    [router]
-  );
+  const handleChatPress = async (chat: Chat) => {
+    router.push({
+      pathname: "/(chat)",
+      params: { chatId: chat._id },
+    });
+  };
+
+  // const handleChatPress = useCallback(
+  //   (chat: Chat) => {
+  //     router.push({
+  //       pathname: "/(chat)",
+  //       params: { chatId: chat._id },
+  //     });
+  //   },
+  //   [router]
+  // );
   if (!user) return null;
 
   const allChats = chats.filter(

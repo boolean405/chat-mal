@@ -27,15 +27,24 @@ export default async function deleteChat(req, res, next) {
     await ChatDB.findByIdAndUpdate(chatId, {
       $pull: { deletedInfos: { user: userId } },
     });
-    await ChatDB.findByIdAndUpdate(chatId, {
-      $addToSet: {
-        deletedInfos: {
-          user: userId,
-          deletedAt: new Date(),
+    await ChatDB.findByIdAndUpdate(
+      chatId,
+      {
+        $addToSet: {
+          deletedInfos: {
+            user: userId,
+            deletedAt: new Date(),
+          },
+        },
+        $unset: { latestMessage: "" },
+        $set: {
+          "unreadCounts.$[elem].count": 0,
         },
       },
-      $unset: { latestMessage: "" },
-    });
+      {
+        arrayFilters: [{ "elem.user": userId }],
+      }
+    );
 
     return resJson(res, 200, "Success deleted chat.");
   } catch (error) {

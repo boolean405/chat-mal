@@ -175,6 +175,45 @@ export default async function getPaginateChats(req, res, next) {
         },
       },
 
+      // Populate unreadCounts.user
+      {
+        $lookup: {
+          from: "users",
+          localField: "unreadCounts.user",
+          foreignField: "_id",
+          as: "populatedUnreadUsers",
+        },
+      },
+      {
+        $addFields: {
+          unreadCounts: {
+            $map: {
+              input: "$unreadCounts",
+              as: "unreadItem",
+              in: {
+                $mergeObjects: [
+                  "$$unreadItem",
+                  {
+                    user: {
+                      $arrayElemAt: [
+                        {
+                          $filter: {
+                            input: "$populatedUnreadUsers",
+                            as: "u",
+                            cond: { $eq: ["$$u._id", "$$unreadItem.user"] },
+                          },
+                        },
+                        0,
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+
       // Populate initiator
       {
         $lookup: {
@@ -188,7 +227,7 @@ export default async function getPaginateChats(req, res, next) {
         $unwind: { path: "$initiator", preserveNullAndEmptyArrays: true },
       },
       {
-        $unset: ["populatedUsers", "populatedAdmins"],
+        $unset: ["populatedUsers", "populatedAdmins", "populatedUnreadUsers"],
       },
 
       // Exclude passwords from all user fields
@@ -202,6 +241,10 @@ export default async function getPaginateChats(req, res, next) {
           "initiator.refreshToken": 0,
           "latestMessage.sender.password": 0,
           "latestMessage.sender.refreshToken": 0,
+          "deletedInfoForUser.user.password": 0,
+          "deletedInfoForUser.user.refreshToken": 0,
+          "unreadCounts.user.password": 0,
+          "unreadCounts.user.refreshToken": 0,
         },
       },
       { $sort: { updatedAt: -1 } },

@@ -1,5 +1,6 @@
-import resError from "./resError.js";
 import Token from "./token.js";
+import resError from "./resError.js";
+import UserDB from "../models/user.js";
 
 const validateBody = (schema) => {
   return (req, res, next) => {
@@ -18,6 +19,9 @@ const validateToken = () => {
     const token = authHeader.split(" ")[1];
     const decoded = Token.verifyAccessToken(token);
     req.userId = decoded.id;
+    const user = await UserDB.findById(decoded.id);
+    if (!user) return next(resError(401, "Authenticated user not found!"));
+    req.user = user;
     next();
   };
 };

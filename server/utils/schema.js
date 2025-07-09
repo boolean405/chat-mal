@@ -174,6 +174,10 @@ export const ChatSchema = {
     chatId: Joi.string().length(24).hex().required(),
   }),
 
+  readChat: Joi.object({
+    chatId: Joi.string().length(24).hex().required(),
+  }),
+
   params: {
     pageNum: Joi.object({
       pageNum: Joi.string().min(1).required(),
