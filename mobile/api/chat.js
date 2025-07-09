@@ -144,3 +144,19 @@ export async function acceptChatRequest(chatId) {
     throw customError;
   }
 }
+
+// Mark as read chat
+export async function readChat(chatId) {
+  try {
+    await refresh();
+    const response = await api.patch("/api/chat/read-chat", {
+      chatId,
+    });
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Fetch read chat error!";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}

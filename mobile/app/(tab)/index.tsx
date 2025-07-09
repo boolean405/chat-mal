@@ -5,6 +5,8 @@ import {
   useColorScheme,
   ActivityIndicator,
   RefreshControl,
+  Alert,
+  ToastAndroid,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
@@ -19,7 +21,7 @@ import ChatHeader from "@/components/chat/ChatHeader";
 import { useAuthStore } from "@/stores/authStore";
 import usePaginatedData from "@/hooks/usePaginateData";
 import BottomSheetAction from "@/components/BottomSheetActions";
-import { createOrOpen, getPaginateChats } from "@/api/chat";
+import { createOrOpen, getPaginateChats, readChat } from "@/api/chat";
 import { useChatStore } from "@/stores/chatStore";
 import { useBottomSheetActions } from "@/hooks/useBottomSheetActions";
 
@@ -85,21 +87,40 @@ export default function Home() {
 
   // Update chat press handler
   const handleChatPress = async (chat: Chat) => {
+    if (chat.unreadCounts?.length) {
+      const myUnread = chat.unreadCounts.find(
+        (uc) => uc.user._id === user?._id && uc.count > 0
+      );
+
+      if (myUnread) {
+        // ✅ Optimistically mark as read in Zustand
+        updateChat({
+          ...chat,
+          unreadCounts: chat.unreadCounts.map((uc) => {
+            const userId = typeof uc.user === "object" ? uc.user._id : uc.user;
+            return userId === user?._id ? { ...uc, count: 0 } : uc;
+          }),
+        });
+
+        // ✅ Then sync with backend
+        try {
+          console.log("server passing");
+
+          const updatedChat = await readChat(chat._id);
+          updateChat(updatedChat); // ensure correct state from server
+        } catch (error: any) {
+          ToastAndroid.show(error.message, ToastAndroid.SHORT);
+        }
+      }
+    }
+
+    // Navigate to the chat screen
     router.push({
       pathname: "/(chat)",
       params: { chatId: chat._id },
     });
   };
 
-  // const handleChatPress = useCallback(
-  //   (chat: Chat) => {
-  //     router.push({
-  //       pathname: "/(chat)",
-  //       params: { chatId: chat._id },
-  //     });
-  //   },
-  //   [router]
-  // );
   if (!user) return null;
 
   const allChats = chats.filter(

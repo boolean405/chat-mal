@@ -19,7 +19,7 @@
     "@react-navigation/native": "^7.1.6",
     "axios": "^1.9.0",
     "date-fns": "^4.1.0",
-    "expo": "^53.0.17",
+    "expo": "53.0.19",
     "expo-blur": "~14.1.4",
     "expo-clipboard": "~7.1.5",
     "expo-constants": "~17.1.6",
@@ -35,7 +35,7 @@
     "expo-status-bar": "~2.2.3",
     "expo-symbols": "~0.4.4",
     "expo-system-ui": "~5.0.10",
-    "expo-updates": "~0.28.16",
+    "expo-updates": "~0.28.17",
     "expo-video": "~2.2.2",
     "expo-web-browser": "~14.2.0",
     "jwt-decode": "^4.0.0",
@@ -66,7 +66,8 @@
     "doctor": {
       "reactNativeDirectoryCheck": {
         "exclude": [
-          "jwt-decode"
+          "jwt-decode",
+          "socket.io-client"
         ]
       }
     }

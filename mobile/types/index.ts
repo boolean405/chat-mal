@@ -7,7 +7,6 @@ export type User = {
   email: string;
   profilePhoto: string;
   coverPhoto?: string;
-  isOnline: boolean;
   gender?: "male" | "female";
   birthday?: Date;
   bio?: string;

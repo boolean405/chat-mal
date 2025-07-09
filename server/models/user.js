@@ -29,10 +29,6 @@ const userSchema = new Schema(
     coverPhoto: {
       type: String,
     },
-    isOnline: {
-      type: Boolean,
-      default: false,
-    },
     gender: {
       type: String,
       enum: ["male", "female"],
@@ -43,18 +39,6 @@ const userSchema = new Schema(
     bio: {
       type: String,
     },
-    followers: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "user",
-      },
-    ],
-    following: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "user",
-      },
-    ],
     refreshToken: {
       type: String,
       select: false,
@@ -64,12 +48,6 @@ const userSchema = new Schema(
       enum: ["user", "admin"],
       default: "user",
     },
-    verified: {
-      type: String,
-      enum: ["verified", "unverified", "pending"],
-      default: "unverified",
-    },
-    // picture: { type: Schema.Types.ObjectId, ref: "picture" },
   },
   {
     timestamps: true,
