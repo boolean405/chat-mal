@@ -1,9 +1,5 @@
-import { View, Text } from "react-native";
+import Maintenance from "@/components/Maintenance";
 
 export default function Notification() {
-  return (
-    <View>
-      <Text>Notification</Text>
-    </View>
-  );
+  return <Maintenance title="Notification" />;
 }

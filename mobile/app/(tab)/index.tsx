@@ -25,6 +25,7 @@ import { createOrOpen, getPaginateChats, readChat } from "@/api/chat";
 import { useChatStore } from "@/stores/chatStore";
 import { useBottomSheetActions } from "@/hooks/useBottomSheetActions";
 import { socket } from "@/config/socket";
+import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
 
 // Stories data - consider moving to a separate file or API call
 const stories: Story[] = [
@@ -38,6 +39,9 @@ const stories: Story[] = [
 ];
 
 export default function Home() {
+  // Hard coded rerender
+  useTimeTickWhenFocused();
+
   const router = useRouter();
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
@@ -45,15 +49,18 @@ export default function Home() {
   const accessToken = useAuthStore((state) => state.accessToken);
 
   const {
-    chats,
+    // chats,
     onlineUserIds,
     setChats,
-    updateChat,
+    // updateChat,
     clearChat,
     clearGroup,
     clearChats,
     setOnlineUserIds,
+    getChatById,
   } = useChatStore();
+  const updateChat = useChatStore((state) => state.updateChat);
+  const chats = useChatStore((state) => state.chats);
 
   // Paginated data handling
   const {
@@ -96,24 +103,32 @@ export default function Home() {
     socket.io.opts.query = { accessToken };
     socket.connect();
 
+    // Listen for socket connection
     socket.on("connect", () => {
       console.log("✅ Connected to socket.io server");
     });
 
+    // Socket connection error
     socket.on("connect_error", (err) => {
       console.log("❌ Socket connection error:", err.message);
     });
 
     // Online users
     socket.on("online-users", (userIds: string[]) => {
-      console.log("🟢 Online users:", userIds);
+      console.log("🟢 Online user count:", userIds.length);
       setOnlineUserIds(userIds);
+    });
+
+    // Listen for latestMessage updates
+    socket.on("new-message", ({ message }) => {
+      updateChat(message.chat);
     });
 
     // 🧼 Clean up all listeners on unmount
     return () => {
       socket.disconnect();
       socket.off("online-users");
+      socket.off("new-message");
     };
   }, [accessToken]);
 
@@ -190,15 +205,18 @@ export default function Home() {
         onEndReachedThreshold={0.1}
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => {
-          let isOnline = false;
-          const otherUserId = item.users.find((u) => u.user._id !== user._id)
-            ?.user._id;
+          const otherUser = item.users.find(
+            (u) => u.user._id !== user._id
+          )?.user;
 
-          if (otherUserId) isOnline = onlineUserIds.includes(otherUserId);
+          const isOnline = otherUser
+            ? onlineUserIds.includes(otherUser._id)
+            : false;
+
           return (
             <ChatItem
               chat={item}
-              user={user}
+              otherUser={otherUser}
               onPress={() => handleChatPress(item)}
               onLongPress={() => openSheet(item)}
               isOnline={isOnline}

@@ -27,10 +27,16 @@ export default async function acceptChatRequest(req, res, next) {
       },
       { new: true }
     )
-      .populate("latestMessage")
       .populate({
-        path: "users.user",
+        path: "users.user initiator unreadCounts.user deletedInfos.user",
         select: "-password",
+      })
+      .populate({
+        path: "latestMessage",
+        populate: {
+          path: "sender",
+          select: "-password",
+        },
       });
 
     resJson(res, 200, "Chat request accepted.", updatedChat);

@@ -48,6 +48,10 @@ const userSchema = new Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+    lastOnlineAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
   {
     timestamps: true,

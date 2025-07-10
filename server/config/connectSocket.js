@@ -39,8 +39,10 @@ export default function connectSocket(io) {
       });
 
       // message chat
-      socket.on("send-message", (chatId, message) => {
-        socket.to(chatId).emit("receive-message", message);
+      socket.on("send-message", ({ chatId, message }) => {
+        io.to(chatId).emit("receive-message", { message });
+        // Send to everyone for chat list latestMessage update
+        io.emit("new-message", { message });
       });
 
       // Typing
@@ -54,12 +56,16 @@ export default function connectSocket(io) {
       });
 
       // Disconnect
-      socket.on("disconnect", () => {
-        console.log("User disconnected:", user._id);
+      socket.on("disconnect", async () => {
         onlineUsers.delete(user._id);
+
+        // Save last online timestamp to DB
+        await UserDB.findByIdAndUpdate(user._id, {
+          lastOnlineAt: new Date(),
+        });
+
+        // Send online user back
         io.emit("online-users", Array.from(onlineUsers.keys()));
       });
-
-     
     });
 }

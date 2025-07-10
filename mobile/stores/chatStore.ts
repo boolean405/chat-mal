@@ -7,8 +7,8 @@ import { Chat } from "@/types";
 interface ChatStore {
   chats: Chat[];
   onlineUserIds: string[];
+  currentChat: Chat | null;
   setOnlineUserIds: (ids: string[]) => void;
-  currentChat: Chat | null; // Add current chat tracking
   setChats: (newChats: Chat[]) => void;
   updateChat: (updatedChat: Chat) => void;
   clearChat: (chatId: string) => void;
@@ -23,12 +23,10 @@ export const useChatStore = create<ChatStore>()(
   persist(
     (set, get) => ({
       chats: [],
-
+      currentChat: null,
       onlineUserIds: [],
 
       setOnlineUserIds: (ids) => set({ onlineUserIds: ids }),
-
-      currentChat: null,
 
       setChats: (newChats) =>
         set((state) => {

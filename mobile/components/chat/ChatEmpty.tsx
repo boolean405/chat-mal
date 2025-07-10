@@ -12,10 +12,8 @@ export default function ChatEmpty() {
 
   return (
     <ThemedView style={styles.emptyContainer}>
-      <Ionicons name="chatbubble-outline" size={60} color={color.secondary} />
-      <ThemedText type="subtitle" style={{ color: color.secondary }}>
-        No Chats Found
-      </ThemedText>
+      <Ionicons name="chatbubble-outline" size={50} color={color.secondary} />
+      <ThemedText style={{ color: color.secondary }}>No Chats Found</ThemedText>
     </ThemedView>
   );
 }
@@ -25,6 +23,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 500,
+    minHeight: 300,
   },
 });

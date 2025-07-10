@@ -94,40 +94,6 @@ export default function ChatMessage() {
     },
   });
 
-  // Socketio
-  //   useEffect(() => {
-  //   if (!chatId || !user || !accessToken) return;
-
-  //   socket.emit("join-chat", chatId);
-
-  //   socket.on("join-chat", () => {
-  //     console.log("🟢 Joined chat room:", chatId);
-  //   });
-
-  //   socket.on("receive-message", (message) => {
-  //     console.log("📨 Received message:", message);
-  //     // 👉 You can push message to state or Zustand store here
-  //     appendMessage(message);
-  //   });
-
-  //   socket.on("typing", ({ chatId, user }) => {
-  //     console.log(`${user.name} is typing...`);
-  //     setTyping(true);
-  //   });
-
-  //   socket.on("stop-typing", ({ chatId, user }) => {
-  //     console.log(`${user.name} stopped typing.`);
-  //     setTyping(false);
-  //   });
-
-  //   return () => {
-  //     socket.off("receive-message");
-  //     socket.off("typing");
-  //     socket.off("stop-typing");
-  //     socket.emit("leave-chat", chatId); // optional, if you handle leave
-  //   };
-  // }, [chatId]);
-
   useEffect(() => {
     if (chatId && socket) {
       socket.emit("join-chat", chatId);
@@ -141,19 +107,11 @@ export default function ChatMessage() {
   useEffect(() => {
     if (!socket || !chatId || !currentChat || !currentChat._id) return;
 
-    socket.on("receive-message", (message: Message) => {
+    socket.on("receive-message", async ({ message }) => {
       if (message.chat._id === chatId) {
-        readChat(chatId);
         addMessage(chatId, message);
-
-        const updatedChat: Chat = {
-          ...currentChat,
-          _id: currentChat._id, // ensures _id is included
-          latestMessage: message,
-          updatedAt: message.createdAt,
-        };
-
-        updateChat(updatedChat);
+        const data = await readChat(chatId);
+        updateChat(data.result);
       }
     });
 
@@ -161,27 +119,6 @@ export default function ChatMessage() {
       socket.off("receive-message");
     };
   }, [chatId, currentChat]);
-  // or
-
-  // useEffect(() => {
-  //   const socket = getSocket();
-  //   if (!socket) return;
-
-  //   socket.on("receive-message", (message: Message) => {
-  //     if (message.chat._id === chatId) {
-  //       addMessage(chatId, message);
-  //       updateChat({
-  //         ...currentChat,
-  //         latestMessage: message,
-  //         updatedAt: message.createdAt,
-  //       } as Chat);
-  //     }
-  //   });
-
-  //   return () => {
-  //     socket.off("receive-message");
-  //   };
-  // }, [chatId, currentChat]);
 
   useEffect(() => {
     if (!socket || !chatId) return;
@@ -266,22 +203,16 @@ export default function ChatMessage() {
 
     try {
       setNewMessage("");
-      socket?.emit("stop-typing", { chatId });
+      socket.emit("stop-typing", { chatId });
 
       const data = await createMessage(chatId, newMessage.trim());
       const newMsg = data.result;
 
-      const newUpdatedChat = {
-        ...currentChat,
-        latestMessage: newMsg,
-        updatedAt: newMsg.createdAt,
-      };
-
       addMessage(chatId, newMsg);
-      updateChat(newUpdatedChat);
+      updateChat(newMsg.chat);
 
       // ✅ Emit to socket
-      socket.emit("send-message", chatId, newMsg);
+      socket.emit("send-message", { chatId, message: newMsg });
 
       // Trigger scroll only after the message is added/rendered
     } catch (error: any) {
@@ -293,12 +224,8 @@ export default function ChatMessage() {
   const handleAccept = async () => {
     setIsLoading(true);
     try {
-      await acceptChatRequest(chatId);
-      const newUpdatedChat = {
-        ...currentChat,
-        isPending: false,
-      };
-      updateChat(newUpdatedChat);
+      const data = await acceptChatRequest(chatId);
+      if (data.status) updateChat(data.result);
     } catch (error: any) {
       ToastAndroid.show(error.message, ToastAndroid.SHORT);
     } finally {

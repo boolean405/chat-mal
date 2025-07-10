@@ -30,7 +30,6 @@ export default async function getPaginateRequestChat(req, res, next) {
         .sort({ createdAt: -1 }) // Sort newest requests first
         .skip(skipCount)
         .limit(limit)
-        .lean()
         .populate({
           path: "users.user groupAdmins.user deletedInfos.user initiator",
           select: "-password",
@@ -41,7 +40,8 @@ export default async function getPaginateRequestChat(req, res, next) {
             path: "sender",
             select: "-password",
           },
-        }),
+        })
+        .lean(),
       ChatDB.countDocuments(filter),
     ]);
 

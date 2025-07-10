@@ -10,31 +10,32 @@ import { Colors } from "@/constants/colors";
 import { getChatPhoto } from "@/utils/getChatPhoto";
 import { getChatName } from "@/utils/getChatName";
 import getLastTime from "@/utils/getLastTime";
+import { useAuthStore } from "@/stores/authStore";
+import { useUiStore } from "@/stores/uiStore";
 
 export default function ChatItem({
   chat,
-  user,
+  otherUser,
+  isOnline,
   onPress,
   onProfilePress,
   onLongPress,
-  isOnline,
-  lastOnlineAt,
 }: {
   chat: Chat;
-  user: User;
+  otherUser?: User;
+  isOnline: boolean;
   onPress?: () => void;
   onProfilePress?: () => void;
   onLongPress?: () => void;
-  isOnline?: boolean;
-  lastOnlineAt?: Date;
 }) {
+  useUiStore((state) => state.timeTick);
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
+  const user = useAuthStore((state) => state.user);
 
-  if (!chat || !user) return null;
+  if (!chat || !user || !otherUser) return null;
 
   const chatPhoto = getChatPhoto(chat, user._id) ?? "";
-
   const chatName = chat.name || getChatName(chat, user._id) || "Unknown";
 
   // Find the current user's unread count from the array
@@ -58,7 +59,7 @@ export default function ChatItem({
             />
           ) : !chat.isGroupChat ? (
             <ThemedText type="smaller" style={styles.lastOnlineText}>
-              {getLastTime(lastOnlineAt || user.createdAt)}
+              {getLastTime(otherUser.lastOnlineAt || otherUser.updatedAt)}
             </ThemedText>
           ) : null}
         </ThemedView>
