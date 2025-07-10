@@ -5,16 +5,14 @@ import resError from "../../utils/resError.js";
 
 export default async function removeUserFromGroup(req, res, next) {
   try {
-    const userId = req.userId;
+    const user = req.user;
     const { groupId, userId: targetUserId } = req.body;
 
-    const [dbUser, userExists, dbChat] = await Promise.all([
-      UserDB.exists({ _id: userId }),
+    const [userExists, dbChat] = await Promise.all([
       UserDB.exists({ _id: targetUserId }),
       ChatDB.findById(groupId),
     ]);
 
-    if (!dbUser) throw resError(401, "Authenticated user not found!");
     if (!userExists) throw resError(404, "Target user not found!");
     if (!dbChat) throw resError(404, "Group chat not found!");
 
@@ -25,12 +23,16 @@ export default async function removeUserFromGroup(req, res, next) {
     if (!isTargetMember)
       throw resError(404, "Target user is not a member of this group chat.");
 
-    const isAuthMember = dbChat.users.some((u) => u.user?.toString() === userId);
+    const isAuthMember = dbChat.users.some(
+      (u) => u.user?.toString() === user._id
+    );
 
     if (!isAuthMember)
       throw resError(403, "You are not a member of this group chat.");
 
-    const isAdmin = dbChat.groupAdmins.some((a) => a.user?.toString() === userId);
+    const isAdmin = dbChat.groupAdmins.some(
+      (a) => a.user?.toString() === user._id
+    );
 
     if (!isAdmin) throw resError(403, "Only group admin can remove member!");
 

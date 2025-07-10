@@ -60,8 +60,13 @@ export default function MessageItem({
       >
         <ThemedText style={styles.contentText}>{item.content}</ThemedText>
 
-        <View style={styles.timeStatusContainer}>
-          <ThemedText type="small" style={styles.timeText}>
+        <View
+          style={[
+            styles.timeStatusContainer,
+            { alignSelf: isMe ? "flex-end" : "flex-start" },
+          ]}
+        >
+          <ThemedText type="smallest" style={styles.timeText}>
             {formatDate(item.createdAt)}
           </ThemedText>
           {isMe && (
@@ -124,6 +129,5 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginTop: 4,
-    alignSelf: "flex-end",
   },
 });

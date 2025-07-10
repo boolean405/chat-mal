@@ -59,5 +59,7 @@ export default function connectSocket(io) {
         onlineUsers.delete(user._id);
         io.emit("online-users", Array.from(onlineUsers.keys()));
       });
+
+     
     });
 }

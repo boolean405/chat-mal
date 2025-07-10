@@ -135,7 +135,7 @@ export default function Detail() {
           <Ionicons name="chevron-back-outline" size={22} color={color.icon} />
         </TouchableOpacity>
         <ThemedView style={styles.HeaderTitleContainer}>
-          <ThemedText type="subtitle">Details</ThemedText>
+          <ThemedText type="headerTitle">Details</ThemedText>
         </ThemedView>
       </ThemedView>
 
@@ -148,11 +148,15 @@ export default function Detail() {
           <TouchableOpacity
             style={[styles.profileImageWrapper, { borderColor: color.border }]}
           >
-            <Image source={chatPhoto} style={styles.profilePhoto} />
+            <Image source={{ uri: chatPhoto }} style={styles.profilePhoto} />
           </TouchableOpacity>
 
           <ThemedView style={styles.bottomContainer}>
-            <ThemedText type="title" style={styles.nameText}>
+            <ThemedText
+              type="headerTitle"
+              style={styles.nameText}
+              numberOfLines={2}
+            >
               {chatName}
             </ThemedText>
             {/* <ThemedText type="subtitle">
@@ -175,13 +179,15 @@ export default function Detail() {
                   style={{ color: color.icon, marginLeft: 30 }}
                 />
               </TouchableOpacity>
-              <TouchableOpacity>
-                <Ionicons
-                  name="person-outline"
-                  size={22}
-                  style={{ color: color.icon, marginLeft: 30 }}
-                />
-              </TouchableOpacity>
+              {!chat.isGroupChat && (
+                <TouchableOpacity>
+                  <Ionicons
+                    name="person-outline"
+                    size={22}
+                    style={{ color: color.icon, marginLeft: 30 }}
+                  />
+                </TouchableOpacity>
+              )}
               {/* <Ionicons
                 name="person-outline"
                 size={22}
@@ -244,6 +250,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     borderRadius: 60,
+    backgroundColor: "#e9e9e9",
   },
   profilePlaceholder: {
     width: "100%",

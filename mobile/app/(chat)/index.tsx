@@ -27,7 +27,7 @@ import { createMessage, getPaginateMessages } from "@/api/message";
 import { useMessageStore } from "@/stores/messageStore";
 import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
-import { acceptChatRequest, deleteChat } from "@/api/chat";
+import { acceptChatRequest, deleteChat, readChat } from "@/api/chat";
 import getLastTime from "@/utils/getLastTime";
 import { socket } from "@/config/socket";
 
@@ -143,6 +143,7 @@ export default function ChatMessage() {
 
     socket.on("receive-message", (message: Message) => {
       if (message.chat._id === chatId) {
+        readChat(chatId);
         addMessage(chatId, message);
 
         const updatedChat: Chat = {
@@ -364,7 +365,7 @@ export default function ChatMessage() {
             ) : null}
           </ThemedView>
         </TouchableOpacity>
-        <ThemedText type="larger" style={styles.headerTitle}>
+        <ThemedText type="larger" style={styles.chatName} numberOfLines={1}>
           {chatName}
         </ThemedText>
         {/* Header icons */}
@@ -534,7 +535,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderBottomWidth: 0.2,
   },
-  headerTitle: { flex: 1, marginLeft: 10 },
+  chatName: { flex: 1, marginLeft: 10 },
   headerIcons: { flexDirection: "row" },
   icon: { marginLeft: 15 },
 

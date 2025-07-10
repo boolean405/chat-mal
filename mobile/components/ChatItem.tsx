@@ -64,9 +64,16 @@ export default function ChatItem({
         </ThemedView>
       </TouchableOpacity>
 
+      {/* Chat content */}
       <ThemedView style={styles.chatContent}>
         <ThemedView style={styles.chatTopRow}>
-          <ThemedText type="defaultBold">{chatName}</ThemedText>
+          <ThemedText
+            type="defaultBold"
+            style={{ flex: 1, marginRight: 15 }}
+            numberOfLines={1}
+          >
+            {chatName}
+          </ThemedText>
           <ThemedText type="small" style={{ color: "#999" }}>
             {formatDate(chat.updatedAt)}
           </ThemedText>
@@ -75,10 +82,13 @@ export default function ChatItem({
           <ThemedText
             style={[
               styles.unreadText,
-              unreadCount > 0 && {
-                fontWeight: "bold",
-                color: color.primary,
-              },
+              unreadCount > 0
+                ? {
+                    fontWeight: "semibold",
+                  }
+                : {
+                    color: "#666",
+                  },
             ]}
             numberOfLines={1}
           >
@@ -110,7 +120,7 @@ const styles = StyleSheet.create({
     height: 54,
     borderRadius: 27,
     marginRight: 12,
-    backgroundColor: "#ccc",
+    backgroundColor: "#e9e9e9",
   },
   chatContent: {
     flex: 1,
@@ -128,7 +138,7 @@ const styles = StyleSheet.create({
   },
   unreadText: {
     flex: 1,
-    color: "#666",
+    // color: "#666",
     lineHeight: 25,
   },
   unreadBadge: {
@@ -139,7 +149,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 6,
-    marginLeft: 8,
+    marginLeft: 50,
   },
   photoContainer: {
     position: "relative",

@@ -6,34 +6,59 @@ import resError from "../../utils/resError.js";
 
 export default async function createMessage(req, res, next) {
   try {
-    const userId = req.userId;
+    const user = req.user;
     const { chatId, content, type } = req.body;
 
     const [userExists, chat] = await Promise.all([
-      UserDB.exists({ _id: userId }),
+      UserDB.exists({ _id: user._id }),
       ChatDB.findById(chatId).select("users unreadCounts"),
     ]);
 
     if (!userExists) throw resError(401, "Authenticated user not found!");
     if (!chat) throw resError(404, "Chat not found!");
 
-    // 1. Create message
+    // Create message
     const newMessage = await MessageDB.create({
-      sender: userId,
+      sender: user._id,
       chat: chatId,
       type,
       content,
     });
 
-    // 2. Update chat with new latestMessage
+    // Update chat with new latestMessage
     await ChatDB.findByIdAndUpdate(chatId, {
       latestMessage: newMessage._id,
     });
 
-    // 3. Increment unreadCounts (except sender)
+    // Filter and add users to unreadcount for only group chat
+    const unreadUserIds = chat.unreadCounts.map((entry) =>
+      entry.user.toString()
+    );
+    const usersToAddUnread = chat.users
+      .map((entry) => entry.user || entry) // normalize user
+      .map((id) => id.toString())
+      .filter(
+        (id) => id !== user._id.toString() && !unreadUserIds.includes(id)
+      );
+
+    // Add missing unreadCount entries for those users
+    if (usersToAddUnread.length > 0) {
+      await ChatDB.updateOne(
+        { _id: chatId },
+        {
+          $push: {
+            unreadCounts: {
+              $each: usersToAddUnread.map((id) => ({ user: id, count: 0 })),
+            },
+          },
+        }
+      );
+    }
+
+    // Increment unreadCounts (except sender)
     const bulkUpdates = chat.users
-      .map(({ user }) => user.toString())
-      .filter((id) => id !== userId)
+      .map((entry) => (entry.user || entry).toString())
+      .filter((id) => id !== user._id.toString())
       .map((otherUserId) => ({
         updateOne: {
           filter: {
@@ -52,7 +77,7 @@ export default async function createMessage(req, res, next) {
       await ChatDB.bulkWrite(bulkUpdates);
     }
 
-    // 4. Fully re-fetch the updated message (with populated fields)
+    // Fully re-fetch the updated message (with populated fields)
     const message = await MessageDB.findById(newMessage._id)
       .populate({
         path: "sender",

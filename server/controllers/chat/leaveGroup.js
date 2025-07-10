@@ -5,26 +5,21 @@ import resError from "../../utils/resError.js";
 
 export default async function leaveGroup(req, res, next) {
   try {
-    const userId = req.userId;
+    const user = req.user;
     const groupId = req.body.groupId;
 
-    const [userExists, dbGroup] = await Promise.all([
-      UserDB.exists({ _id: userId }),
-      ChatDB.findById(groupId),
-    ]);
-
-    if (!userExists) throw resError(401, "Authenticated user not found!");
+    const dbGroup = await ChatDB.findById(groupId);
     if (!dbGroup) throw resError(404, "Group chat not found!");
 
     // Check if user is member
     const isMember = dbGroup.users.some(
-      (u) => u.user.toString() === userId.toString()
+      (u) => u.user.toString() === user._id.toString()
     );
     if (!isMember) throw resError(403, "You are not a member of this group!");
 
     // Check if user is admin
     const isAdmin = dbGroup.groupAdmins.some(
-      (admin) => admin.user.toString() === userId.toString()
+      (admin) => admin.user.toString() === user._id.toString()
     );
     const isOnlyOneAdmin = isAdmin && dbGroup.groupAdmins.length === 1;
 
@@ -32,15 +27,21 @@ export default async function leaveGroup(req, res, next) {
     await ChatDB.findByIdAndUpdate(groupId, {
       $addToSet: {
         deletedInfos: {
-          user: userId,
+          user: user._id,
           deletedAt: new Date(),
         },
       },
     });
 
+    // Check if user exists in unreadCounts
+    const hasUnreadCount = dbGroup.unreadCounts?.some(
+      (entry) => entry.user.toString() === user._id.toString()
+    );
+
     // Build $pull object for arrays of objects
-    const pullFields = { users: { user: userId } };
-    if (isAdmin) pullFields.groupAdmins = { user: userId };
+    const pullFields = { users: { user: user._id } };
+    if (isAdmin) pullFields.groupAdmins = { user: user._id };
+    if (hasUnreadCount) pullFields.unreadCounts = { user: user._id };
 
     // Remove user from users and admins if admin
     const updatedGroup = await ChatDB.findByIdAndUpdate(

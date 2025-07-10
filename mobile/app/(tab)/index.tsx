@@ -92,6 +92,7 @@ export default function Home() {
   useEffect(() => {
     if (!accessToken) return;
 
+    // Initinal socket
     socket.io.opts.query = { accessToken };
     socket.connect();
 
@@ -103,11 +104,13 @@ export default function Home() {
       console.log("❌ Socket connection error:", err.message);
     });
 
+    // Online users
     socket.on("online-users", (userIds: string[]) => {
       console.log("🟢 Online users:", userIds);
       setOnlineUserIds(userIds);
     });
 
+    // 🧼 Clean up all listeners on unmount
     return () => {
       socket.disconnect();
       socket.off("online-users");

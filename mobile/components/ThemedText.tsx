@@ -7,20 +7,19 @@ export type ThemedTextProps = TextProps & {
   darkColor?: string;
   type?:
     | "default"
+    | "defaultBold"
+    | "defaultItalic"
     | "title"
     | "subtitle"
-    | "link"
-    | "linkItalic"
-    | "small"
-    | "smallest"
-    | "large"
+    | "headerTitle"
     | "largest"
-    | "extraLarge"
-    | "defaultBold"
-    | "smaller"
     | "larger"
-    | "defaultItalic"
-    | "extraSmall";
+    | "large"
+    | "smallest"
+    | "smaller"
+    | "small"
+    | "link"
+    | "linkItalic";
 };
 
 export function ThemedText({
@@ -48,6 +47,7 @@ export function ThemedText({
         type === "linkItalic" ? styles.linkItalic : undefined,
         type === "smallest" ? styles.smallest : undefined,
         type === "defaultBold" ? styles.defaultBold : undefined,
+        type === "headerTitle" ? styles.headerTitle : undefined,
         type === "defaultItalic" ? styles.defaultItalic : undefined,
 
         style,
@@ -65,6 +65,10 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 22,
     fontWeight: "semibold",
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
   },
   largest: {
     fontSize: 20,
