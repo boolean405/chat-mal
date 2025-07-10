@@ -39,7 +39,7 @@ export default function ChatItem({
   const chatName = chat.name || getChatName(chat, user._id) || "Unknown";
 
   // Find the current user's unread count from the array
-  const currentUserUnread = chat.unreadCounts?.find(
+  const currentUserUnread = chat.unreadInfos?.find(
     (uc) => uc.user._id === user._id || uc.user?._id === user._id
   );
   const unreadCount = currentUserUnread?.count ?? 0;

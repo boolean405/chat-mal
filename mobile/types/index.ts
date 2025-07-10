@@ -45,7 +45,7 @@ export type Chat = {
     joinedAt: Date;
   }[];
   groupPhoto?: string;
-  unreadCounts: {
+  unreadInfos: {
     user: User;
     count: number;
   }[];

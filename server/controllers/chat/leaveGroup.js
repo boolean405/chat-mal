@@ -33,15 +33,15 @@ export default async function leaveGroup(req, res, next) {
       },
     });
 
-    // Check if user exists in unreadCounts
-    const hasUnreadCount = dbGroup.unreadCounts?.some(
+    // Check if user exists in unreadInfos
+    const hasUnreadCount = dbGroup.unreadInfos?.some(
       (entry) => entry.user.toString() === user._id.toString()
     );
 
     // Build $pull object for arrays of objects
     const pullFields = { users: { user: user._id } };
     if (isAdmin) pullFields.groupAdmins = { user: user._id };
-    if (hasUnreadCount) pullFields.unreadCounts = { user: user._id };
+    if (hasUnreadCount) pullFields.unreadInfos = { user: user._id };
 
     // Remove user from users and admins if admin
     const updatedGroup = await ChatDB.findByIdAndUpdate(

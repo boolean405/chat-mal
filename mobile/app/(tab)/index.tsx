@@ -144,8 +144,8 @@ export default function Home() {
 
   // Update chat press handler
   const handleChatPress = async (chat: Chat) => {
-    if (chat.unreadCounts?.length) {
-      const myUnread = chat.unreadCounts.find(
+    if (chat.unreadInfos?.length) {
+      const myUnread = chat.unreadInfos.find(
         (uc) => uc.user._id === user?._id && uc.count > 0
       );
 
@@ -153,7 +153,7 @@ export default function Home() {
         // ✅ Optimistically mark as read in Zustand
         updateChat({
           ...chat,
-          unreadCounts: chat.unreadCounts.map((uc) => {
+          unreadInfos: chat.unreadInfos.map((uc) => {
             const userId = typeof uc.user === "object" ? uc.user._id : uc.user;
             return userId === user._id ? { ...uc, count: 0 } : uc;
           }),

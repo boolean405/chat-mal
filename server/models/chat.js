@@ -30,7 +30,7 @@ const chatSchema = new Schema(
         joinedAt: { type: Date, default: Date.now },
       },
     ],
-    unreadCounts: [
+    unreadInfos: [
       {
         user: { type: Schema.Types.ObjectId, ref: "user", required: true },
         count: { type: Number, default: 0 },
@@ -46,6 +46,6 @@ const chatSchema = new Schema(
 chatSchema.index({ name: 1 });
 chatSchema.index({ "groupAdmins.user": 1 });
 chatSchema.index({ "users.user": 1 });
-chatSchema.index({ "unreadCounts.user": 1 }); // Index for efficient unread count lookups
+chatSchema.index({ "unreadInfos.user": 1 }); // Index for efficient unread count lookups
 
 export default mongoose.model("chat", chatSchema);

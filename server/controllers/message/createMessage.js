@@ -11,7 +11,7 @@ export default async function createMessage(req, res, next) {
 
     const [userExists, chat] = await Promise.all([
       UserDB.exists({ _id: user._id }),
-      ChatDB.findById(chatId).select("users unreadCounts"),
+      ChatDB.findById(chatId).select("users unreadInfos"),
     ]);
 
     if (!userExists) throw resError(401, "Authenticated user not found!");
@@ -31,7 +31,7 @@ export default async function createMessage(req, res, next) {
     });
 
     // Filter and add users to unreadcount for only group chat
-    const unreadUserIds = chat.unreadCounts.map((entry) =>
+    const unreadUserIds = chat.unreadInfos.map((entry) =>
       entry.user.toString()
     );
     const usersToAddUnread = chat.users
@@ -47,7 +47,7 @@ export default async function createMessage(req, res, next) {
         { _id: chatId },
         {
           $push: {
-            unreadCounts: {
+            unreadInfos: {
               $each: usersToAddUnread.map((id) => ({ user: id, count: 0 })),
             },
           },
@@ -55,7 +55,7 @@ export default async function createMessage(req, res, next) {
       );
     }
 
-    // Increment unreadCounts (except sender)
+    // Increment unreadInfos (except sender)
     const bulkUpdates = chat.users
       .map((entry) => (entry.user || entry).toString())
       .filter((id) => id !== user._id.toString())
@@ -63,11 +63,11 @@ export default async function createMessage(req, res, next) {
         updateOne: {
           filter: {
             _id: chatId,
-            "unreadCounts.user": otherUserId,
+            "unreadInfos.user": otherUserId,
           },
           update: {
             $inc: {
-              "unreadCounts.$.count": 1,
+              "unreadInfos.$.count": 1,
             },
           },
         },
@@ -91,7 +91,7 @@ export default async function createMessage(req, res, next) {
             select: "-password",
           },
           {
-            path: "unreadCounts.user",
+            path: "unreadInfos.user",
             select: "-password",
           },
           {

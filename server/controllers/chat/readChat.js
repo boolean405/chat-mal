@@ -19,11 +19,11 @@ export default async function readChat(req, res, next) {
     const updatedChat = await ChatDB.findOneAndUpdate(
       {
         _id: chatId,
-        "unreadCounts.user": user._id,
+        "unreadInfos.user": user._id,
       },
       {
         $set: {
-          "unreadCounts.$.count": 0,
+          "unreadInfos.$.count": 0,
         },
       },
       {

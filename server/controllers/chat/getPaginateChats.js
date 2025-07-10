@@ -175,20 +175,20 @@ export default async function getPaginateChats(req, res, next) {
         },
       },
 
-      // Populate unreadCounts.user
+      // Populate unreadInfos.user
       {
         $lookup: {
           from: "users",
-          localField: "unreadCounts.user",
+          localField: "unreadInfos.user",
           foreignField: "_id",
           as: "populatedUnreadUsers",
         },
       },
       {
         $addFields: {
-          unreadCounts: {
+          unreadInfos: {
             $map: {
-              input: "$unreadCounts",
+              input: "$unreadInfos",
               as: "unreadItem",
               in: {
                 $mergeObjects: [
@@ -243,8 +243,8 @@ export default async function getPaginateChats(req, res, next) {
           "latestMessage.sender.refreshToken": 0,
           "deletedInfoForUser.user.password": 0,
           "deletedInfoForUser.user.refreshToken": 0,
-          "unreadCounts.user.password": 0,
-          "unreadCounts.user.refreshToken": 0,
+          "unreadInfos.user.password": 0,
+          "unreadInfos.user.refreshToken": 0,
         },
       },
       { $sort: { updatedAt: -1 } },

@@ -38,7 +38,7 @@ export default async function deleteChat(req, res, next) {
         },
         $unset: { latestMessage: "" },
         $set: {
-          "unreadCounts.$[elem].count": 0,
+          "unreadInfos.$[elem].count": 0,
         },
       },
       {

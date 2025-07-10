@@ -23,7 +23,7 @@ export default async function createOrOpen(req, res, next) {
     });
 
     if (isChat) {
-      const myUnread = isChat?.unreadCounts?.find(
+      const myUnread = isChat?.unreadInfos?.find(
         (uc) => uc.user.toString() === user._id.toString() && uc.count > 0
       );
 
@@ -32,7 +32,7 @@ export default async function createOrOpen(req, res, next) {
           isChat._id,
           {
             $set: {
-              "unreadCounts.$[elem].count": 0,
+              "unreadInfos.$[elem].count": 0,
             },
           },
           {
@@ -41,7 +41,7 @@ export default async function createOrOpen(req, res, next) {
         );
       }
 
-      // 🧠 Re-fetch with updated unreadCounts
+      // 🧠 Re-fetch with updated unreadInfos
       const chat = await ChatDB.findById(isChat._id)
         .populate({
           path: "users.user",
@@ -67,7 +67,7 @@ export default async function createOrOpen(req, res, next) {
           },
         })
         .populate({
-          path: "unreadCounts.user",
+          path: "unreadInfos.user",
           select: "-password",
         })
         .lean();
@@ -83,7 +83,7 @@ export default async function createOrOpen(req, res, next) {
         users: [{ user: user._id }, { user: receiverId }],
         isPending,
         initiator: user._id,
-        unreadCounts: [
+        unreadInfos: [
           { user: user._id, count: 0 },
           { user: receiverId, count: 0 },
         ],
@@ -115,7 +115,7 @@ export default async function createOrOpen(req, res, next) {
           },
         })
         .populate({
-          path: "unreadCounts.user",
+          path: "unreadInfos.user",
           select: "-password",
         })
         .lean();

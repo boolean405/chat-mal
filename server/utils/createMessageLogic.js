@@ -11,7 +11,7 @@ export default async function createMessageLogic({
 }) {
   const [userExists, chat] = await Promise.all([
     UserDB.exists({ _id: userId }),
-    ChatDB.findById(chatId).select("users unreadCounts"),
+    ChatDB.findById(chatId).select("users unreadInfos"),
   ]);
 
   if (!userExists) throw new Error("Authenticated user not found!");
@@ -35,11 +35,11 @@ export default async function createMessageLogic({
       updateOne: {
         filter: {
           _id: chatId,
-          "unreadCounts.user": otherUserId,
+          "unreadInfos.user": otherUserId,
         },
         update: {
           $inc: {
-            "unreadCounts.$.count": 1,
+            "unreadInfos.$.count": 1,
           },
         },
       },
@@ -62,7 +62,7 @@ export default async function createMessageLogic({
           select: "-password",
         },
         {
-          path: "unreadCounts.user",
+          path: "unreadInfos.user",
           select: "-password",
         },
         {
