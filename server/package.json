@@ -1,7 +1,7 @@
 {
   "name": "chat-mal-server",
   "version": "1.0.0",
-  "description": "Chat Pay Par Server",
+  "description": "Chat Mal Server",
   "license": "Proprietary",
   "author": "Boolean",
   "type": "module",

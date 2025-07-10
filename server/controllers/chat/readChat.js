@@ -16,15 +16,17 @@ export default async function readChat(req, res, next) {
       throw resError(403, "You are not a member of this chat!");
 
     // Mark chat as read and return updated document
-    const updatedChat = await ChatDB.findByIdAndUpdate(
-      chatId,
+    const updatedChat = await ChatDB.findOneAndUpdate(
+      {
+        _id: chatId,
+        "unreadCounts.user": user._id,
+      },
       {
         $set: {
-          "unreadCounts.$[elem].count": 0,
+          "unreadCounts.$.count": 0,
         },
       },
       {
-        arrayFilters: [{ "elem.user": user._id }],
         new: true,
       }
     )

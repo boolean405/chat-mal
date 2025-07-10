@@ -28,8 +28,8 @@ import { useMessageStore } from "@/stores/messageStore";
 import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
 import { acceptChatRequest, deleteChat } from "@/api/chat";
-import { getSocket } from "@/config/getSocket";
 import getLastTime from "@/utils/getLastTime";
+import { socket } from "@/config/socket";
 
 export default function ChatMessage() {
   const router = useRouter();
@@ -95,8 +95,40 @@ export default function ChatMessage() {
   });
 
   // Socketio
+  //   useEffect(() => {
+  //   if (!chatId || !user || !accessToken) return;
+
+  //   socket.emit("join-chat", chatId);
+
+  //   socket.on("join-chat", () => {
+  //     console.log("🟢 Joined chat room:", chatId);
+  //   });
+
+  //   socket.on("receive-message", (message) => {
+  //     console.log("📨 Received message:", message);
+  //     // 👉 You can push message to state or Zustand store here
+  //     appendMessage(message);
+  //   });
+
+  //   socket.on("typing", ({ chatId, user }) => {
+  //     console.log(`${user.name} is typing...`);
+  //     setTyping(true);
+  //   });
+
+  //   socket.on("stop-typing", ({ chatId, user }) => {
+  //     console.log(`${user.name} stopped typing.`);
+  //     setTyping(false);
+  //   });
+
+  //   return () => {
+  //     socket.off("receive-message");
+  //     socket.off("typing");
+  //     socket.off("stop-typing");
+  //     socket.emit("leave-chat", chatId); // optional, if you handle leave
+  //   };
+  // }, [chatId]);
+
   useEffect(() => {
-    const socket = getSocket();
     if (chatId && socket) {
       socket.emit("join-chat", chatId);
     }
@@ -107,7 +139,6 @@ export default function ChatMessage() {
   }, [chatId]);
 
   useEffect(() => {
-    const socket = getSocket();
     if (!socket || !chatId || !currentChat || !currentChat._id) return;
 
     socket.on("receive-message", (message: Message) => {
@@ -152,7 +183,6 @@ export default function ChatMessage() {
   // }, [chatId, currentChat]);
 
   useEffect(() => {
-    const socket = getSocket();
     if (!socket || !chatId) return;
 
     const handleTyping = ({
@@ -189,7 +219,6 @@ export default function ChatMessage() {
   }, [chatId, user]);
 
   useEffect(() => {
-    const socket = getSocket();
     if (!socket || !chatId) return;
 
     if (newMessage.trim().length > 0) {
@@ -223,6 +252,7 @@ export default function ChatMessage() {
   }, [currentMessages, isSentMessage]);
 
   if (!user || !currentChat) return null;
+
   const chatPhoto = getChatPhoto(currentChat, user._id);
   const chatName = currentChat.name || getChatName(currentChat, user._id);
   const isPendingChat =
@@ -234,7 +264,6 @@ export default function ChatMessage() {
     if (!newMessage.trim() || !chatId || !currentChat) return;
 
     try {
-      const socket = getSocket();
       setNewMessage("");
       socket?.emit("stop-typing", { chatId });
 
@@ -251,7 +280,7 @@ export default function ChatMessage() {
       updateChat(newUpdatedChat);
 
       // ✅ Emit to socket
-      socket?.emit("send-message", chatId, newMsg);
+      socket.emit("send-message", chatId, newMsg);
 
       // Trigger scroll only after the message is added/rendered
     } catch (error: any) {

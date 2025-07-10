@@ -122,8 +122,10 @@ export default function Home() {
     }
   }, [newChats]);
 
+  if (!user) return null;
+
   // Update chat press handler
-  const handleChatPress = async (chat: Chat, isOnline: boolean) => {
+  const handleChatPress = async (chat: Chat) => {
     if (chat.unreadCounts?.length) {
       const myUnread = chat.unreadCounts.find(
         (uc) => uc.user._id === user?._id && uc.count > 0
@@ -135,14 +137,13 @@ export default function Home() {
           ...chat,
           unreadCounts: chat.unreadCounts.map((uc) => {
             const userId = typeof uc.user === "object" ? uc.user._id : uc.user;
-            return userId === user?._id ? { ...uc, count: 0 } : uc;
+            return userId === user._id ? { ...uc, count: 0 } : uc;
           }),
         });
 
         // ✅ Then sync with backend
         try {
-          const updatedChat = await readChat(chat._id);
-          updateChat(updatedChat); // ensure correct state from server
+          await readChat(chat._id);
         } catch (error: any) {
           ToastAndroid.show(error.message, ToastAndroid.SHORT);
         }
@@ -157,8 +158,6 @@ export default function Home() {
       },
     });
   };
-
-  if (!user) return null;
 
   const allChats = chats.filter(
     (chat) => !chat.isPending || chat.initiator?._id === user?._id
@@ -197,7 +196,7 @@ export default function Home() {
             <ChatItem
               chat={item}
               user={user}
-              onPress={() => handleChatPress(item, isOnline)}
+              onPress={() => handleChatPress(item)}
               onLongPress={() => openSheet(item)}
               isOnline={isOnline}
             />
