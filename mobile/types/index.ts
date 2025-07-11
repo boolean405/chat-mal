@@ -10,28 +10,12 @@ export type User = {
   gender?: "male" | "female";
   birthday?: Date;
   bio?: string;
-  followers: string[]; // IDs of users who follow this user
-  following: string[]; // IDs of users this user follows
   role: "user" | "admin";
   verified: "verified" | "unverified" | "pending";
   lastOnlineAt: Date;
   createdAt: Date;
   updatedAt: Date;
   accessToken?: string;
-};
-
-export type Post = {
-  _id: string;
-  type: "text" | "photo" | "video";
-  content: string;
-  imageUrl?: string;
-  videoUrl?: string;
-  createdAt: string;
-  loved?: boolean;
-  loveCount?: number;
-  commentCount?: number;
-  shareCount?: number;
-  user: Omit<User, "posts">;
 };
 
 export type Chat = {

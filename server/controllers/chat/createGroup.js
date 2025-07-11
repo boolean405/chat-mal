@@ -4,20 +4,20 @@ import resJson from "../../utils/resJson.js";
 import resError from "../../utils/resError.js";
 // import generateGroupPhoto from "../../utils/generateGroupPhoto.js";
 import uploadGroupPhoto from "../../utils/uploadGroupPhoto.js";
+import { getIO } from "../../config/socket.js";
+import Redis from "../../config/redisClient.js";
 
 export default async function createGroup(req, res, next) {
   try {
-    const userId = req.userId;
+    const user = req.user;
     const userIds = req.body.userIds;
     let name = req.body.name;
-
-    if (!(await UserDB.exists({ _id: userId })))
-      throw resError(401, "Authenticated user not found!");
 
     // Parse and validate userIds
     let arrayUserIds = Array.isArray(userIds) ? userIds : JSON.parse(userIds);
     arrayUserIds = [...new Set(arrayUserIds.map((id) => id.toString()))];
-    if (!arrayUserIds.includes(userId.toString())) arrayUserIds.push(userId);
+    if (!arrayUserIds.includes(user._id.toString()))
+      arrayUserIds.push(user._id);
 
     const users = await UserDB.find({ _id: { $in: arrayUserIds } });
     if (users.length !== arrayUserIds.length)
@@ -58,7 +58,7 @@ export default async function createGroup(req, res, next) {
     const timestamp = new Date();
     const newGroupChat = await ChatDB.create({
       name,
-      initiator: userId,
+      initiator: user._id,
       isGroupChat: true,
       groupPhoto: `${process.env.SERVER_URL}/image/group-photo`,
       users: arrayUserIds.map((id) => ({
@@ -67,7 +67,7 @@ export default async function createGroup(req, res, next) {
       })),
       groupAdmins: [
         {
-          user: userId,
+          user: user._id,
           joinedAt: timestamp,
         },
       ],
@@ -77,6 +77,21 @@ export default async function createGroup(req, res, next) {
       path: "users.user groupAdmins.user initiator",
       select: "-password",
     });
+
+    // Real time
+    const io = getIO();
+    // Notify all other users in the group if they are online
+    await Promise.all(
+      groupChat.users.map(async (member) => {
+        const memberId = member.user._id.toString();
+        if (memberId === user._id.toString()) return;
+
+        const socketId = await Redis.hGet("onlineUsers", memberId);
+        if (socketId) {
+          io.to(socketId).emit("new-chat", { chat: groupChat });
+        }
+      })
+    );
 
     resJson(res, 201, "Success created group chat.", groupChat);
   } catch (error) {

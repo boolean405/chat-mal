@@ -131,6 +131,16 @@ export default function Home() {
       useChatStore.getState().updateUserLastOnlineAt(userId, lastOnlineAt);
     });
 
+    // Listen for new chat creation
+    socket.on("new-chat", ({ chat }) => {
+      console.log("New chat created:", chat._id);
+      
+      const existingChat = getChatById(chat._id);
+      if (!existingChat) {
+        setChats([chat]);
+      }
+    });
+
     // 🧼 Clean up all listeners on unmount
     return () => {
       socket.disconnect();
@@ -139,6 +149,7 @@ export default function Home() {
       socket.off("online-users");
       socket.off("new-message");
       socket.off("user-went-offline");
+      socket.off("new-chat");
     };
   }, [accessToken]);
 

@@ -3,6 +3,8 @@ import ChatDB from "../../models/chat.js";
 import resJson from "../../utils/resJson.js";
 import resError from "../../utils/resError.js";
 import UserPrivacyDB from "../../models/userPrivacy.js";
+import { getIO } from "../../config/socket.js";
+import Redis from "../../config/redisClient.js";
 
 export default async function createOrOpen(req, res, next) {
   try {
@@ -21,6 +23,13 @@ export default async function createOrOpen(req, res, next) {
         ],
       },
     });
+
+    // Real time emit chat
+    const io = getIO();
+    const receiverSocketId = await Redis.hGet(
+      "onlineUsers",
+      receiverId.toString()
+    );
 
     if (isChat) {
       const myUnread = isChat?.unreadInfos?.find(
@@ -72,6 +81,10 @@ export default async function createOrOpen(req, res, next) {
         })
         .lean();
 
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("new-chat", { chat });
+      }
+
       return resJson(res, 200, "Success open PM chat.", chat);
     } else {
       const receiverPrivacy = await UserPrivacyDB.findOne({ user: receiverId });
@@ -120,6 +133,10 @@ export default async function createOrOpen(req, res, next) {
           select: "-password",
         })
         .lean();
+
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("new-chat", { chat });
+      }
 
       resJson(
         res,
