@@ -107,7 +107,7 @@ export default function Home() {
 
     // Listen for socket connection
     socket.on("connect", () => {
-      console.log("✅ Connected to socket.io server");
+      console.log("✅ Connected to socket.io.");
     });
 
     // Socket connection error
@@ -126,6 +126,11 @@ export default function Home() {
       updateChat(message.chat);
     });
 
+    // User offline
+    socket.on("user-went-offline", ({ userId, lastOnlineAt }) => {
+      useChatStore.getState().updateUserLastOnlineAt(userId, lastOnlineAt);
+    });
+
     // 🧼 Clean up all listeners on unmount
     return () => {
       socket.disconnect();
@@ -133,6 +138,7 @@ export default function Home() {
       socket.off("connect_error");
       socket.off("online-users");
       socket.off("new-message");
+      socket.off("user-went-offline");
     };
   }, [accessToken]);
 

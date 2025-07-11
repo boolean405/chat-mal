@@ -9,6 +9,7 @@ interface ChatStore {
   onlineUserIds: string[];
   currentChat: Chat | null;
   setOnlineUserIds: (ids: string[]) => void;
+  updateUserLastOnlineAt: (userId: string, lastOnlineAt: Date) => void;
   setChats: (newChats: Chat[]) => void;
   updateChat: (updatedChat: Chat) => void;
   clearChat: (chatId: string) => void;
@@ -27,6 +28,31 @@ export const useChatStore = create<ChatStore>()(
       onlineUserIds: [],
 
       setOnlineUserIds: (ids) => set({ onlineUserIds: ids }),
+
+      updateUserLastOnlineAt: (userId, lastOnlineAt) =>
+        set((state) => {
+          const updatedChats = state.chats.map((chat) => {
+            const updatedUsers = chat.users.map((u) => {
+              if (u.user._id === userId) {
+                return {
+                  ...u,
+                  user: {
+                    ...u.user,
+                    lastOnlineAt,
+                  },
+                };
+              }
+              return u;
+            });
+
+            return {
+              ...chat,
+              users: updatedUsers,
+            };
+          });
+
+          return { chats: updatedChats };
+        }),
 
       setChats: (newChats) =>
         set((state) => {

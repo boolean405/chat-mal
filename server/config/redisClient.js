@@ -1,15 +1,17 @@
-import Redis from "ioredis";
-import { createAdapter } from "@socket.io/redis-adapter";
+import { createClient } from "redis";
 
-export async function createRedisAdapter() {
-  const pubClient = new Redis(process.env.REDIS_URL);
-  const subClient = pubClient.duplicate();
+const Redis = createClient({
+  url: process.env.REDIS_URL,
+});
 
-  // Wait until connected
-  await Promise.all([
-    new Promise((res) => pubClient.once("ready", res)),
-    new Promise((res) => subClient.once("ready", res)),
-  ]);
+Redis.on("error", (err) =>
+  console.log("=> ❌ Redis Client Error!", err.message)
+);
 
-  return createAdapter(pubClient, subClient);
-}
+Redis.on("ready", () => {
+  console.log("=> ✅ Successfully connected to Redis.");
+});
+
+await Redis.connect();
+
+export default Redis;

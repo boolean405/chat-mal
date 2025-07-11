@@ -17,7 +17,7 @@ connectDB();
 
 mongoose.connection.once("open", () => {
   server.listen(port, async () => {
-    console.log(`=> Success, Server running on port ${port}`);
+    console.log(`=> ✅ Server running on port ${port}`);
     await Migrator.migrate();
     await Migrator.backup();
   });

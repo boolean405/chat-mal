@@ -1,7 +1,8 @@
 import UserDB from "../models/user.js";
 import Token from "../utils/token.js";
+import Redis from "./redisClient.js";
 
-let onlineUsers = new Map();
+const ONLINE_USERS_KEY = "onlineUsers";
 
 export default function connectSocket(io) {
   io.of("/")
@@ -23,25 +24,26 @@ export default function connectSocket(io) {
         next(error);
       }
     })
-    .on("connection", (socket) => {
+    .on("connection", async (socket) => {
       const user = socket.user;
-      console.log("User connected =>", socket.user.name);
 
-      // Online user
-      onlineUsers.set(user._id, socket.id);
-      io.of("/").emit("online-users", Array.from(onlineUsers.keys()));
+      // Add user to Redis set of online users
+      await Redis.hSet(ONLINE_USERS_KEY, user._id.toString(), socket.id);
+
+      // Broadcast current online users (keys of the hash)
+      const onlineUserIds = await Redis.hKeys(ONLINE_USERS_KEY);
+      io.emit("online-users", onlineUserIds);
 
       // Join chat
       socket.on("join-chat", (chatId) => {
         socket.join(chatId);
-        console.log(socket.user.name, "joined chat =>", chatId);
+        console.log(user.name, "joined chat =>", chatId);
         socket.emit("join-chat");
       });
 
       // message chat
       socket.on("send-message", ({ chatId, message }) => {
         io.to(chatId).emit("receive-message", { message });
-        // Send to everyone for chat list latestMessage update
         io.emit("new-message", { message });
       });
 
@@ -57,15 +59,20 @@ export default function connectSocket(io) {
 
       // Disconnect
       socket.on("disconnect", async () => {
-        onlineUsers.delete(user._id);
+        // Remove user from Redis online users hash
+        await Redis.hDel(ONLINE_USERS_KEY, user._id.toString());
+        const lastOnlineAt = new Date();
 
         // Save last online timestamp to DB
         await UserDB.findByIdAndUpdate(user._id, {
-          lastOnlineAt: new Date(),
+          lastOnlineAt,
         });
 
         // Send online user back
-        io.emit("online-users", Array.from(onlineUsers.keys()));
+        const onlineUserIds = await Redis.hKeys(ONLINE_USERS_KEY);
+        io.emit("online-users", onlineUserIds);
+
+        io.emit("user-went-offline", { userId: user._id, lastOnlineAt });
       });
     });
 }
