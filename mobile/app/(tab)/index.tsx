@@ -216,10 +216,10 @@ export default function Home() {
           return (
             <ChatItem
               chat={item}
+              isOnline={isOnline}
               otherUser={otherUser}
               onPress={() => handleChatPress(item)}
               onLongPress={() => openSheet(item)}
-              isOnline={isOnline}
             />
           );
         }}

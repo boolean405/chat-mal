@@ -21,17 +21,21 @@ import { useAuthStore } from "@/stores/authStore";
 import usePaginatedData from "@/hooks/usePaginateData";
 import { Ionicons } from "@expo/vector-icons";
 import { useBottomSheetActions } from "@/hooks/useBottomSheetActions";
+import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
 
 export default function MessageRequest() {
+  // Hard coded render
+  useTimeTickWhenFocused();
+
   const router = useRouter();
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
   const user = useAuthStore((state) => state.user);
-  const { setChats, chats, clearChat, clearGroup, getChatById } =
+  const { setChats, chats, onlineUserIds, clearChat, clearGroup, getChatById } =
     useChatStore();
 
   const {
-    data: newChats,
+    data: newRequestChats,
     isLoading,
     isRefreshing,
     isPaging,
@@ -64,13 +68,13 @@ export default function MessageRequest() {
 
   // Update store when new chats are fetched
   useEffect(() => {
-    if (newChats.length > 0) {
-      setChats(newChats);
+    if (newRequestChats.length > 0) {
+      setChats(newRequestChats);
     }
-  }, [newChats]);
+  }, [newRequestChats]);
 
   if (!user) return null;
-  const pendingChats = chats.filter(
+  const allRequestChats = chats.filter(
     (chat) => chat.isPending && chat.initiator?._id !== user._id
   );
 
@@ -105,7 +109,7 @@ export default function MessageRequest() {
 
       {/* Chats */}
       <FlatList
-        data={pendingChats}
+        data={allRequestChats}
         keyExtractor={(item) => item._id}
         showsVerticalScrollIndicator={false}
         refreshing={isRefreshing}
@@ -115,10 +119,19 @@ export default function MessageRequest() {
         onEndReachedThreshold={1}
         contentContainerStyle={{ paddingBottom: 20 }}
         renderItem={({ item }) => {
+          const otherUser = item.users.find(
+            (u) => u.user._id !== user._id
+          )?.user;
+
+          const isOnline = otherUser
+            ? onlineUserIds.includes(otherUser._id)
+            : false;
+
           return (
             <ChatItem
               chat={item}
-              user={user}
+              isOnline={isOnline}
+              otherUser={otherUser}
               onPress={() => handleChat(item)}
               onProfilePress={() => console.log(item.name)}
               onLongPress={() => openSheet(item)}

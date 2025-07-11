@@ -9,12 +9,8 @@ export default async function createMessage(req, res, next) {
     const user = req.user;
     const { chatId, content, type } = req.body;
 
-    const [userExists, chat] = await Promise.all([
-      UserDB.exists({ _id: user._id }),
-      ChatDB.findById(chatId).select("users unreadInfos"),
-    ]);
+    const chat = await ChatDB.findById(chatId).populate("users unreadInfos");
 
-    if (!userExists) throw resError(401, "Authenticated user not found!");
     if (!chat) throw resError(404, "Chat not found!");
 
     // Create message
@@ -86,6 +82,10 @@ export default async function createMessage(req, res, next) {
       .populate({
         path: "chat",
         populate: [
+          {
+            path: "initiator",
+            select: "-password",
+          },
           {
             path: "users.user",
             select: "-password",

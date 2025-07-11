@@ -68,16 +68,15 @@ export default function Search() {
       if (response.status === 200) {
         if (!getChatById(chat._id)) {
           setChats([chat]);
-          console.log("added to chats");
         }
-        console.log("routing");
 
         router.push({
           pathname: "/(chat)",
           params: { chatId: chat._id },
         });
       } else if (response.status === 201) {
-        setChats([response.data.result]);
+        setChats([chat]);
+
         router.push({
           pathname: "/(chat)",
           params: { chatId: chat._id },

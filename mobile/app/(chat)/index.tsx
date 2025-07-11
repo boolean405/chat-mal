@@ -172,14 +172,15 @@ export default function ChatMessage() {
       const chat = getChatById(chatId);
       if (chat) {
         setCurrentChat(chat);
-      } else {
-        setCurrentChat(null);
       }
+      // else {
+      //   setCurrentChat(null);
+      // }
     }
 
-    return () => {
-      setCurrentChat(null);
-    };
+    // return () => {
+    //   setCurrentChat(null);
+    // };
   }, [chatId]);
 
   useEffect(() => {
@@ -193,8 +194,9 @@ export default function ChatMessage() {
 
   const chatPhoto = getChatPhoto(currentChat, user._id);
   const chatName = currentChat.name || getChatName(currentChat, user._id);
-  const isPendingChat =
-    currentChat.isPending && currentChat.initiator._id !== user._id;
+
+  const initiator = currentChat.initiator._id || currentChat.initiator;
+  const isPendingChat = currentChat.isPending && initiator !== user._id;
 
   // Handle send message
   const handleSendMessage = async () => {
@@ -206,13 +208,13 @@ export default function ChatMessage() {
       socket.emit("stop-typing", { chatId });
 
       const data = await createMessage(chatId, newMessage.trim());
-      const newMsg = data.result;
+      const message = data.result;
 
-      addMessage(chatId, newMsg);
-      updateChat(newMsg.chat);
+      addMessage(chatId, message);
+      updateChat(message.chat);
 
-      // ✅ Emit to socket
-      socket.emit("send-message", { chatId, message: newMsg });
+      // Emit to socket
+      socket.emit("send-message", { chatId, message });
 
       // Trigger scroll only after the message is added/rendered
     } catch (error: any) {
@@ -287,7 +289,7 @@ export default function ChatMessage() {
               />
             ) : !currentChat.isGroupChat ? (
               <ThemedText type="smallest" style={styles.lastOnlineText}>
-                {getLastTime(user.updatedAt)}
+                {getLastTime(user.lastOnlineAt)}
               </ThemedText>
             ) : null}
           </ThemedView>
@@ -296,7 +298,7 @@ export default function ChatMessage() {
           {chatName}
         </ThemedText>
         {/* Header icons */}
-        {!isPendingChat && (
+        {!isPendingChat ? (
           <ThemedView style={styles.headerIcons}>
             <TouchableOpacity onPress={() => console.log("Voice call")}>
               <Ionicons
@@ -330,7 +332,7 @@ export default function ChatMessage() {
               />
             </TouchableOpacity>
           </ThemedView>
-        )}
+        ) : null}
       </ThemedView>
 
       {/* Messages */}

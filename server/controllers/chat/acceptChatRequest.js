@@ -5,22 +5,22 @@ import resError from "../../utils/resError.js";
 
 export default async function acceptChatRequest(req, res, next) {
   try {
-    const userId = req.userId;
+    const user = req.user;
     const chatId = req.body.chatId;
 
-    const [userExists, dbChat] = await Promise.all([
-      UserDB.exists({ _id: userId }),
-      ChatDB.findById(chatId),
-    ]);
+    const dbChat = await ChatDB.findById(chatId);
 
-    if (!userExists) throw resError(401, "Authenticated user not found!");
     if (!dbChat) throw resError(404, "Chat not found!");
 
     if (!dbChat.isPending) throw resError(400, "Chat is already accepted.");
-    if (!dbChat.users.some((u) => u.user.toString() === userId))
-      throw resError(403, "Forbidden!");
 
-    const updatedChat = await ChatDB.findByIdAndUpdate(
+    if (!dbChat.users.some((u) => u.user.toString() === user._id.toString()))
+      throw resError(403, "You are not a user of this chat!");
+
+    if (dbChat.initiator.toString() === user._id.toString())
+      throw resError(403, "You can't accept of other user's request!");
+
+    const chat = await ChatDB.findByIdAndUpdate(
       chatId,
       {
         isPending: false,
@@ -39,7 +39,7 @@ export default async function acceptChatRequest(req, res, next) {
         },
       });
 
-    resJson(res, 200, "Chat request accepted.", updatedChat);
+    resJson(res, 200, "Chat request accepted.", chat);
   } catch (error) {
     next(error);
   }

@@ -76,8 +76,9 @@ export default async function createOrOpen(req, res, next) {
     } else {
       const receiverPrivacy = await UserPrivacyDB.findOne({ user: receiverId });
 
-      let isPending = false;
-      if (receiverPrivacy?.isRequestMessage) isPending = true;
+      // if (receiverPrivacy?.isRequestMessage) isPending = true;
+      const isPending =
+        receiverPrivacy?.isRequestMessage === true ? true : false;
 
       const newChat = {
         users: [{ user: user._id }, { user: receiverId }],
