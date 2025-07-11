@@ -253,7 +253,6 @@ export default function Home() {
 
       {/* Bottom Sheet Actions */}
       <BottomSheetAction
-        color={color}
         visible={isSheetVisible}
         title={selectedChat?.name}
         options={filteredOptions}

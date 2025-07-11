@@ -1,19 +1,13 @@
-import UserDB from "../../models/user.js";
 import ChatDB from "../../models/chat.js";
 import resJson from "../../utils/resJson.js";
 import resError from "../../utils/resError.js";
 
 export default async function deleteChat(req, res, next) {
   try {
-    const userId = req.userId;
+    const user = req.user;
     const chatId = req.body.chatId;
 
-    const [user, chat] = await Promise.all([
-      UserDB.findById(userId),
-      ChatDB.findById(chatId),
-    ]);
-
-    if (!user) throw resError(401, "Authenticated user not found!");
+    const chat = await ChatDB.findById(chatId);
     if (!chat) throw resError(404, "Chat not found!");
 
     // Check user in group or not
@@ -25,24 +19,24 @@ export default async function deleteChat(req, res, next) {
 
     // Remove old deletedInfos for this user, then add the new one
     await ChatDB.findByIdAndUpdate(chatId, {
-      $pull: { deletedInfos: { user: userId } },
+      $pull: { deletedInfos: { user: user._id } },
     });
     await ChatDB.findByIdAndUpdate(
       chatId,
       {
         $addToSet: {
           deletedInfos: {
-            user: userId,
+            user: user._id,
             deletedAt: new Date(),
           },
         },
-        $unset: { latestMessage: "" },
+
         $set: {
           "unreadInfos.$[elem].count": 0,
         },
       },
       {
-        arrayFilters: [{ "elem.user": userId }],
+        arrayFilters: [{ "elem.user": user._id }],
       }
     );
 

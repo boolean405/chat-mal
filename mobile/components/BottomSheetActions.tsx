@@ -4,14 +4,15 @@ import {
   TouchableOpacity,
   StyleSheet,
   TouchableWithoutFeedback,
+  useColorScheme,
 } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { Ionicons } from "@expo/vector-icons";
 import { BottomSheetOption } from "@/types";
+import { Colors } from "@/constants/colors";
 
 interface Props {
-  color: any;
   visible: boolean;
   title?: string;
   options: BottomSheetOption[];
@@ -20,13 +21,14 @@ interface Props {
 }
 
 export default function BottomSheetAction({
-  color,
   visible,
   title,
   options,
   onSelect,
   onCancel,
 }: Props) {
+  const colorScheme = useColorScheme();
+  const color = Colors[colorScheme ?? "light"];
   return (
     <Modal visible={visible} transparent animationType="slide">
       <TouchableWithoutFeedback onPress={onCancel}>
@@ -36,8 +38,9 @@ export default function BottomSheetAction({
           >
             {title && (
               <ThemedText
-                type="subtitle"
-                style={[styles.title, { borderColor: color.borderColor }]}
+                type="larger"
+                numberOfLines={1}
+                style={[styles.title, { borderColor: color.border }]}
               >
                 {title}
               </ThemedText>
@@ -81,12 +84,14 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     paddingBottom: 20,
     paddingTop: 10,
-    paddingLeft: 30,
+    paddingHorizontal: 30,
   },
   title: {
     // textAlign: "center",
-    padding: 12,
-    borderBottomWidth: 0.5,
+    // padding: 12,
+    paddingVertical: 12,
+    borderBottomWidth: 0.2,
+    marginBottom: 10,
     // borderColor: "#eee",
   },
   optionButton: {
@@ -99,23 +104,22 @@ const styles = StyleSheet.create({
   },
 });
 
-
-      // {/* Custom Sheet */}
-      // <BottomSheetAction
-      //   color={color}
-      //   visible={isSheetVisible}
-      //   title={selectedChat?.name}
-      //   options={bottomSheetOptions.flatMap(({ _id, name, icon }) => {
-      //     if (_id === "3") {
-      //       return selectedChat?.isGroupChat === false
-      //         ? [{ _id, name: `${name} ${selectedChat.name}`, icon }]
-      //         : [];
-      //     }
-      //     if (_id === "4") {
-      //       return selectedChat?.isGroupChat ? [{ _id, name, icon }] : [];
-      //     }
-      //     return [{ _id, name, icon }];
-      //   })}
-      //   onSelect={handleOptionSelect}
-      //   onCancel={() => setSheetVisible(false)}
-      // />
+// {/* Custom Sheet */}
+// <BottomSheetAction
+//   color={color}
+//   visible={isSheetVisible}
+//   title={selectedChat?.name}
+//   options={bottomSheetOptions.flatMap(({ _id, name, icon }) => {
+//     if (_id === "3") {
+//       return selectedChat?.isGroupChat === false
+//         ? [{ _id, name: `${name} ${selectedChat.name}`, icon }]
+//         : [];
+//     }
+//     if (_id === "4") {
+//       return selectedChat?.isGroupChat ? [{ _id, name, icon }] : [];
+//     }
+//     return [{ _id, name, icon }];
+//   })}
+//   onSelect={handleOptionSelect}
+//   onCancel={() => setSheetVisible(false)}
+// />
