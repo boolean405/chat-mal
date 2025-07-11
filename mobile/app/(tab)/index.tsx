@@ -100,8 +100,10 @@ export default function Home() {
     if (!accessToken) return;
 
     // Initinal socket
-    socket.io.opts.query = { accessToken };
-    socket.connect();
+    if (!socket.connected) {
+      socket.io.opts.query = { accessToken };
+      socket.connect();
+    }
 
     // Listen for socket connection
     socket.on("connect", () => {
@@ -127,6 +129,8 @@ export default function Home() {
     // 🧼 Clean up all listeners on unmount
     return () => {
       socket.disconnect();
+      socket.off("connect");
+      socket.off("connect_error");
       socket.off("online-users");
       socket.off("new-message");
     };

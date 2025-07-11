@@ -99,34 +99,19 @@ export default function ChatMessage() {
     },
   });
 
+  // Listening socket
   useEffect(() => {
-    if (chatId && socket) {
-      socket.emit("join-chat", chatId);
-    }
+    if (!socket || !chatId || !user) return;
 
-    return () => {
-      socket?.off("receive-message");
-    };
-  }, [chatId]);
+    socket.emit("join-chat", chatId);
 
-  useEffect(() => {
-    if (!socket || !chatId || !currentChat || !currentChat._id) return;
-
-    socket.on("receive-message", async ({ message }) => {
+    const handleReceiveMessage = async ({ message }: { message: Message }) => {
       if (message.chat._id === chatId) {
         addMessage(chatId, message);
         const data = await readChat(chatId);
         updateChat(data.result);
       }
-    });
-
-    return () => {
-      socket.off("receive-message");
     };
-  }, [chatId, currentChat]);
-
-  useEffect(() => {
-    if (!socket || !chatId) return;
 
     const handleTyping = ({
       chatId: typingChatId,
@@ -135,7 +120,7 @@ export default function ChatMessage() {
       chatId: string;
       user: User;
     }) => {
-      if (typingChatId === chatId && typingUserData._id !== user?._id) {
+      if (typingChatId === chatId && typingUserData._id !== user._id) {
         setIsTyping(true);
         setTypingUser(typingUserData);
       }
@@ -152,17 +137,20 @@ export default function ChatMessage() {
       }
     };
 
+    socket.on("receive-message", handleReceiveMessage);
     socket.on("typing", handleTyping);
     socket.on("stop-typing", handleStopTyping);
 
     return () => {
+      socket.off("receive-message", handleReceiveMessage);
       socket.off("typing", handleTyping);
       socket.off("stop-typing", handleStopTyping);
     };
-  }, [chatId, user]);
+  }, [socket, chatId, user]);
 
+  // Emiting socket
   useEffect(() => {
-    if (!socket || !chatId) return;
+    if (!socket || !chatId || !user) return;
 
     if (newMessage.trim().length > 0) {
       socket.emit("typing", { chatId, user });
