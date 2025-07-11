@@ -30,8 +30,13 @@ import { useAuthStore } from "@/stores/authStore";
 import { acceptChatRequest, deleteChat, readChat } from "@/api/chat";
 import getLastTime from "@/utils/getLastTime";
 import { socket } from "@/config/socket";
+import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
+import { useUiStore } from "@/stores/uiStore";
 
 export default function ChatMessage() {
+  useTimeTickWhenFocused();
+  useUiStore((state) => state.timeTick);
+
   const router = useRouter();
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
@@ -172,15 +177,14 @@ export default function ChatMessage() {
       const chat = getChatById(chatId);
       if (chat) {
         setCurrentChat(chat);
+      } else {
+        setCurrentChat(null);
       }
-      // else {
-      //   setCurrentChat(null);
-      // }
     }
 
-    // return () => {
-    //   setCurrentChat(null);
-    // };
+    return () => {
+      setCurrentChat(null);
+    };
   }, [chatId]);
 
   useEffect(() => {
@@ -259,11 +263,14 @@ export default function ChatMessage() {
       },
     ]);
   };
-  const otherUserId = currentChat.users.find((u) => u.user._id !== user._id)
-    ?.user._id;
 
-  let isOnline = false;
-  if (otherUserId) isOnline = onlineUserIds.includes(otherUserId);
+  const otherUser = currentChat.users?.find(
+    (u) => u.user._id !== user._id
+  )?.user;
+
+  const isOnline =
+    otherUser && onlineUserIds.includes(otherUser?._id) ? true : false;
+
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: color.background }]}
@@ -289,7 +296,7 @@ export default function ChatMessage() {
               />
             ) : !currentChat.isGroupChat ? (
               <ThemedText type="smallest" style={styles.lastOnlineText}>
-                {getLastTime(user.lastOnlineAt)}
+                {otherUser && getLastTime(otherUser.lastOnlineAt)}
               </ThemedText>
             ) : null}
           </ThemedView>

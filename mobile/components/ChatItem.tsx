@@ -15,14 +15,14 @@ import { useUiStore } from "@/stores/uiStore";
 
 export default function ChatItem({
   chat,
-  otherUser,
+  targetUser,
   isOnline,
   onPress,
   onProfilePress,
   onLongPress,
 }: {
   chat: Chat;
-  otherUser?: User;
+  targetUser?: User;
   isOnline: boolean;
   onPress?: () => void;
   onProfilePress?: () => void;
@@ -33,15 +33,17 @@ export default function ChatItem({
   const color = Colors[colorScheme ?? "light"];
   const user = useAuthStore((state) => state.user);
 
-  if (!chat || !user || !otherUser) return null;
+  if (!chat || !user || !targetUser) return null;
 
   const chatPhoto = getChatPhoto(chat, user._id) ?? "";
   const chatName = chat.name || getChatName(chat, user._id) || "Unknown";
 
   // Find the current user's unread count from the array
-  const currentUserUnread = chat.unreadInfos?.find(
-    (uc) => uc.user._id === user._id || uc.user?._id === user._id
-  );
+  const currentUserUnread = chat.unreadInfos?.find((uc) => {
+    const id = typeof uc.user === "string" ? uc.user : uc.user._id;
+    return id === user._id;
+  });
+
   const unreadCount = currentUserUnread?.count ?? 0;
 
   return (
@@ -59,7 +61,7 @@ export default function ChatItem({
             />
           ) : !chat.isGroupChat ? (
             <ThemedText type="smaller" style={styles.lastOnlineText}>
-              {getLastTime(otherUser.lastOnlineAt || otherUser.updatedAt)}
+              {getLastTime(targetUser.lastOnlineAt)}
             </ThemedText>
           ) : null}
         </ThemedView>
@@ -85,7 +87,7 @@ export default function ChatItem({
               styles.unreadText,
               unreadCount > 0
                 ? {
-                    fontWeight: "semibold",
+                    fontWeight: "bold",
                   }
                 : {
                     color: "#666",

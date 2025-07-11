@@ -15,24 +15,22 @@ import getLastTime from "@/utils/getLastTime";
 
 interface Props {
   user: User;
-  joinedAt?: Date;
-  onPress?: () => void;
-  onPressMore?: () => void;
+  chatJoinedAt?: Date;
   moreButtonRef?: React.RefObject<any>;
   tag?: string;
   isOnline?: boolean;
-  lastOnlineAt?: Date;
+  onPress?: () => void;
+  onPressMore?: () => void;
 }
 
 const UserItem: React.FC<Props> = ({
   user,
-  joinedAt,
+  chatJoinedAt,
+  isOnline,
+  moreButtonRef,
+  tag,
   onPress,
   onPressMore,
-  tag,
-  moreButtonRef,
-  isOnline,
-  lastOnlineAt,
 }) => {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
@@ -49,7 +47,7 @@ const UserItem: React.FC<Props> = ({
           />
         ) : (
           <ThemedText type="smallest" style={styles.lastOnlineText}>
-            {getLastTime(lastOnlineAt || user.updatedAt)}
+            {getLastTime(user.lastOnlineAt)}
           </ThemedText>
         )}
       </ThemedView>
@@ -64,10 +62,10 @@ const UserItem: React.FC<Props> = ({
       </ThemedView>
       <ThemedView style={styles.dateContainer}>
         <ThemedText type="small" style={{ color: "gray", marginRight: 10 }}>
-          {joinedAt &&
-            `Joined at: ${new Date(joinedAt).getDate()}/${
-              new Date(joinedAt).getMonth() + 1
-            }/${new Date(joinedAt).getFullYear()}`}{" "}
+          {chatJoinedAt &&
+            `Joined at: ${new Date(chatJoinedAt).getDate()}/${
+              new Date(chatJoinedAt).getMonth() + 1
+            }/${new Date(chatJoinedAt).getFullYear()}`}{" "}
         </ThemedText>
         <TouchableOpacity onPress={onPressMore} ref={moreButtonRef}>
           <Ionicons

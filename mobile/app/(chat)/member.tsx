@@ -261,7 +261,7 @@ export default function Member() {
             return (
               <UserItem
                 user={item.user}
-                joinedAt={item.joinedAt}
+                chatJoinedAt={item.joinedAt}
                 tag={adminTag}
                 onPress={() => {
                   handleMembers(item.user);
@@ -295,7 +295,7 @@ export default function Member() {
               renderItem={({ item }) => (
                 <UserItem
                   user={item.user}
-                  joinedAt={item.joinedAt}
+                  chatJoinedAt={item.joinedAt}
                   tag="🍀"
                   onPress={() => {
                     handleMembers(item.user);

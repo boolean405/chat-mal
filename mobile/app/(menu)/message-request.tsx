@@ -5,6 +5,7 @@ import {
   useColorScheme,
   ActivityIndicator,
   TouchableOpacity,
+  ToastAndroid,
 } from "react-native";
 
 import { Chat } from "@/types";
@@ -14,7 +15,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useRouter } from "expo-router";
 import BottomSheetAction from "@/components/BottomSheetActions";
-import { getPaginateRequestChats } from "@/api/chat";
+import { getPaginateRequestChats, readChat } from "@/api/chat";
 import ChatEmpty from "@/components/chat/ChatEmpty";
 import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
@@ -31,8 +32,15 @@ export default function MessageRequest() {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
   const user = useAuthStore((state) => state.user);
-  const { setChats, chats, onlineUserIds, clearChat, clearGroup, getChatById } =
-    useChatStore();
+  const {
+    setChats,
+    chats,
+    onlineUserIds,
+    clearChat,
+    clearGroup,
+    getChatById,
+    updateChat,
+  } = useChatStore();
 
   const {
     data: newRequestChats,
@@ -69,21 +77,73 @@ export default function MessageRequest() {
   // Update store when new chats are fetched
   useEffect(() => {
     if (newRequestChats.length > 0) {
-      setChats(newRequestChats);
+      newRequestChats.forEach((newChat) => {
+        const existing = getChatById(newChat._id);
+        // Merge only if not present or newer
+        if (!existing) {
+          setChats([newChat]);
+        }
+      });
     }
   }, [newRequestChats]);
 
   if (!user) return null;
-  const allRequestChats = chats.filter(
-    (chat) => chat.isPending && chat.initiator?._id !== user._id
-  );
+  // const allRequestChats = chats.filter(
+  //   (chat) => chat.isPending && chat.initiator._id !== user._id
+  // );
+
+  const allRequestChats = chats.filter((chat) => {
+    const initiatorId =
+      typeof chat.initiator === "string" ? chat.initiator : chat.initiator?._id;
+
+    return chat.isPending && initiatorId !== user._id;
+  });
 
   // Handle chat press
-  const handleChat = (chat: Chat) => {
+  // const handleChat = (chat: Chat) => {
+  //   if (!getChatById(chat._id)) {
+  //     console.log("added new one");
+  //     setChats([chat]);
+  //   }
+  //   router.push({
+  //     pathname: "/(chat)",
+  //     params: {
+  //       chatId: chat._id,
+  //     },
+  //   });
+  // };
+
+  // Handle chat request press
+  const handleChatPress = async (chat: Chat) => {
     if (!getChatById(chat._id)) {
       console.log("added new one");
       setChats([chat]);
     }
+    if (chat.unreadInfos?.length > 0) {
+      const myUnread = chat.unreadInfos.find(
+        (uc) => uc.user._id === user?._id && uc.count > 0
+      );
+
+      if (myUnread) {
+        // ✅ Optimistically mark as read in Zustand
+        updateChat({
+          ...chat,
+          unreadInfos: chat.unreadInfos.map((uc) => {
+            const userId = typeof uc.user === "object" ? uc.user._id : uc.user;
+            return userId === user._id ? { ...uc, count: 0 } : uc;
+          }),
+        });
+
+        // ✅ Then sync with backend
+        try {
+          await readChat(chat._id);
+        } catch (error: any) {
+          ToastAndroid.show(error.message, ToastAndroid.SHORT);
+        }
+      }
+    }
+
+    // Navigate to the chat screen
     router.push({
       pathname: "/(chat)",
       params: {
@@ -119,20 +179,20 @@ export default function MessageRequest() {
         onEndReachedThreshold={1}
         contentContainerStyle={{ paddingBottom: 20 }}
         renderItem={({ item }) => {
-          const otherUser = item.users.find(
+          const targetUser = item.users.find(
             (u) => u.user._id !== user._id
           )?.user;
 
-          const isOnline = otherUser
-            ? onlineUserIds.includes(otherUser._id)
+          const isOnline = targetUser
+            ? onlineUserIds.includes(targetUser._id)
             : false;
 
           return (
             <ChatItem
               chat={item}
               isOnline={isOnline}
-              otherUser={otherUser}
-              onPress={() => handleChat(item)}
+              targetUser={targetUser}
+              onPress={() => handleChatPress(item)}
               onProfilePress={() => console.log(item.name)}
               onLongPress={() => openSheet(item)}
             />

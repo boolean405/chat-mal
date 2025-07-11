@@ -49,18 +49,18 @@ export default function Home() {
   const accessToken = useAuthStore((state) => state.accessToken);
 
   const {
-    // chats,
+    chats,
     onlineUserIds,
     setChats,
-    // updateChat,
+    updateChat,
     clearChat,
     clearGroup,
     clearChats,
     setOnlineUserIds,
     getChatById,
   } = useChatStore();
-  const updateChat = useChatStore((state) => state.updateChat);
-  const chats = useChatStore((state) => state.chats);
+  // const updateChat = useChatStore((state) => state.updateChat);
+  // const chats = useChatStore((state) => state.chats);
 
   // Paginated data handling
   const {
@@ -177,9 +177,18 @@ export default function Home() {
     });
   };
 
-  const allChats = chats.filter(
-    (chat) => !chat.isPending || chat.initiator?._id === user?._id
-  );
+  // const allChats = chats.filter(
+  //   (chat) =>
+  //     chat.isPending === false ||
+  //     (chat.isPending === true && chat.initiator._id === user._id)
+  // );
+  const allChats = chats.filter((chat) => {
+    const isPending = chat?.isPending ?? false;
+    const initiatorId =
+      typeof chat.initiator === "string" ? chat.initiator : chat.initiator?._id;
+
+    return !isPending || initiatorId === user._id;
+  });
 
   return (
     <ThemedView style={styles.container}>
@@ -205,19 +214,19 @@ export default function Home() {
         onEndReachedThreshold={0.1}
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => {
-          const otherUser = item.users.find(
+          const targetUser = item.users.find(
             (u) => u.user._id !== user._id
           )?.user;
 
-          const isOnline = otherUser
-            ? onlineUserIds.includes(otherUser._id)
+          const isOnline = targetUser
+            ? onlineUserIds.includes(targetUser._id)
             : false;
 
           return (
             <ChatItem
               chat={item}
               isOnline={isOnline}
-              otherUser={otherUser}
+              targetUser={targetUser}
               onPress={() => handleChatPress(item)}
               onLongPress={() => openSheet(item)}
             />
