@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
-import { BottomSheetOption, Chat, Story } from "@/types";
+import { BottomSheetOption, Chat, Message, Story } from "@/types";
 import { Colors } from "@/constants/colors";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -26,6 +26,7 @@ import { useChatStore } from "@/stores/chatStore";
 import { useBottomSheetActions } from "@/hooks/useBottomSheetActions";
 import { socket } from "@/config/socket";
 import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
+import { useMessageStore } from "@/stores/messageStore";
 
 // Stories data - consider moving to a separate file or API call
 const stories: Story[] = [
@@ -47,6 +48,8 @@ export default function Home() {
   const color = Colors[colorScheme ?? "light"];
   const user = useAuthStore((state) => state.user);
   const accessToken = useAuthStore((state) => state.accessToken);
+
+  const { addMessage, clearMessages } = useMessageStore();
 
   const {
     chats,
@@ -93,6 +96,7 @@ export default function Home() {
     clearChat,
     setChats,
     clearGroup,
+    clearMessages,
   });
 
   // Socket io
@@ -133,12 +137,16 @@ export default function Home() {
 
     // Listen for new chat creation
     socket.on("new-chat", ({ chat }) => {
-      console.log("New chat created:", chat._id);
-      
       const existingChat = getChatById(chat._id);
       if (!existingChat) {
         setChats([chat]);
+        console.log("New chat created:", chat.name);
       }
+    });
+
+    socket.on("receive-message", ({ message }) => {
+      setChats([message.chat]);
+      addMessage(message.chat._id, message);
     });
 
     // 🧼 Clean up all listeners on unmount
@@ -150,6 +158,7 @@ export default function Home() {
       socket.off("new-message");
       socket.off("user-went-offline");
       socket.off("new-chat");
+      socket.off("receive-message");
     };
   }, [accessToken]);
 
@@ -203,13 +212,43 @@ export default function Home() {
   //     chat.isPending === false ||
   //     (chat.isPending === true && chat.initiator._id === user._id)
   // );
-  const allChats = chats.filter((chat) => {
-    const isPending = chat?.isPending ?? false;
-    const initiatorId =
-      typeof chat.initiator === "string" ? chat.initiator : chat.initiator?._id;
+ const allChats = chats.filter((chat) => {
+  const isPending = chat?.isPending ?? false;
+  const initiatorId =
+    typeof chat.initiator === "string"
+      ? chat.initiator
+      : chat.initiator?._id;
 
-    return !isPending || initiatorId === user._id;
-  });
+  // pending requests the user didn’t create → hide
+  if (isPending && initiatorId !== user._id) return false;
+
+  // was this chat deleted by me?
+  const deletedInfo = chat.deletedInfos?.find(
+    (info) =>
+      (typeof info.user === "string" ? info.user : info.user?._id) === user._id
+  );
+
+  // never deleted → keep
+  if (!deletedInfo) return true;
+
+  const deletedAt = new Date(deletedInfo.deletedAt);
+
+  // latestMessage check
+  if (chat.latestMessage?.createdAt) {
+    const latestMsgAt = new Date(chat.latestMessage.createdAt);
+    return deletedAt < latestMsgAt; // show only if a newer msg exists
+  }
+
+  // fallback to updatedAt (make sure it exists)
+  if (chat.updatedAt) {
+    const chatUpdatedAt = new Date(chat.updatedAt);
+    return deletedAt < chatUpdatedAt;
+  }
+
+  // no activity after delete → hide
+  return false;
+});
+
 
   return (
     <ThemedView style={styles.container}>

@@ -8,12 +8,14 @@ type UseBottomSheetActionsProps = {
   clearChat: (id: string) => void;
   setChats: (chats: any[]) => void;
   clearGroup: (id: string) => void;
+  clearMessages: (id: string) => void;
 };
 
 export function useBottomSheetActions({
   clearChat,
   setChats,
   clearGroup,
+  clearMessages,
 }: UseBottomSheetActionsProps) {
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [isSheetVisible, setSheetVisible] = useState(false);
@@ -51,6 +53,7 @@ export function useBottomSheetActions({
               const data = await deleteChat(chat._id);
               if (data.status) {
                 ToastAndroid.show(data.message, ToastAndroid.SHORT);
+                clearMessages(chat._id);
                 clearChat(chat._id);
               }
               resolve();

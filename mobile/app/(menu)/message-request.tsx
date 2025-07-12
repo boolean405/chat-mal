@@ -23,6 +23,7 @@ import usePaginatedData from "@/hooks/usePaginateData";
 import { Ionicons } from "@expo/vector-icons";
 import { useBottomSheetActions } from "@/hooks/useBottomSheetActions";
 import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
+import { useMessageStore } from "@/stores/messageStore";
 
 export default function MessageRequest() {
   // Hard coded render
@@ -32,6 +33,9 @@ export default function MessageRequest() {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
   const user = useAuthStore((state) => state.user);
+
+  const { clearMessages } = useMessageStore();
+
   const {
     setChats,
     chats,
@@ -72,6 +76,7 @@ export default function MessageRequest() {
     clearChat,
     setChats,
     clearGroup,
+    clearMessages,
   });
 
   // Update store when new chats are fetched
@@ -226,7 +231,6 @@ export default function MessageRequest() {
 
       {/* Custom Sheet */}
       <BottomSheetAction
-        color={color}
         visible={isSheetVisible}
         title={selectedChat?.name}
         options={filteredOptions}

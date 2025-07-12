@@ -5,10 +5,10 @@ import resError from "../../utils/resError.js";
 
 export default async function getPaginateRequestChat(req, res, next) {
   try {
-    const userId = req.userId;
+    const user = req.user;
     const page = parseInt(req.params.pageNum);
 
-    if (!(await UserDB.exists({ _id: userId })))
+    if (!(await UserDB.exists({ _id: user._id })))
       throw resError(401, "Authenticated user not found!");
 
     if (isNaN(page)) throw resError(400, "Page number must be a valid number!");
@@ -19,10 +19,49 @@ export default async function getPaginateRequestChat(req, res, next) {
     const skipCount = limit * (page - 1);
 
     const filter = {
-      latestMessage: { $ne: null },
-      isPending: true, // only pending requests
-      "users.user": userId, // user is one of the chat members
-      initiator: { $ne: userId }, // NOT initiated by the current user
+      isPending: true,
+      "users.user": user._id,
+      initiator: { $ne: user._id },
+      $or: [
+        { deletedInfos: { $size: 0 } }, // No one deleted the chat
+        {
+          $expr: {
+            $not: {
+              $in: [
+                user._id,
+                {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: "$deletedInfos",
+                        as: "info",
+                        cond: {
+                          $and: [
+                            { $eq: ["$$info.user", user._id] },
+                            {
+                              $gte: [
+                                "$$info.deletedAt",
+                                {
+                                  $ifNull: [
+                                    "$latestMessage.createdAt",
+                                    new Date(0),
+                                  ],
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      },
+                    },
+                    as: "info",
+                    in: "$$info.user",
+                  },
+                },
+              ],
+            },
+          },
+        },
+      ],
     };
 
     const [chats, totalChat] = await Promise.all([

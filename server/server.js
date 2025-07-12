@@ -9,7 +9,7 @@ import { initSocket } from "./config/socket.js";
 import { Migrator } from "./migrations/migrator.js";
 import connectSocket from "./config/connectSocket.js";
 
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3000;
 const server = http.createServer(app);
 const io = new Server(server);
 
