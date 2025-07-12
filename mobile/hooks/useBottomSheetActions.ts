@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { ToastAndroid, Alert } from "react-native";
-import { BottomSheetOption, Chat } from "@/types";
+import { Chat } from "@/types";
 import { bottomSheetOptionsData } from "@/constants/data";
 import { deleteChat, createGroup, leaveGroup } from "@/api/chat";
 
@@ -53,8 +53,8 @@ export function useBottomSheetActions({
               const data = await deleteChat(chat._id);
               if (data.status) {
                 ToastAndroid.show(data.message, ToastAndroid.SHORT);
-                clearMessages(chat._id);
                 clearChat(chat._id);
+                clearMessages(chat._id);
               }
               resolve();
             })();
@@ -92,6 +92,7 @@ export function useBottomSheetActions({
                 if (data.status) {
                   ToastAndroid.show(data.message, ToastAndroid.SHORT);
                   clearGroup(chat._id);
+                  clearMessages(chat._id);
                 }
               } catch (error: any) {
                 ToastAndroid.show(error.message, ToastAndroid.SHORT);
@@ -103,34 +104,6 @@ export function useBottomSheetActions({
       ]);
     });
   };
-
-  // Handle restrict
-  // const handleRestrict = async (chat: Chat) => {
-  //   return new Promise<void>((resolve) => {
-  //     Alert.alert(
-  //       "Restrict Chat",
-  //       "Chat will be restricted, can undo in message request.",
-  //       [
-  //         { text: "Cancel", style: "cancel", onPress: () => resolve() },
-  //         {
-  //           text: "Restrict",
-  //           style: "destructive",
-  //           onPress: () => {
-  //             // Call async logic but don't make onPress async
-  //             (async () => {
-  //               const data = await deleteChat(chat._id);
-  //               if (data.status) {
-  //                 ToastAndroid.show(data.message, ToastAndroid.SHORT);
-  //                 restrictChat(chat._id);
-  //               }
-  //               resolve();
-  //             })();
-  //           },
-  //         },
-  //       ]
-  //     );
-  //   });
-  // };
 
   const handleOptionSelect = useCallback(
     async (index: number) => {

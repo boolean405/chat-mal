@@ -6,7 +6,7 @@ import resError from "../../utils/resError.js";
 
 export default async function getPaginateMessages(req, res, next) {
   try {
-    const userId = req.userId;
+    const user = req.user;
     const chatId = req.params.chatId;
     const page = parseInt(req.params.pageNum);
 
@@ -16,17 +16,12 @@ export default async function getPaginateMessages(req, res, next) {
     const limit = Number(process.env.PAGINATE_LIMIT) || 15;
     const skipCount = limit * (page - 1);
 
-    const [userExists, dbChat] = await Promise.all([
-      UserDB.exists({ _id: userId }),
-      ChatDB.findById(chatId).lean(),
-    ]);
-
-    if (!userExists) throw resError(401, "Authenticated user not found!");
+    const dbChat = await ChatDB.findById(chatId);
     if (!dbChat) throw resError(404, "Chat not found!");
 
     // Find deletedAt for this user in this chat
     const deletedEntry = dbChat.deletedInfos?.find(
-      (info) => info.user.toString() === userId.toString()
+      (info) => info.user.toString() === user._id.toString()
     );
     const deletedAt = deletedEntry?.deletedAt || null;
 

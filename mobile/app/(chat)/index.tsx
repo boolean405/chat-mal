@@ -193,23 +193,46 @@ export default function ChatMessage() {
   // Handle send message
   const handleSendMessage = async () => {
     setIsSentMessage(true);
+
+    // Create tmp message
     if (!newMessage.trim() || !chatId || !currentChat) return;
+    const tempId = `temp-${Date.now()}`;
+    const tempMessage: Message = {
+      _id: tempId,
+      content: newMessage.trim(),
+      sender: user,
+      chat: currentChat,
+      type: "text",
+      status: "pending",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    addMessage(chatId, tempMessage);
+    setNewMessage("");
+    socket.emit("stop-typing", { chatId });
 
+    // Call api message
     try {
-      setNewMessage("");
-      socket.emit("stop-typing", { chatId });
-
       const data = await createMessage(chatId, newMessage.trim());
       const message = data.result;
 
-      addMessage(chatId, message);
+      // Replace temp message with the real one
+      setMessages(chatId, [
+        message,
+        ...currentMessages.filter((msg) => msg._id !== tempId),
+      ]);
       updateChat(message.chat);
-
-      // Emit to socket
-      socket.emit("send-message", { chatId, message });
-
-      // Trigger scroll only after the message is added/rendered
     } catch (error: any) {
+      // Update the temp message status to 'failed'
+      setMessages(
+        chatId,
+        currentMessages.map((msg) => {
+          if (msg._id === tempId) {
+            return { ...msg, status: "failed" };
+          }
+          return msg;
+        })
+      );
       ToastAndroid.show(error.message, ToastAndroid.SHORT);
     }
   };

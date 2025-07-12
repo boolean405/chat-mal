@@ -1,4 +1,3 @@
-import UserDB from "../../models/user.js";
 import ChatDB from "../../models/chat.js";
 import resJson from "../../utils/resJson.js";
 import resError from "../../utils/resError.js";
@@ -24,6 +23,9 @@ export default async function leaveGroup(req, res, next) {
     const isOnlyOneAdmin = isAdmin && dbGroup.groupAdmins.length === 1;
 
     // 🟡 Add deletedInfos entry
+    await ChatDB.findByIdAndUpdate(groupId, {
+      $pull: { deletedInfos: { user: user._id } },
+    });
     await ChatDB.findByIdAndUpdate(groupId, {
       $addToSet: {
         deletedInfos: {
@@ -68,7 +70,7 @@ export default async function leaveGroup(req, res, next) {
       }
     }
 
-    resJson(res, 200, "Success leave group chat.");
+    return resJson(res, 200, "Success leave group chat.");
   } catch (error) {
     next(error);
   }

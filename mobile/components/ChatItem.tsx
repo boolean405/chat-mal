@@ -22,7 +22,7 @@ export default function ChatItem({
   onLongPress,
 }: {
   chat: Chat;
-  targetUser?: User;
+  targetUser?: User | null;
   isOnline: boolean;
   onPress?: () => void;
   onProfilePress?: () => void;
@@ -33,7 +33,7 @@ export default function ChatItem({
   const color = Colors[colorScheme ?? "light"];
   const user = useAuthStore((state) => state.user);
 
-  if (!chat || !user || !targetUser) return null;
+  if (!chat || !user) return null;
 
   const chatPhoto = getChatPhoto(chat, user._id) ?? "";
   const chatName = chat.name || getChatName(chat, user._id) || "Unknown";
@@ -59,7 +59,7 @@ export default function ChatItem({
             <ThemedView
               style={[styles.onlineIndicator, { borderColor: color.secondary }]}
             />
-          ) : !chat.isGroupChat ? (
+          ) : !chat.isGroupChat && targetUser ? (
             <ThemedText type="smaller" style={styles.lastOnlineText}>
               {getLastTime(targetUser.lastOnlineAt)}
             </ThemedText>

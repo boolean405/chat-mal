@@ -1,16 +1,16 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   FlatList,
   StyleSheet,
   useColorScheme,
   ActivityIndicator,
   RefreshControl,
-  Alert,
   ToastAndroid,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
-import { BottomSheetOption, Chat, Message, Story } from "@/types";
+import { Chat, Story } from "@/types";
+
 import { Colors } from "@/constants/colors";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -21,7 +21,7 @@ import ChatHeader from "@/components/chat/ChatHeader";
 import { useAuthStore } from "@/stores/authStore";
 import usePaginatedData from "@/hooks/usePaginateData";
 import BottomSheetAction from "@/components/BottomSheetActions";
-import { createOrOpen, getPaginateChats, readChat } from "@/api/chat";
+import { getPaginateChats, readChat } from "@/api/chat";
 import { useChatStore } from "@/stores/chatStore";
 import { useBottomSheetActions } from "@/hooks/useBottomSheetActions";
 import { socket } from "@/config/socket";
@@ -62,8 +62,6 @@ export default function Home() {
     setOnlineUserIds,
     getChatById,
   } = useChatStore();
-  // const updateChat = useChatStore((state) => state.updateChat);
-  // const chats = useChatStore((state) => state.chats);
 
   // Paginated data handling
   const {
@@ -212,43 +210,42 @@ export default function Home() {
   //     chat.isPending === false ||
   //     (chat.isPending === true && chat.initiator._id === user._id)
   // );
- const allChats = chats.filter((chat) => {
-  const isPending = chat?.isPending ?? false;
-  const initiatorId =
-    typeof chat.initiator === "string"
-      ? chat.initiator
-      : chat.initiator?._id;
+  const allChats = chats.filter((chat) => {
+    const isPending = chat?.isPending ?? false;
+    const initiatorId =
+      typeof chat.initiator === "string" ? chat.initiator : chat.initiator?._id;
 
-  // pending requests the user didn’t create → hide
-  if (isPending && initiatorId !== user._id) return false;
+    // pending requests the user didn’t create → hide
+    if (isPending && initiatorId !== user._id) return false;
 
-  // was this chat deleted by me?
-  const deletedInfo = chat.deletedInfos?.find(
-    (info) =>
-      (typeof info.user === "string" ? info.user : info.user?._id) === user._id
-  );
+    // was this chat deleted by me?
+    const deletedInfo = chat.deletedInfos?.find(
+      (info) =>
+        (typeof info.user === "string" ? info.user : info.user?._id) ===
+        user._id
+    );
 
-  // never deleted → keep
-  if (!deletedInfo) return true;
+    // never deleted → keep
+    if (!deletedInfo) return true;
 
-  const deletedAt = new Date(deletedInfo.deletedAt);
+    const deletedAt = new Date(deletedInfo.deletedAt);
 
-  // latestMessage check
-  if (chat.latestMessage?.createdAt) {
-    const latestMsgAt = new Date(chat.latestMessage.createdAt);
-    return deletedAt < latestMsgAt; // show only if a newer msg exists
-  }
+    // latestMessage check
+    if (chat.latestMessage?.createdAt) {
+      const latestMsgAt = new Date(chat.latestMessage.createdAt);
+      return deletedAt < latestMsgAt; // show only if a newer msg exists
+    }
 
-  // fallback to updatedAt (make sure it exists)
-  if (chat.updatedAt) {
-    const chatUpdatedAt = new Date(chat.updatedAt);
-    return deletedAt < chatUpdatedAt;
-  }
+    // fallback to updatedAt (make sure it exists)
+    if (chat.updatedAt) {
+      const chatUpdatedAt = new Date(chat.updatedAt);
+      return deletedAt < chatUpdatedAt;
+    }
 
-  // no activity after delete → hide
-  return false;
-});
-
+    // no activity after delete → hide
+    return false;
+  });
+  console.log(allChats.length);
 
   return (
     <ThemedView style={styles.container}>
@@ -274,9 +271,11 @@ export default function Home() {
         onEndReachedThreshold={0.1}
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => {
-          const targetUser = item.users.find(
-            (u) => u.user._id !== user._id
-          )?.user;
+          let targetUser = null;
+
+          if (!item.isGroupChat) {
+            targetUser = item.users.find((u) => u.user._id !== user._id)?.user;
+          }
 
           const isOnline = targetUser
             ? onlineUserIds.includes(targetUser._id)

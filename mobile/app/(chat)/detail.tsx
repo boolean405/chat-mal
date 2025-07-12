@@ -1,19 +1,18 @@
+import { Image } from "expo-image";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
+  ToastAndroid,
   TouchableOpacity,
   useColorScheme,
   StyleSheet,
   ScrollView,
   Alert,
 } from "react-native";
-import React, { useEffect, useState } from "react";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "@/constants/colors";
-import { Image } from "expo-image";
 import { ListSection } from "@/components/ListSection";
-import { ToastAndroid } from "react-native";
 import { createGroup, deleteChat, leaveGroup } from "@/api/chat";
 import { DetailItem } from "@/types";
 import { getChatPhoto } from "@/utils/getChatPhoto";
@@ -21,6 +20,7 @@ import { getChatName } from "@/utils/getChatName";
 import { useAuthStore } from "@/stores/authStore";
 import { useChatStore } from "@/stores/chatStore";
 import { DetailsData } from "@/constants/data";
+import { useMessageStore } from "@/stores/messageStore";
 
 export default function Detail() {
   const router = useRouter();
@@ -29,6 +29,7 @@ export default function Detail() {
 
   const user = useAuthStore((state) => state.user);
   const { getChatById, setChats, clearChat } = useChatStore();
+  const { clearMessages } = useMessageStore();
 
   const { chatId: rawChatId } = useLocalSearchParams();
   const chatId = Array.isArray(rawChatId) ? rawChatId[0] : rawChatId;
@@ -90,6 +91,7 @@ export default function Detail() {
               if (data.status) {
                 ToastAndroid.show(data.message, ToastAndroid.SHORT);
                 clearChat(chatId);
+                clearMessages(chatId);
                 router.replace("/(tab)");
               }
             } catch (error: any) {
@@ -115,6 +117,7 @@ export default function Detail() {
                 if (data.status) {
                   ToastAndroid.show(data.message, ToastAndroid.SHORT);
                   clearChat(chatId);
+                  clearMessages(chatId);
                   router.replace("/(tab)");
                 }
               } catch (error: any) {

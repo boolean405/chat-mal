@@ -92,7 +92,8 @@ export default function MessageItem({
 const styles = StyleSheet.create({
   messageContainer: {
     maxWidth: "75%",
-    padding: 10,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
     marginVertical: 5,
     borderRadius: 10,
   },

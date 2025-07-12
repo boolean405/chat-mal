@@ -67,7 +67,7 @@ export type Message = {
   type: "text" | "image";
   content: string;
   chat: Chat;
-  status: "sent" | "delivered" | "seen";
+  status: "pending" | "sent" | "delivered" | "seen" | "failed";
   createdAt: Date;
   updatedAt: Date;
 };
