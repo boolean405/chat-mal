@@ -1,4 +1,3 @@
-import UserDB from "../../models/user.js";
 import ChatDB from "../../models/chat.js";
 import MessageDB from "../../models/message.js";
 import resJson from "../../utils/resJson.js";
@@ -47,7 +46,7 @@ export default async function getPaginateMessages(req, res, next) {
             path: "chat",
             populate: [
               {
-                path: "users.user groupAdmins.user deletedInfos.user initiator unreadInfos.user latestMessage.sender",
+                path: "users.user groupAdmins.user deletedInfos.user initiator unreadInfos.user latestMessage",
                 select: "-password",
               },
             ],

@@ -103,7 +103,7 @@ export default function Home() {
 
   // Socket io
   useEffect(() => {
-    if (!accessToken) return;
+    if (!accessToken || !user) return;
 
     // Initinal socket
     if (!socket.connected) {
@@ -125,11 +125,18 @@ export default function Home() {
     socket.on("online-users", (userIds: string[]) => {
       console.log("🟢 Online user count:", userIds.length);
       setOnlineUserIds(userIds);
+
+      // Request all new
+      socket.emit("fetch-all", () => {
+        console.log("Fetching new data after online");
+      });
     });
 
     // Listen for latestMessage updates
     socket.on("new-message", ({ message }) => {
       updateChat(message.chat);
+      addMessage(message.chat._id, message);
+      console.log("New message:", message.content);
     });
 
     // User offline
@@ -139,8 +146,7 @@ export default function Home() {
 
     // Listen for new chat creation
     socket.on("new-chat", ({ chat }) => {
-      const existingChat = getChatById(chat._id);
-      if (!existingChat) {
+      if (!getChatById(chat._id)) {
         setChats([chat]);
       }
     });
@@ -148,6 +154,10 @@ export default function Home() {
     socket.on("receive-message", ({ message }) => {
       setChats([message.chat]);
       addMessage(message.chat._id, message);
+    });
+
+    socket.on("error", ({ message }) => {
+      console.log("❌ Socket error:", message);
     });
 
     // 🧼 Clean up all listeners on unmount
@@ -160,6 +170,8 @@ export default function Home() {
       socket.off("user-went-offline");
       socket.off("new-chat");
       socket.off("receive-message");
+      socket.off("fetch-all");
+      socket.off("error");
     };
   }, [accessToken]);
 

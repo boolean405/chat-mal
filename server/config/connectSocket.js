@@ -2,6 +2,8 @@ import UserDB from "../models/user.js";
 import Token from "../utils/token.js";
 import Redis from "./redisClient.js";
 
+import fetchAll from "../socket/fetchAll.js";
+
 const ONLINE_USERS_KEY = "onlineUsers";
 
 export default function connectSocket(io) {
@@ -56,6 +58,9 @@ export default function connectSocket(io) {
       socket.on("stop-typing", ({ chatId, user }) => {
         socket.to(chatId).emit("stop-typing", { chatId, user });
       });
+
+      // Fetch all after online
+      socket.on("fetch-all", () => fetchAll(socket));
 
       // Disconnect
       socket.on("disconnect", async () => {
