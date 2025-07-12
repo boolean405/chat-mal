@@ -30,8 +30,8 @@ export default function Member() {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
 
-  const user = useAuthStore((state) => state.user);
-  const { getChatById } = useChatStore();
+  const { user } = useAuthStore();
+  const { getChatById, onlineUserIds } = useChatStore();
 
   const { chatId: rawChatId } = useLocalSearchParams();
   const chatId = Array.isArray(rawChatId) ? rawChatId[0] : rawChatId;
@@ -258,9 +258,12 @@ export default function Member() {
           renderItem={({ item }) => {
             const isInitiator = item.user._id === chat.initiator._id;
             const adminTag = isInitiator ? "👑" : "🛡️";
+
+            const isOnline = onlineUserIds.includes(item.user._id);
             return (
               <UserItem
                 user={item.user}
+                isOnline={isOnline}
                 chatJoinedAt={item.joinedAt}
                 tag={adminTag}
                 onPress={() => {
@@ -292,21 +295,26 @@ export default function Member() {
             <FlatList
               data={filteredUsers}
               keyExtractor={(item) => item.user._id}
-              renderItem={({ item }) => (
-                <UserItem
-                  user={item.user}
-                  chatJoinedAt={item.joinedAt}
-                  tag="🍀"
-                  onPress={() => {
-                    handleMembers(item.user);
-                  }}
-                  onPressMore={() => setPopoverUserId(item.user._id)}
-                  moreButtonRef={
-                    moreButtonRefs.current[item.user._id] ||
-                    (moreButtonRefs.current[item.user._id] = React.createRef())
-                  }
-                />
-              )}
+              renderItem={({ item }) => {
+                const isOnline = onlineUserIds.includes(item.user._id);
+                return (
+                  <UserItem
+                    user={item.user}
+                    isOnline={isOnline}
+                    chatJoinedAt={item.joinedAt}
+                    tag="🍀"
+                    onPress={() => {
+                      handleMembers(item.user);
+                    }}
+                    onPressMore={() => setPopoverUserId(item.user._id)}
+                    moreButtonRef={
+                      moreButtonRefs.current[item.user._id] ||
+                      (moreButtonRefs.current[item.user._id] =
+                        React.createRef())
+                    }
+                  />
+                );
+              }}
               ListHeaderComponent={
                 <ThemedView
                   style={[
