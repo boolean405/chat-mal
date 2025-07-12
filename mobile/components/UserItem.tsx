@@ -19,6 +19,7 @@ interface Props {
   moreButtonRef?: React.RefObject<any>;
   tag?: string;
   isOnline?: boolean;
+  disabled: boolean;
   onPress?: () => void;
   onPressMore?: () => void;
 }
@@ -29,13 +30,19 @@ const UserItem: React.FC<Props> = ({
   isOnline,
   moreButtonRef,
   tag,
+  disabled,
   onPress,
   onPressMore,
 }) => {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
+
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress}>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={onPress}
+      disabled={disabled}
+    >
       <ThemedView style={styles.profilePhotoContainer}>
         <Image
           source={{ uri: user.profilePhoto }}
@@ -67,7 +74,11 @@ const UserItem: React.FC<Props> = ({
               new Date(chatJoinedAt).getMonth() + 1
             }/${new Date(chatJoinedAt).getFullYear()}`}{" "}
         </ThemedText>
-        <TouchableOpacity onPress={onPressMore} ref={moreButtonRef}>
+        <TouchableOpacity
+          onPress={onPressMore}
+          ref={moreButtonRef}
+          disabled={disabled}
+        >
           <Ionicons
             name="ellipsis-vertical-outline"
             size={20}

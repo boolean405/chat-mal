@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   FlatList,
   StyleSheet,
@@ -44,11 +44,15 @@ export default function Home() {
   useTimeTickWhenFocused();
 
   const router = useRouter();
+  const isNavigatingRef = useRef(false);
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
-  const user = useAuthStore((state) => state.user);
-  const accessToken = useAuthStore((state) => state.accessToken);
 
+  const [isLoading, setIsLoading] = useState(false);
+
+  // const user = useAuthStore((state) => state.user);
+  // const accessToken = useAuthStore((state) => state.accessToken);
+  const { user, accessToken } = useAuthStore();
   const { addMessage, clearMessages } = useMessageStore();
 
   const {
@@ -66,7 +70,7 @@ export default function Home() {
   // Paginated data handling
   const {
     data: newChats,
-    isLoading,
+    isLoading: isFetching,
     isRefreshing,
     isPaging,
     hasMore,
@@ -138,7 +142,6 @@ export default function Home() {
       const existingChat = getChatById(chat._id);
       if (!existingChat) {
         setChats([chat]);
-        console.log("New chat created:", chat.name);
       }
     });
 
@@ -172,37 +175,51 @@ export default function Home() {
 
   // Update chat press handler
   const handleChatPress = async (chat: Chat) => {
-    if (chat.unreadInfos?.length) {
-      const myUnread = chat.unreadInfos.find(
-        (uc) => uc.user._id === user?._id && uc.count > 0
-      );
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+    setIsLoading(true);
 
-      if (myUnread) {
-        // ✅ Optimistically mark as read in Zustand
-        updateChat({
-          ...chat,
-          unreadInfos: chat.unreadInfos.map((uc) => {
-            const userId = typeof uc.user === "object" ? uc.user._id : uc.user;
-            return userId === user._id ? { ...uc, count: 0 } : uc;
-          }),
-        });
+    try {
+      if (chat.unreadInfos?.length > 0) {
+        const myUnread = chat.unreadInfos.find(
+          (uc) => uc.user._id === user?._id && uc.count > 0
+        );
 
-        // ✅ Then sync with backend
-        try {
-          await readChat(chat._id);
-        } catch (error: any) {
-          ToastAndroid.show(error.message, ToastAndroid.SHORT);
+        if (myUnread) {
+          // Optimistically mark as read in Zustand
+          updateChat({
+            ...chat,
+            unreadInfos: chat.unreadInfos.map((uc) => {
+              const userId =
+                typeof uc.user === "object" ? uc.user._id : uc.user;
+              return userId === user._id ? { ...uc, count: 0 } : uc;
+            }),
+          });
+
+          // Then sync with backend
+          try {
+            await readChat(chat._id);
+          } catch (error: any) {
+            ToastAndroid.show(error.message, ToastAndroid.SHORT);
+          }
         }
       }
-    }
 
-    // Navigate to the chat screen
-    router.push({
-      pathname: "/(chat)",
-      params: {
-        chatId: chat._id,
-      },
-    });
+      // Navigate to the chat screen
+      router.push({
+        pathname: "/(chat)",
+        params: {
+          chatId: chat._id,
+        },
+      });
+    } catch (error: any) {
+      ToastAndroid.show(error.message, ToastAndroid.SHORT);
+    } finally {
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 1000); // consistent delay for all cases
+      setIsLoading(false);
+    }
   };
 
   // const allChats = chats.filter(
@@ -241,11 +258,9 @@ export default function Home() {
       const chatUpdatedAt = new Date(chat.updatedAt);
       return deletedAt < chatUpdatedAt;
     }
-
     // no activity after delete → hide
     return false;
   });
-  console.log(allChats.length);
 
   return (
     <ThemedView style={styles.container}>
@@ -288,6 +303,7 @@ export default function Home() {
               targetUser={targetUser}
               onPress={() => handleChatPress(item)}
               onLongPress={() => openSheet(item)}
+              disabled={isLoading}
             />
           );
         }}

@@ -30,6 +30,12 @@ export default function Member() {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
 
+  const [isAddMode, setIsAddMode] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
+  const [popoverUserId, setPopoverUserId] = useState<string | null>(null);
+  const moreButtonRefs = useRef<{ [key: string]: React.RefObject<any> }>({});
+
   const { user } = useAuthStore();
   const { getChatById, onlineUserIds } = useChatStore();
 
@@ -50,11 +56,6 @@ export default function Member() {
     setSelectedFilter,
     fetchSearchUsers,
   } = useUsersSearchStore();
-
-  const [isAddMode, setIsAddMode] = useState(false);
-  const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
-  const [popoverUserId, setPopoverUserId] = useState<string | null>(null);
-  const moreButtonRefs = useRef<{ [key: string]: React.RefObject<any> }>({});
 
   const debouncedKeyword = useDebounce(keyword, 400);
 
@@ -264,6 +265,7 @@ export default function Member() {
               <UserItem
                 user={item.user}
                 isOnline={isOnline}
+                disabled={loading}
                 chatJoinedAt={item.joinedAt}
                 tag={adminTag}
                 onPress={() => {
@@ -301,6 +303,7 @@ export default function Member() {
                   <UserItem
                     user={item.user}
                     isOnline={isOnline}
+                    disabled={loading}
                     chatJoinedAt={item.joinedAt}
                     tag="🍀"
                     onPress={() => {

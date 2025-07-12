@@ -17,6 +17,7 @@ export default function ChatItem({
   chat,
   targetUser,
   isOnline,
+  disabled,
   onPress,
   onProfilePress,
   onLongPress,
@@ -24,6 +25,7 @@ export default function ChatItem({
   chat: Chat;
   targetUser?: User | null;
   isOnline: boolean;
+  disabled: boolean;
   onPress?: () => void;
   onProfilePress?: () => void;
   onLongPress?: () => void;
@@ -51,8 +53,9 @@ export default function ChatItem({
       style={styles.chatItem}
       onPress={onPress}
       onLongPress={onLongPress}
+      disabled={disabled}
     >
-      <TouchableOpacity onPress={onProfilePress}>
+      <TouchableOpacity onPress={onProfilePress} disabled={disabled}>
         <ThemedView style={styles.photoContainer}>
           <Image source={{ uri: chatPhoto }} style={styles.photo} />
           {!chat.isGroupChat && isOnline ? (

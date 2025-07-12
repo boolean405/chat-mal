@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import useDebounce from "@/hooks/useDebounce";
 import {
   TextInput,
@@ -28,6 +28,10 @@ export default function Search() {
   const inputRef = useRef<TextInput>(null);
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
+
+  const [loading, setLoading] = useState(false);
+  const isNavigatingRef = useRef(false);
+
   const { user } = useAuthStore();
   const { setChats, getChatById, onlineUserIds } = useChatStore();
 
@@ -62,30 +66,39 @@ export default function Search() {
   };
 
   const handleResult = async (user: User) => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+    setLoading(true);
+
     try {
       const response = await createOrOpen(user._id);
       const chat = response.data.result;
-      if (response.status === 200) {
-        if (!getChatById(chat._id)) {
-          setChats([chat]);
-        }
 
-        router.push({
-          pathname: "/(chat)",
-          params: { chatId: chat._id },
-        });
+      if (response.status === 200 && !getChatById(chat._id)) {
+        setChats([chat]);
       } else if (response.status === 201) {
         setChats([chat]);
-
-        router.push({
-          pathname: "/(chat)",
-          params: { chatId: chat._id },
-        });
       }
-    } catch (err: any) {
-      ToastAndroid.show(err.message, ToastAndroid.SHORT);
+
+      router.push({
+        pathname: "/(chat)",
+        params: { chatId: chat._id },
+      });
+
+      // Wait a bit to allow navigation to settle
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 1000); // Adjust if needed
+    } catch (error: any) {
+      ToastAndroid.show(error.message, ToastAndroid.SHORT);
+    } finally {
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 1000); // consistent delay for all cases
+      setLoading(false);
     }
   };
+
   if (!user) return null;
 
   const filterTypes = ["All", "Online", "Male", "Female", "Group"];
@@ -175,6 +188,7 @@ export default function Search() {
             <UserItem
               user={item}
               isOnline={isOnline}
+              disabled={loading}
               onPress={() => handleResult(item)}
             />
           );
