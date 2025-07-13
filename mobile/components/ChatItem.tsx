@@ -102,9 +102,14 @@ export default function ChatItem({
           </ThemedText>
           {unreadCount > 0 && (
             <ThemedView
-              style={[styles.unreadBadge, { backgroundColor: color.secondary }]}
+              style={[
+                styles.unreadBadge,
+                { backgroundColor: color.unreadBadgeBackground },
+              ]}
             >
-              <ThemedText type="defaultBold">{unreadCount}</ThemedText>
+              <ThemedText type="defaultBold">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </ThemedText>
             </ThemedView>
           )}
         </ThemedView>
@@ -149,12 +154,12 @@ const styles = StyleSheet.create({
   },
   unreadBadge: {
     // backgroundColor: "#25D366",
-    borderRadius: 12,
-    minWidth: 24,
-    height: 24,
+    borderRadius: 11,
+    minWidth: 20,
+    height: 20,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 6,
+    paddingHorizontal: 5,
     marginLeft: 50,
   },
   photoContainer: {

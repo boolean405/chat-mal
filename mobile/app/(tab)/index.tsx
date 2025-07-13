@@ -127,16 +127,13 @@ export default function Home() {
       setOnlineUserIds(userIds);
 
       // Request all new
-      socket.emit("fetch-all", () => {
-        console.log("Fetching new data after online");
-      });
+      socket.emit("fetch-all", () => {});
     });
 
     // Listen for latestMessage updates
     socket.on("new-message", ({ message }) => {
       updateChat(message.chat);
       addMessage(message.chat._id, message);
-      console.log("New message:", message.content);
     });
 
     // User offline

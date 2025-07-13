@@ -3,11 +3,13 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Chat } from "@/types";
+import { useAuthStore } from "./authStore";
 
 interface ChatStore {
   chats: Chat[];
   onlineUserIds: string[];
   currentChat: Chat | null;
+  totalUnreadCount: number;
   setOnlineUserIds: (ids: string[]) => void;
   updateUserLastOnlineAt: (userId: string, lastOnlineAt: Date) => void;
   setChats: (newChats: Chat[]) => void;
@@ -22,106 +24,134 @@ interface ChatStore {
 
 export const useChatStore = create<ChatStore>()(
   persist(
-    (set, get) => ({
-      chats: [],
-      currentChat: null,
-      onlineUserIds: [],
+    (set, get) => {
+      const calculateTotalUnreadCount = (chats: Chat[], userId: string) => {
+        return chats.reduce((total, chat) => {
+          const info = chat.unreadInfos?.find(
+            (uc) =>
+              (typeof uc.user === "string" ? uc.user : uc.user._id) === userId
+          );
+          return total + (info?.count ?? 0);
+        }, 0);
+      };
 
-      setOnlineUserIds: (ids) => set({ onlineUserIds: ids }),
+      return {
+        chats: [],
+        currentChat: null,
+        onlineUserIds: [],
+        totalUnreadCount: 0,
 
-      updateUserLastOnlineAt: (userId, lastOnlineAt) =>
-        set((state) => {
-          const updatedChats = state.chats.map((chat) => {
-            const updatedUsers = chat.users.map((u) => {
-              if (u.user._id === userId) {
-                return {
-                  ...u,
-                  user: {
-                    ...u.user,
-                    lastOnlineAt,
-                  },
-                };
-              }
-              return u;
+        setOnlineUserIds: (ids) => set({ onlineUserIds: ids }),
+
+        updateUserLastOnlineAt: (userId, lastOnlineAt) =>
+          set((state) => {
+            const updatedChats = state.chats.map((chat) => {
+              const updatedUsers = chat.users.map((u) => {
+                if (u.user._id === userId) {
+                  return {
+                    ...u,
+                    user: {
+                      ...u.user,
+                      lastOnlineAt,
+                    },
+                  };
+                }
+                return u;
+              });
+
+              return {
+                ...chat,
+                users: updatedUsers,
+              };
             });
 
+            return { chats: updatedChats };
+          }),
+
+        setChats: (newChats) =>
+          set((state) => {
+            const existingIds = new Set(state.chats.map((c) => c._id));
+            const uniqueNewChats = newChats.filter(
+              (chat) => !existingIds.has(chat._id)
+            );
+
+            // Combine and sort by lastMessage createdAt or chat createdAt
+            const allChats = [...uniqueNewChats, ...state.chats].sort(
+              (a, b) => {
+                const dateA = new Date(
+                  a.latestMessage?.createdAt || a.updatedAt || 0
+                ).getTime();
+                const dateB = new Date(
+                  b.latestMessage?.createdAt || b.updatedAt || 0
+                ).getTime();
+                return dateB - dateA; // Newest first
+              }
+            );
+            const userId = useAuthStore.getState().user?._id || "";
+            const totalUnreadCount = calculateTotalUnreadCount(
+              allChats,
+              userId
+            );
+
+            return { chats: allChats, totalUnreadCount };
+          }),
+
+        updateChat: (updatedChat) =>
+          set((state) => {
+            // Replace the chat
+            const updatedChats = state.chats.map((chat) =>
+              chat._id === updatedChat._id ? updatedChat : chat
+            );
+            // Resort by latestMessage.createdAt or updatedAt
+            updatedChats.sort((a, b) => {
+              const dateA = new Date(
+                a.latestMessage?.createdAt || a.updatedAt || 0
+              ).getTime();
+              const dateB = new Date(
+                b.latestMessage?.createdAt || b.updatedAt || 0
+              ).getTime();
+              return dateB - dateA;
+            });
+
+            const userId = useAuthStore.getState().user?._id || "";
+            const totalUnreadCount = calculateTotalUnreadCount(
+              updatedChats,
+              userId
+            );
+
             return {
-              ...chat,
-              users: updatedUsers,
+              chats: updatedChats,
+              totalUnreadCount,
+              currentChat:
+                state.currentChat?._id === updatedChat._id
+                  ? updatedChat
+                  : state.currentChat,
             };
-          });
+          }),
 
-          return { chats: updatedChats };
-        }),
-
-      setChats: (newChats) =>
-        set((state) => {
-          const existingIds = new Set(state.chats.map((c) => c._id));
-          const uniqueNewChats = newChats.filter(
-            (chat) => !existingIds.has(chat._id)
-          );
-
-          // Combine and sort by lastMessage createdAt or chat createdAt
-          const allChats = [...uniqueNewChats, ...state.chats].sort((a, b) => {
-            const dateA = new Date(
-              a.latestMessage?.createdAt || a.updatedAt || 0
-            ).getTime();
-            const dateB = new Date(
-              b.latestMessage?.createdAt || b.updatedAt || 0
-            ).getTime();
-            return dateB - dateA; // Newest first
-          });
-
-          return { chats: allChats };
-        }),
-
-      updateChat: (updatedChat) =>
-        set((state) => {
-          // Replace the chat
-          const updatedChats = state.chats.map((chat) =>
-            chat._id === updatedChat._id ? updatedChat : chat
-          );
-          // Resort by latestMessage.createdAt or updatedAt
-          updatedChats.sort((a, b) => {
-            const dateA = new Date(
-              a.latestMessage?.createdAt || a.updatedAt || 0
-            ).getTime();
-            const dateB = new Date(
-              b.latestMessage?.createdAt || b.updatedAt || 0
-            ).getTime();
-            return dateB - dateA;
-          });
-          return {
-            chats: updatedChats,
+        clearChat: (chatId) =>
+          set((state) => ({
+            chats: state.chats.filter((chat) => chat._id !== chatId),
             currentChat:
-              state.currentChat?._id === updatedChat._id
-                ? updatedChat
-                : state.currentChat,
-          };
-        }),
+              state.currentChat?._id === chatId ? null : state.currentChat,
+          })),
 
-      clearChat: (chatId) =>
-        set((state) => ({
-          chats: state.chats.filter((chat) => chat._id !== chatId),
-          currentChat:
-            state.currentChat?._id === chatId ? null : state.currentChat,
-        })),
+        clearGroup: (groupId) =>
+          set((state) => ({
+            chats: state.chats.filter((chat) => chat._id !== groupId),
+            currentChat:
+              state.currentChat?._id === groupId ? null : state.currentChat,
+          })),
 
-      clearGroup: (groupId) =>
-        set((state) => ({
-          chats: state.chats.filter((chat) => chat._id !== groupId),
-          currentChat:
-            state.currentChat?._id === groupId ? null : state.currentChat,
-        })),
+        clearChats: () => set({ chats: [], currentChat: null }),
 
-      clearChats: () => set({ chats: [], currentChat: null }),
+        getChatById: (chatId) => {
+          return get().chats.find((chat) => chat._id === chatId);
+        },
 
-      getChatById: (chatId) => {
-        return get().chats.find((chat) => chat._id === chatId);
-      },
-
-      setCurrentChat: (chat) => set({ currentChat: chat }),
-    }),
+        setCurrentChat: (chat) => set({ currentChat: chat }),
+      };
+    },
     {
       name: "chat-storage",
       storage: createJSONStorage(() => AsyncStorage),

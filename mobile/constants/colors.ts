@@ -21,6 +21,7 @@ export const Colors = {
     tabIconSelected: "#000",
     storyBorder: "rgb(220, 65, 142)",
     messageBackground: "rgba(35, 175, 175, 0.3)",
+    unreadBadgeBackground: "rgba(35, 175, 175, 0.3)",
     tint: "#000",
   },
   dark: {
@@ -37,6 +38,7 @@ export const Colors = {
     tabIconSelected: "#fff",
     storyBorder: "rgb(220, 65, 142)",
     messageBackground: "rgba(35, 175, 175, 0.3)",
+    unreadBadgeBackground: "rgba(35, 175, 175, 0.3)",
     tint: "#fff",
   },
 };

@@ -1,15 +1,18 @@
 import React from "react";
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Platform, Text } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 
 import { HapticTab } from "@/components/HapticTab";
 import { Colors } from "@/constants/colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { useChatStore } from "@/stores/chatStore";
+import { ThemedText } from "@/components/ThemedText";
 
 export default function TabLayout() {
   // Get current color scheme (light or dark)
   const colorScheme = useColorScheme();
+  const unreadCount = useChatStore((state) => state.totalUnreadCount);
 
   const tabBarLabel =
     (label: string) =>
@@ -33,13 +36,22 @@ export default function TabLayout() {
         }),
       }}
     >
-      {/* Chat tab */}
+      {/* Chat tab with badge */}
       <Tabs.Screen
         name="index"
         options={{
           title: "Chat",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubble-outline" size={size} color={color} />
+            <View>
+              <Ionicons name="chatbubble-outline" size={size} color={color} />
+              {unreadCount > 0 && (
+                <View style={styles.badgeContainer}>
+                  <ThemedText style={styles.badgeText} type="smaller">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </ThemedText>
+                </View>
+              )}
+            </View>
           ),
           tabBarLabel: tabBarLabel("Chat"),
         }}
@@ -95,3 +107,22 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  badgeContainer: {
+    position: "absolute",
+    top: -4,
+    right: -10,
+    backgroundColor: "#ff3b30",
+    borderRadius: 10,
+    paddingHorizontal: 5,
+    minWidth: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  badgeText: {
+    fontWeight: "bold",
+    color: "#fff",
+  },
+});
