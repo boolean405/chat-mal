@@ -5,14 +5,9 @@ import resError from "../../utils/resError.js";
 
 export default async function addUsersToGroup(req, res, next) {
   try {
-    const userId = req.userId;
     const { groupId, userIds } = req.body;
 
-    const [userExists, dbChat] = await Promise.all([
-      UserDB.exists({ _id: userId }),
-      ChatDB.findById(groupId),
-    ]);
-    if (!userExists) throw resError(401, "Authenticated user not found!");
+    const dbChat = await ChatDB.findById(groupId);
     if (!dbChat) throw resError(404, "Chat not found!");
 
     // Parse and validate userIds
@@ -21,7 +16,7 @@ export default async function addUsersToGroup(req, res, next) {
     // Check if all userIds exist in DB
     const count = await UserDB.countDocuments({ _id: { $in: arrayUserIds } });
     if (count !== arrayUserIds.length)
-      throw resError(404, "One or more users not found.");
+      throw resError(404, "One or more users not found!");
 
     const alreadyUsers = arrayUserIds.filter((id) =>
       dbChat.users.some((u) => u.user?.toString() === id)
@@ -44,12 +39,20 @@ export default async function addUsersToGroup(req, res, next) {
       { $addToSet: { users: { $each: newUsers } } },
 
       { new: true }
-    ).populate({
-      path: "users.user groupAdmins.user",
-      select: "-password",
-    });
+    )
+      .populate({
+        path: "users.user groupAdmins.user deletedInfos.user initiator unreadInfos.user",
+        select: "-password",
+      })
+      .populate({
+        path: "latestMessage",
+        populate: {
+          path: "sender",
+          select: "-password",
+        },
+      });
 
-    resJson(res, 200, "Success add user to group chat.", updatedChat);
+    return resJson(res, 200, "Success add user to group chat.", updatedChat);
   } catch (error) {
     next(error);
   }

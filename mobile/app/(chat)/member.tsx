@@ -37,7 +37,8 @@ export default function Member() {
   const moreButtonRefs = useRef<{ [key: string]: React.RefObject<any> }>({});
 
   const { user } = useAuthStore();
-  const { getChatById, onlineUserIds } = useChatStore();
+  const { getChatById, onlineUserIds, updateChat, setCurrentChat } =
+    useChatStore();
 
   const { chatId: rawChatId } = useLocalSearchParams();
   const chatId = Array.isArray(rawChatId) ? rawChatId[0] : rawChatId;
@@ -78,6 +79,8 @@ export default function Member() {
         selectedUsers.map((u) => u._id)
       );
       if (data.status) {
+        updateChat(data.result);
+        setCurrentChat(data.result);
         ToastAndroid.show(data.message, ToastAndroid.SHORT);
         setIsAddMode(false);
         setSelectedUsers([]);
