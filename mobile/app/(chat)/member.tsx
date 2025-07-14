@@ -146,7 +146,7 @@ export default function Member() {
           <Ionicons name="chevron-back-outline" size={22} color={color.icon} />
         </TouchableOpacity>
         <ThemedView style={styles.HeaderTitleContainer}>
-          <ThemedText type="subtitle">Members</ThemedText>
+          <ThemedText type="headerTitle">Members</ThemedText>
         </ThemedView>
 
         {/* Add members */}
@@ -518,7 +518,7 @@ const styles = StyleSheet.create({
     // paddingRight: 20,
     flexDirection: "row",
     alignItems: "center",
-    borderBottomWidth: 0.2,
+    borderBottomWidth: 0.4,
   },
   HeaderTitleContainer: {
     flex: 1,

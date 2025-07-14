@@ -4,10 +4,12 @@ import { ProfileHeader } from "@/components/ProfileHeader";
 import { ThemedView } from "@/components/ThemedView";
 import { WalletTab } from "@/components/WalletTab";
 import { Colors } from "@/constants/colors";
+import { MENUS, SETTINGS } from "@/constants/data";
 import { useAuthStore } from "@/stores/authStore";
-import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import { useChatStore } from "@/stores/chatStore";
+import { MenuItem, SettingItem } from "@/types";
+import { useRouter } from "expo-router";
+import React, { useRef, useState } from "react";
 import {
   Dimensions,
   RefreshControl,
@@ -20,41 +22,17 @@ import {
 const screenWidth = Dimensions.get("window").width;
 const CONTAINER_WIDTH = screenWidth * 0.8;
 
-const SETTINGS: {
-  id: string;
-  label: string;
-  iconName: keyof typeof Ionicons.glyphMap;
-  path?: string;
-}[] = [
-  { id: "1", label: "Settings", iconName: "settings-outline" },
-  { id: "2", label: "Help & Support", iconName: "help-circle-outline" },
-];
-
-const MENUS: {
-  id: string;
-  label: string;
-  iconName: keyof typeof Ionicons.glyphMap;
-  path?: string;
-}[] = [
-  { id: "1", label: "Friends", iconName: "people-outline" },
-  { id: "2", label: "Groups", iconName: "people-circle-outline" },
-  {
-    id: "3",
-    label: "Message Request",
-    iconName: "chatbubble-ellipses-outline",
-    path: "/chat-request",
-  },
-  { id: "4", label: "Events", iconName: "calendar-outline" },
-  { id: "5", label: "Memories", iconName: "time-outline" },
-];
-
 export default function Menu() {
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
   const colorScheme = useColorScheme();
   const colors = colorScheme === "dark" ? Colors.dark : Colors.light;
   const router = useRouter();
+  const isNavigatingRef = useRef(false);
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   const { user } = useAuthStore();
+  const { requestUnreadCount } = useChatStore();
 
   const walletBalance = 250.75;
   const isOnline = true;
@@ -70,6 +48,25 @@ export default function Menu() {
     ToastAndroid.show("Refreshed", ToastAndroid.SHORT);
   };
   if (!user) return null;
+
+  const handleItemPress = (item: MenuItem) => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+    setIsLoading(true);
+
+    try {
+      if (item.path) {
+        router.push(`/(menu)${item.path}` as any);
+      }
+    } catch (error: any) {
+      ToastAndroid.show(error.message, ToastAndroid.SHORT);
+    } finally {
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 1000); // consistent delay for all cases
+      setIsLoading(false);
+    }
+  };
 
   return (
     <ScrollView
@@ -108,17 +105,20 @@ export default function Menu() {
         <ListSection
           title="Menus"
           data={MENUS}
+          disabled={isLoading}
+          notificationCount={{
+            // add more next time
+            "/message-request": requestUnreadCount,
+          }}
           onItemPress={(item) => {
-            console.log(item.label);
-            if (item.path === "/chat-request") {
-              router.push(`/(menu)/message-request`);
-            }
+            handleItemPress(item);
           }}
         />
 
         <ListSection
           title="Settings"
           data={SETTINGS}
+          disabled={isLoading}
           onItemPress={(item) => {
             console.log(item.label);
           }}

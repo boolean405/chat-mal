@@ -78,3 +78,17 @@ export type DetailItem = {
   iconName: keyof typeof Ionicons.glyphMap;
   path: string;
 };
+
+export type MenuItem = {
+  id: string;
+  label: string;
+  iconName: keyof typeof Ionicons.glyphMap;
+  path: string;
+};
+
+export type SettingItem = {
+  id: string;
+  label: string;
+  iconName: keyof typeof Ionicons.glyphMap;
+  path: string;
+};

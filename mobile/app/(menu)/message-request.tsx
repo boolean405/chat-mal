@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   FlatList,
   StyleSheet,
@@ -33,6 +33,9 @@ export default function MessageRequest() {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
   const user = useAuthStore((state) => state.user);
+  const isNavigatingRef = useRef(false);
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const { clearMessages } = useMessageStore();
 
@@ -48,7 +51,7 @@ export default function MessageRequest() {
 
   const {
     data: newRequestChats,
-    isLoading,
+    isLoading: loading,
     isRefreshing,
     isPaging,
     hasMore,
@@ -120,41 +123,54 @@ export default function MessageRequest() {
 
   // Handle chat request press
   const handleChatPress = async (chat: Chat) => {
-    if (!getChatById(chat._id)) {
-      console.log("added new one");
-      setChats([chat]);
-    }
-    if (chat.unreadInfos?.length > 0) {
-      const myUnread = chat.unreadInfos.find(
-        (uc) => uc.user._id === user?._id && uc.count > 0
-      );
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+    setIsLoading(true);
 
-      if (myUnread) {
-        // ✅ Optimistically mark as read in Zustand
-        updateChat({
-          ...chat,
-          unreadInfos: chat.unreadInfos.map((uc) => {
-            const userId = typeof uc.user === "object" ? uc.user._id : uc.user;
-            return userId === user._id ? { ...uc, count: 0 } : uc;
-          }),
-        });
+    try {
+      if (!getChatById(chat._id)) {
+        setChats([chat]);
+      }
+      if (chat.unreadInfos?.length > 0) {
+        const myUnread = chat.unreadInfos.find(
+          (uc) => uc.user._id === user?._id && uc.count > 0
+        );
 
-        // ✅ Then sync with backend
-        try {
-          await readChat(chat._id);
-        } catch (error: any) {
-          ToastAndroid.show(error.message, ToastAndroid.SHORT);
+        if (myUnread) {
+          // ✅ Optimistically mark as read in Zustand
+          updateChat({
+            ...chat,
+            unreadInfos: chat.unreadInfos.map((uc) => {
+              const userId =
+                typeof uc.user === "object" ? uc.user._id : uc.user;
+              return userId === user._id ? { ...uc, count: 0 } : uc;
+            }),
+          });
+
+          // ✅ Then sync with backend
+          try {
+            await readChat(chat._id);
+          } catch (error: any) {
+            ToastAndroid.show(error.message, ToastAndroid.SHORT);
+          }
         }
       }
-    }
 
-    // Navigate to the chat screen
-    router.push({
-      pathname: "/(chat)",
-      params: {
-        chatId: chat._id,
-      },
-    });
+      // Navigate to the chat screen
+      router.push({
+        pathname: "/(chat)",
+        params: {
+          chatId: chat._id,
+        },
+      });
+    } catch (error: any) {
+      ToastAndroid.show(error.message, ToastAndroid.SHORT);
+    } finally {
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 1000); // consistent delay for all cases
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -165,7 +181,7 @@ export default function MessageRequest() {
           <Ionicons name="chevron-back-outline" size={22} color={color.icon} />
         </TouchableOpacity>
         <ThemedView style={styles.HeaderTitleContainer}>
-          <ThemedText type="subtitle">Chat Request</ThemedText>
+          <ThemedText type="headerTitle">Message Request</ThemedText>
         </ThemedView>
         <TouchableOpacity onPress={() => console.log("setting")}>
           <Ionicons name="cog-outline" size={22} color={color.icon} />
@@ -197,6 +213,7 @@ export default function MessageRequest() {
               chat={item}
               isOnline={isOnline}
               targetUser={targetUser}
+              disabled={isLoading}
               onPress={() => handleChatPress(item)}
               onProfilePress={() => console.log(item.name)}
               onLongPress={() => openSheet(item)}
@@ -253,7 +270,7 @@ const styles = StyleSheet.create({
     // paddingRight: 20,
     flexDirection: "row",
     alignItems: "center",
-    borderBottomWidth: 0.2,
+    borderBottomWidth: 0.4,
   },
   HeaderTitleContainer: {
     flex: 1,

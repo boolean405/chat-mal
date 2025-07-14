@@ -476,11 +476,12 @@ export default function ChatMessage() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {
-    padding: 15,
+    paddingVertical: 8,
+    paddingHorizontal: 15,
     // paddingRight: 20,
     flexDirection: "row",
     alignItems: "center",
-    borderBottomWidth: 0.2,
+    borderBottomWidth: 0.4,
   },
   chatName: { flex: 1, marginLeft: 10 },
   headerIcons: { flexDirection: "row" },

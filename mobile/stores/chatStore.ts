@@ -10,6 +10,7 @@ interface ChatStore {
   onlineUserIds: string[];
   currentChat: Chat | null;
   totalUnreadCount: number;
+  requestUnreadCount: number;
   setOnlineUserIds: (ids: string[]) => void;
   updateUserLastOnlineAt: (userId: string, lastOnlineAt: Date) => void;
   setChats: (newChats: Chat[]) => void;
@@ -25,6 +26,7 @@ interface ChatStore {
 export const useChatStore = create<ChatStore>()(
   persist(
     (set, get) => {
+      // Calculate unreads
       const calculateTotalUnreadCount = (chats: Chat[], userId: string) => {
         return chats.reduce((total, chat) => {
           const info = chat.unreadInfos?.find(
@@ -35,11 +37,72 @@ export const useChatStore = create<ChatStore>()(
         }, 0);
       };
 
+      // Only show home unreads chats
+      const filterHomeChats = (chats: Chat[], userId: string): Chat[] => {
+        return chats.filter((chat) => {
+          const isPending = chat?.isPending ?? false;
+          const initiatorId =
+            typeof chat.initiator === "string"
+              ? chat.initiator
+              : chat.initiator?._id;
+
+          if (isPending && initiatorId !== userId) return false;
+
+          const deletedInfo = chat.deletedInfos?.find(
+            (info) =>
+              (typeof info.user === "string" ? info.user : info.user?._id) ===
+              userId
+          );
+
+          if (!deletedInfo) return true;
+
+          const deletedAt = new Date(deletedInfo.deletedAt);
+
+          if (chat.latestMessage?.createdAt) {
+            const latestMsgAt = new Date(chat.latestMessage.createdAt);
+            return deletedAt < latestMsgAt;
+          }
+
+          if (chat.updatedAt) {
+            const chatUpdatedAt = new Date(chat.updatedAt);
+            return deletedAt < chatUpdatedAt;
+          }
+
+          return false;
+        });
+      };
+
+      // Message request count
+      const calculateRequestUnreadCount = (
+        chats: Chat[],
+        userId: string
+      ): number => {
+        return chats.reduce((total, chat) => {
+          const initiatorId =
+            typeof chat.initiator === "string"
+              ? chat.initiator
+              : chat.initiator?._id;
+
+          const isRequest = chat.isPending && initiatorId !== userId;
+
+          if (!isRequest) return total;
+
+          const myUnread = chat.unreadInfos?.find((uc) => {
+            const ucUserId =
+              typeof uc.user === "object" ? uc.user._id : uc.user;
+            return ucUserId === userId;
+          });
+
+          return total + (myUnread?.count ?? 0);
+        }, 0);
+      };
+
       return {
         chats: [],
         currentChat: null,
         onlineUserIds: [],
         totalUnreadCount: 0,
+        requestUnreadCount: 0,
 
         setOnlineUserIds: (ids) => set({ onlineUserIds: ids }),
 
@@ -88,12 +151,21 @@ export const useChatStore = create<ChatStore>()(
               }
             );
             const userId = useAuthStore.getState().user?._id || "";
+            const homeChats = filterHomeChats(allChats, userId);
             const totalUnreadCount = calculateTotalUnreadCount(
+              homeChats,
+              userId
+            );
+            const requestUnreadCount = calculateRequestUnreadCount(
               allChats,
               userId
             );
 
-            return { chats: allChats, totalUnreadCount };
+            return {
+              chats: allChats,
+              totalUnreadCount,
+              requestUnreadCount,
+            };
           }),
 
         updateChat: (updatedChat) =>
@@ -114,7 +186,13 @@ export const useChatStore = create<ChatStore>()(
             });
 
             const userId = useAuthStore.getState().user?._id || "";
+            const homeChats = filterHomeChats(updatedChats, userId);
+
             const totalUnreadCount = calculateTotalUnreadCount(
+              homeChats,
+              userId
+            );
+            const requestUnreadCount = calculateRequestUnreadCount(
               updatedChats,
               userId
             );
@@ -122,6 +200,7 @@ export const useChatStore = create<ChatStore>()(
             return {
               chats: updatedChats,
               totalUnreadCount,
+              requestUnreadCount,
               currentChat:
                 state.currentChat?._id === updatedChat._id
                   ? updatedChat

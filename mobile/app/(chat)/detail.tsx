@@ -21,11 +21,14 @@ import { useAuthStore } from "@/stores/authStore";
 import { useChatStore } from "@/stores/chatStore";
 import { DetailsData } from "@/constants/data";
 import { useMessageStore } from "@/stores/messageStore";
+import { useState } from "react";
 
 export default function Detail() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const user = useAuthStore((state) => state.user);
   const { getChatById, setChats, clearChat } = useChatStore();
@@ -145,6 +148,7 @@ export default function Detail() {
       <ScrollView
         contentContainerStyle={[styles.scrollContainer]}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
         <ThemedView style={styles.container}>
           {/* Profile photo */}
@@ -203,6 +207,7 @@ export default function Detail() {
             <ThemedView style={styles.listContainer}>
               <ListSection
                 title="Details"
+                disabled={isLoading}
                 data={Details}
                 onItemPress={(item) => handleDetail(item)}
               />
@@ -227,7 +232,7 @@ const styles = StyleSheet.create({
     // paddingRight: 20,
     flexDirection: "row",
     alignItems: "center",
-    borderBottomWidth: 0.2,
+    borderBottomWidth: 0.4,
   },
   HeaderTitleContainer: {
     flex: 1,
