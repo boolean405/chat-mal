@@ -25,6 +25,7 @@ export type Chat = {
   initiator: User;
   users: {
     user: User;
+    role: "leader" | "admin" | "member";
     joinedAt: Date;
   }[];
   groupPhoto?: string;

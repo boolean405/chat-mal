@@ -24,7 +24,7 @@ export default async function getPaginateUsers(req, res, next) {
       ? {
           $or: [
             { name: { $regex: req.query.keyword, $options: "i" } },
-            { userName: { $regex: req.query.keyword, $options: "i" } },
+            { username: { $regex: req.query.keyword, $options: "i" } },
             { email: { $regex: req.query.keyword, $options: "i" } },
           ],
         }

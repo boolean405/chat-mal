@@ -18,6 +18,7 @@ interface Props {
   chatJoinedAt?: Date;
   moreButtonRef?: React.RefObject<any>;
   tag?: string;
+  isSelf?: boolean;
   isOnline?: boolean;
   disabled: boolean;
   onPress?: () => void;
@@ -31,6 +32,7 @@ const UserItem: React.FC<Props> = ({
   moreButtonRef,
   tag,
   disabled,
+  isSelf,
   onPress,
   onPressMore,
 }) => {
@@ -48,6 +50,12 @@ const UserItem: React.FC<Props> = ({
           source={{ uri: user.profilePhoto }}
           style={styles.profilePhoto}
         />
+        {tag && (
+          <ThemedView style={styles.tagBadge}>
+            <ThemedText style={styles.tagBadgeText}>{tag}</ThemedText>
+          </ThemedView>
+        )}
+
         {isOnline ? (
           <ThemedView
             style={[styles.onlineIndicator, { borderColor: color.secondary }]}
@@ -59,8 +67,10 @@ const UserItem: React.FC<Props> = ({
         )}
       </ThemedView>
       <ThemedView style={styles.textContainer}>
-        <ThemedText type="defaultBold">
-          {tag ? `${user.name} ${tag}` : user.name}
+        <ThemedText type="defaultBold" numberOfLines={1}>
+          {user.name}
+          {isSelf && " (me)"}
+          {tag && ` ${tag}`}
         </ThemedText>
 
         <ThemedText type="small" style={{ fontStyle: "italic" }}>
@@ -68,7 +78,7 @@ const UserItem: React.FC<Props> = ({
         </ThemedText>
       </ThemedView>
       <ThemedView style={styles.dateContainer}>
-        <ThemedText type="small" style={{ color: "gray", marginRight: 10 }}>
+        <ThemedText type="smaller" style={{ color: "gray", marginRight: 5 }}>
           {chatJoinedAt &&
             `Joined at: ${new Date(chatJoinedAt).getDate()}/${
               new Date(chatJoinedAt).getMonth() + 1
@@ -135,6 +145,20 @@ const styles = StyleSheet.create({
     bottom: 0,
     right: 15,
     color: "gray",
+    fontWeight: "bold",
+  },
+  tagBadge: {
+    position: "absolute",
+    top: 0,
+    right: 13,
+    backgroundColor: "rgba(0, 0, 0, 0)",
+    // alignItems: "center",
+    // justifyContent: "center",
+  },
+
+  tagBadgeText: {
+    color: "white",
+    fontSize: 10,
     fontWeight: "bold",
   },
 

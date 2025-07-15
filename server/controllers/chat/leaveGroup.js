@@ -10,43 +10,46 @@ export default async function leaveGroup(req, res, next) {
     const dbGroup = await ChatDB.findById(groupId);
     if (!dbGroup) throw resError(404, "Group chat not found!");
 
-    // Check if user is member
-    const isMember = dbGroup.users.some((u) => u.user.equals(user._id));
-    if (!isMember) throw resError(403, "You are not a member of this group!");
+    const userIdStr = user._id.toString();
 
-    // Check if user is leader
-    const isLeader = dbGroup.initiator.toString() === user._id.toString();
-
-    // Check if user is admin
-    const isAdmin = dbGroup.groupAdmins.some(
-      (admin) => admin.user.toString() === user._id.toString()
+    // 🟡 Find user's entry in group
+    const userEntry = dbGroup.users.find(
+      (u) => u.user.toString() === userIdStr
     );
-    const isOnlyOneAdmin = isAdmin && dbGroup.groupAdmins.length === 1;
+    if (!userEntry) throw resError(403, "You are not a member of this group!");
 
-    // 🟡 Add deletedInfos entry
-    await ChatDB.findByIdAndUpdate(groupId, {
-      $pull: { deletedInfos: { user: user._id } },
-    });
-    await ChatDB.findByIdAndUpdate(groupId, {
-      $addToSet: {
-        deletedInfos: {
-          user: user._id,
-          deletedAt: new Date(),
+    const isLeader = userEntry.role === "leader";
+    const isAdmin = userEntry.role === "admin";
+
+    // Check if this user is the only admin
+    const allAdmins = dbGroup.users.filter((u) => u.role === "admin");
+    const isOnlyOneAdmin = isAdmin && allAdmins.length === 1;
+
+    // 🔄 Add deletedInfos entry
+    await ChatDB.updateOne(
+      { _id: groupId },
+      {
+        $pull: { deletedInfos: { user: user._id } },
+      }
+    );
+    await ChatDB.updateOne(
+      { _id: groupId },
+      {
+        $addToSet: {
+          deletedInfos: {
+            user: user._id,
+            deletedAt: new Date(),
+          },
         },
-      },
-    });
-
-    // Check if user exists in unreadInfos
-    const hasUnreadCount = dbGroup.unreadInfos?.some(
-      (entry) => entry.user.toString() === user._id.toString()
+      }
     );
 
-    // Build $pull object for arrays of objects
-    const pullFields = { users: { user: user._id } };
-    if (isAdmin) pullFields.groupAdmins = { user: user._id };
-    if (hasUnreadCount) pullFields.unreadInfos = { user: user._id };
+    // Remove user from users[] and unreadInfos[]
+    const pullFields = {
+      users: { user: user._id },
+      unreadInfos: { user: user._id },
+    };
 
-    // Remove user from users and admins if admin
     const updatedGroup = await ChatDB.findByIdAndUpdate(
       groupId,
       { $pull: pullFields },
@@ -56,33 +59,29 @@ export default async function leaveGroup(req, res, next) {
       select: "-password",
     });
 
-    // If only admin left, assign new admin from remaining users
-    if (isOnlyOneAdmin && updatedGroup.groupAdmins.length === 0) {
+    // 🔁 Handle leadership/admin reassignment
+    if ((isLeader || isOnlyOneAdmin) && updatedGroup.users.length > 0) {
       const sortedUsers = [...updatedGroup.users].sort(
         (a, b) => new Date(a.joinedAt) - new Date(b.joinedAt)
       );
-      const newAdminUser = sortedUsers[0]?.user;
-      if (newAdminUser && isLeader) {
-        console.log("leader leave group");
+      const newLeader = sortedUsers[0];
 
-        await ChatDB.findByIdAndUpdate(groupId, {
-          $addToSet: {
-            groupAdmins: { user: newAdminUser, joinedAt: new Date() },
-          },
-          $set: { initiator: newAdminUser },
-        });
-      } else if (newAdminUser) {
-        console.log("admin leave group");
+      if (newLeader) {
+        const newRole = isLeader ? "leader" : "admin";
 
-        await ChatDB.findByIdAndUpdate(groupId, {
-          $addToSet: {
-            groupAdmins: { user: newAdminUser, joinedAt: new Date() },
-          },
-        });
+        await ChatDB.updateOne(
+          { _id: groupId, "users.user": newLeader.user._id },
+          {
+            $set: {
+              "users.$.role": newRole,
+              ...(isLeader ? { initiator: newLeader.user._id } : {}),
+            },
+          }
+        );
       }
     }
 
-    return resJson(res, 200, "Success leave group chat.");
+    return resJson(res, 200, "Successfully left group chat.");
   } catch (error) {
     next(error);
   }

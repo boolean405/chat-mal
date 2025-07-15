@@ -112,7 +112,7 @@ export default function Detail() {
         [
           { text: "Cancel", style: "cancel" },
           {
-            text: "Delete",
+            text: "Leave",
             style: "destructive",
             onPress: async () => {
               try {

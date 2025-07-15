@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import Popover from "react-native-popover-view";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -23,7 +23,7 @@ import SelectableUserItem from "@/components/user/SelectableUserItem";
 import { useUsersSearchStore } from "@/stores/usersSearchStore";
 import useDebounce from "@/hooks/useDebounce";
 import {
-  addAdminsToGroup,
+  addAdminToGroup,
   addUsersToGroup,
   createOrOpen,
   leaveGroup,
@@ -32,6 +32,7 @@ import {
 } from "@/api/chat";
 import { useAuthStore } from "@/stores/authStore";
 import { useChatStore } from "@/stores/chatStore";
+import { useMessageStore } from "@/stores/messageStore";
 
 export default function Member() {
   const router = useRouter();
@@ -47,14 +48,9 @@ export default function Member() {
   const moreButtonRefs = useRef<{ [key: string]: React.RefObject<any> }>({});
 
   const { user } = useAuthStore();
-  const {
-    onlineUserIds,
-    getChatById,
-    clearChat,
-    updateChat,
-    setCurrentChat,
-    setChats,
-  } = useChatStore();
+  const { clearMessages } = useMessageStore();
+  const { onlineUserIds, getChatById, clearChat, updateChat, setChats } =
+    useChatStore();
 
   const { chatId: rawChatId } = useLocalSearchParams();
   const chatId = Array.isArray(rawChatId) ? rawChatId[0] : rawChatId;
@@ -80,6 +76,43 @@ export default function Member() {
     fetchSearchUsers(false);
   }, [debouncedKeyword, selectedFilter]);
 
+  useEffect(() => {
+    if (!isAddMode) setKeyword(""); // clear when exiting add mode
+  }, [isAddMode]);
+
+  const filteredResults = useMemo(() => {
+    const existingUserIds = new Set(chat?.users?.map((u) => u.user._id) ?? []);
+    return results.filter((user) => !existingUserIds.has(user._id));
+  }, [results, chat]);
+
+  const filterByKeyword = (
+    users: {
+      user: User;
+      joinedAt: Date;
+      role: "leader" | "admin" | "member";
+    }[],
+    keyword: string
+  ) => {
+    if (!keyword.trim()) return users;
+    return users.filter(({ user }) => {
+      const lower = keyword.toLowerCase();
+      return (
+        user.name.toLowerCase().includes(lower) ||
+        user.username?.toLowerCase().includes(lower)
+      );
+    });
+  };
+
+  // 🔎 Keyword filter on all remaining (non-admin) members
+  const filteredMembers = useMemo(() => {
+    const sorted = [...(chat?.users ?? [])].sort((a, b) => {
+      const rank = { leader: 0, admin: 1, member: 2 };
+      return rank[a.role] - rank[b.role];
+    });
+
+    return filterByKeyword(sorted, keyword);
+  }, [chat?.users, keyword]);
+
   if (!user || !chat) return null;
 
   // Load more
@@ -94,13 +127,10 @@ export default function Member() {
     setIsLoading(true);
     // Api call
     try {
-      const data = await addUsersToGroup(
-        chatId,
-        selectedUsers.map((u) => u._id)
-      );
+      const userIds = selectedUsers.map((u) => u._id);
+      const data = await addUsersToGroup(chatId, userIds);
       if (data.status) {
         updateChat(data.result);
-        setCurrentChat(data.result);
         ToastAndroid.show(data.message, ToastAndroid.SHORT);
         setIsAddMode(false);
         setSelectedUsers([]);
@@ -128,12 +158,12 @@ export default function Member() {
             setIsLoading(true);
             // Api call
             try {
-              const data = await addAdminsToGroup(chatId, [
-                popoverUser?._id.toString(),
-              ]);
+              const data = await addAdminToGroup(
+                chatId,
+                popoverUser?._id.toString()
+              );
               if (data.status) {
                 updateChat(data.result);
-                setCurrentChat(data.result);
                 setPopoverUser(null);
                 ToastAndroid.show(data.message, ToastAndroid.SHORT);
               }
@@ -168,7 +198,6 @@ export default function Member() {
               const data = await removeAdminFromGroup(chatId, popoverUser?._id);
               if (data.status) {
                 updateChat(data.result);
-                setCurrentChat(data.result);
                 setPopoverUser(null);
                 ToastAndroid.show(data.message, ToastAndroid.SHORT);
               }
@@ -194,7 +223,7 @@ export default function Member() {
           style: "cancel",
         },
         {
-          text: "OK",
+          text: "Remove",
           style: "destructive",
           onPress: async () => {
             setIsLoading(true);
@@ -203,7 +232,6 @@ export default function Member() {
               const data = await removeUserFromGroup(chatId, popoverUser?._id);
               if (data.status) {
                 updateChat(data.result);
-                setCurrentChat(data.result);
                 setPopoverUser(null);
                 ToastAndroid.show(data.message, ToastAndroid.SHORT);
               }
@@ -234,9 +262,9 @@ export default function Member() {
           try {
             const data = await leaveGroup(chatId); // no result
             if (data.status) {
-              setCurrentChat(null);
-              clearChat(chatId);
               setPopoverUser(null);
+              clearChat(chatId);
+              clearMessages(chatId);
               ToastAndroid.show(data.message, ToastAndroid.SHORT);
               router.replace("/(tab)");
             }
@@ -280,50 +308,6 @@ export default function Member() {
       setIsLoading(false);
     }
   };
-
-  const existingUserIds = new Set([
-    ...chat!.users.map((u) => u.user._id),
-    ...chat!.groupAdmins.map((a) => a.user._id),
-  ]);
-
-  const filteredResults = results.filter(
-    (user) => !existingUserIds.has(user._id)
-  );
-
-  const filterByKeyword = (
-    users: typeof chat.groupAdmins | typeof chat.users,
-    keyword: string
-  ) => {
-    if (!keyword.trim()) return users;
-    return users.filter(({ user }) =>
-      user.name.toLowerCase().includes(keyword.toLowerCase())
-    );
-  };
-
-  const adminUserIds = new Set(chat.groupAdmins.map((a) => a.user._id));
-
-  // const filteredAdmins = chat ? filterByKeyword(chat.groupAdmins, keyword) : [];
-  // const filteredUsers = chat
-  //   ? filterByKeyword(
-  //       chat.users.filter(({ user }) => !adminUserIds.has(user._id)),
-  //       keyword
-  //     )
-  //   : [];
-
-  const allChatMembers = [
-    ...chat.groupAdmins.map((admin) => ({
-      ...admin,
-      role: "admin" as const,
-    })),
-    ...chat.users
-      .filter(({ user }) => !adminUserIds.has(user._id))
-      .map((member) => ({
-        ...member,
-        role: "member" as const,
-      })),
-  ];
-
-  const filteredMembers = filterByKeyword(allChatMembers, keyword);
 
   return (
     <KeyboardAvoidingView
@@ -443,22 +427,24 @@ export default function Member() {
           )}
         </ThemedView>
       ) : (
-        // Admin
+        // All members
         <FlatList
           data={filteredMembers}
           keyExtractor={(item) => item.user._id}
           renderItem={({ item }) => {
             const isOnline = onlineUserIds.includes(item.user._id);
             const tag =
-              item.role === "admin"
-                ? item.user._id === chat.initiator._id
-                  ? "👑"
-                  : "🛡️"
+              item.role === "leader"
+                ? "👑"
+                : item.role === "admin"
+                ? "🛡️"
                 : "🍀";
 
+            const isSelf = item.user._id === user._id;
             return (
               <UserItem
                 user={item.user}
+                isSelf={isSelf}
                 isOnline={isOnline}
                 disabled={loading}
                 chatJoinedAt={item.joinedAt}
@@ -497,8 +483,8 @@ export default function Member() {
         >
           {(() => {
             const isCreator = chat.initiator._id === user?._id;
-            const isAdmin = chat.groupAdmins.some(
-              (a) => a.user._id === user?._id
+            const isAdmin = chat.users.some(
+              (a) => a.role === "admin" && a.user._id === popoverUser._id
             );
             const currentUserRole = isCreator
               ? "leader"
@@ -506,13 +492,13 @@ export default function Member() {
               ? "admin"
               : "member";
 
-            const isTargetAdmin = chat.groupAdmins.some(
-              (a) => a.user._id === popoverUser._id
+            const isTargetAdmin = chat.users.some(
+              (a) => a.role === "admin" && a.user._id === popoverUser._id
             );
-            const isTargetCreator = chat.initiator._id === popoverUser._id;
-
+            const isTargetLeader = chat.users.some(
+              (a) => a.role === "leader" && a.user._id === popoverUser._id
+            );
             const isSelf = user?._id === popoverUser._id;
-
             const options = [];
 
             // 👇👇👇 Only show "Leave Group" if user clicked themselves
@@ -539,7 +525,7 @@ export default function Member() {
             );
 
             if (currentUserRole === "leader") {
-              if (isTargetAdmin && !isTargetCreator) {
+              if (isTargetAdmin && !isTargetLeader) {
                 options.unshift(
                   <TouchableOpacity
                     key="removeAdmin"
@@ -569,7 +555,7 @@ export default function Member() {
                 );
               }
             } else if (currentUserRole === "admin") {
-              if (isTargetAdmin && !isTargetCreator) {
+              if (isTargetAdmin && !isTargetLeader) {
                 options.unshift(
                   <TouchableOpacity
                     disabled={isLoading}

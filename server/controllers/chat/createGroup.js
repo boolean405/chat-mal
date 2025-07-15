@@ -37,10 +37,10 @@ export default async function createGroup(req, res, next) {
 
     const timestamp = new Date();
 
-    // Assign roles: creator = admin, others = user
+    // ✅ Assign roles: creator = leader, others = member
     const usersArray = arrayUserIds.map((id) => ({
       user: id,
-      role: id === user._id.toString() ? "admin" : "user",
+      role: id === user._id.toString() ? "leader" : "member",
       joinedAt: timestamp,
     }));
 

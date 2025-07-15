@@ -13,8 +13,8 @@ const chatSchema = new Schema(
         user: { type: Schema.Types.ObjectId, ref: "user", required: true },
         role: {
           type: String,
-          enum: ["user", "admin"],
-          default: "user",
+          enum: ["member", "admin", "leader"],
+          default: "member",
         },
         joinedAt: { type: Date, default: Date.now },
       },
@@ -43,8 +43,7 @@ const chatSchema = new Schema(
 
 // Indexes for performance
 chatSchema.index({ name: 1 });
-chatSchema.index({ "groupAdmins.user": 1 });
 chatSchema.index({ "users.user": 1 });
-chatSchema.index({ "unreadInfos.user": 1 }); // Index for efficient unread count lookups
+chatSchema.index({ "unreadInfos.user": 1 });
 
 export default mongoose.model("chat", chatSchema);
