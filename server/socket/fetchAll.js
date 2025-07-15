@@ -29,7 +29,7 @@ export default async function fetchAll(socket) {
             path: "chat",
             populate: [
               {
-                path: "users.user groupAdmins.user initiator unreadInfos.user deletedInfos.user",
+                path: "users.user unreadInfos.user deletedInfos.user initiator",
                 select: "-password",
               },
               { path: "latestMessage" },

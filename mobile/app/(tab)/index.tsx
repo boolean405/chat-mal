@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   ToastAndroid,
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
@@ -148,6 +149,7 @@ export default function Home() {
       }
     });
 
+    // Recive new message
     socket.on("receive-message", ({ message }) => {
       setChats([message.chat]);
       addMessage(message.chat._id, message);
@@ -155,6 +157,24 @@ export default function Home() {
 
     socket.on("error", ({ message }) => {
       console.log("❌ Socket error:", message);
+    });
+
+    // Remove chat
+    socket.on("remove-member", ({ chat }) => {
+      clearMessages(chat._id);
+      clearChat(chat._id);
+      Alert.alert(
+        "Kicked From Group",
+        `You have been kicked from '${chat.name}' group!`,
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              router.replace("/(tab)");
+            },
+          },
+        ]
+      );
     });
 
     // 🧼 Clean up all listeners on unmount
@@ -169,6 +189,7 @@ export default function Home() {
       socket.off("receive-message");
       socket.off("fetch-all");
       socket.off("error");
+      socket.off("remove-chat");
     };
   }, [accessToken]);
 

@@ -2,9 +2,12 @@ import UserDB from "../../models/user.js";
 import ChatDB from "../../models/chat.js";
 import resJson from "../../utils/resJson.js";
 import resError from "../../utils/resError.js";
+import { getIO } from "../../config/socket.js";
+import Redis from "../../config/redisClient.js";
 
 export default async function addUsersToGroup(req, res, next) {
   try {
+    const user = req.user;
     const { groupId, userIds } = req.body;
 
     const dbChat = await ChatDB.findById(groupId);
@@ -51,6 +54,19 @@ export default async function addUsersToGroup(req, res, next) {
         },
       })
       .lean();
+
+    // Real-time: Emit to other chat members
+    // const io = getIO();
+    // await Promise.all(
+    //   updatedChat.users.map(async (entry) => {
+    //     const userId = entry.user?._id?.toString?.() || entry.user.toString();
+    //     if (userId === user._id.toString()) return;
+    //     const socketId = await Redis.hGet("onlineUsers", userId);
+    //     if (socketId) {
+    //       io.to(socketId).emit("new-chat", { chat: updatedChat });
+    //     }
+    //   })
+    // );
 
     return resJson(res, 200, "Success add user to group chat.", updatedChat);
   } catch (error) {

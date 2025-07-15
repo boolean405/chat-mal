@@ -7,18 +7,19 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  Platform,
+  ToastAndroid,
 } from "react-native";
 import React, { useEffect, useState, useRef, useMemo } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import Popover from "react-native-popover-view";
+
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
-import { Platform } from "react-native";
 import UserItem from "@/components/UserItem";
 import { Chat, User } from "@/types";
-import { ToastAndroid } from "react-native";
 import SelectableUserItem from "@/components/user/SelectableUserItem";
 import { useUsersSearchStore } from "@/stores/usersSearchStore";
 import useDebounce from "@/hooks/useDebounce";
@@ -156,6 +157,7 @@ export default function Member() {
           text: "OK",
           onPress: async () => {
             setIsLoading(true);
+            setPopoverUser(null);
             // Api call
             try {
               const data = await addAdminToGroup(
@@ -164,7 +166,6 @@ export default function Member() {
               );
               if (data.status) {
                 updateChat(data.result);
-                setPopoverUser(null);
                 ToastAndroid.show(data.message, ToastAndroid.SHORT);
               }
             } catch (err: any) {
@@ -193,12 +194,12 @@ export default function Member() {
           style: "destructive",
           onPress: async () => {
             setIsLoading(true);
+            setPopoverUser(null);
             // Api call
             try {
               const data = await removeAdminFromGroup(chatId, popoverUser?._id);
               if (data.status) {
                 updateChat(data.result);
-                setPopoverUser(null);
                 ToastAndroid.show(data.message, ToastAndroid.SHORT);
               }
             } catch (err: any) {
@@ -227,12 +228,12 @@ export default function Member() {
           style: "destructive",
           onPress: async () => {
             setIsLoading(true);
+            setPopoverUser(null);
             // Api call
             try {
               const data = await removeUserFromGroup(chatId, popoverUser?._id);
               if (data.status) {
                 updateChat(data.result);
-                setPopoverUser(null);
                 ToastAndroid.show(data.message, ToastAndroid.SHORT);
               }
             } catch (err: any) {
@@ -258,11 +259,11 @@ export default function Member() {
         style: "destructive",
         onPress: async () => {
           setIsLoading(true);
+          setPopoverUser(null);
           // Api call
           try {
             const data = await leaveGroup(chatId); // no result
             if (data.status) {
-              setPopoverUser(null);
               clearChat(chatId);
               clearMessages(chatId);
               ToastAndroid.show(data.message, ToastAndroid.SHORT);
@@ -449,7 +450,7 @@ export default function Member() {
                 disabled={loading}
                 chatJoinedAt={item.joinedAt}
                 tag={tag}
-                onPress={() => handleItemPress(item.user)}
+                onPress={isSelf ? undefined : () => handleItemPress(item.user)}
                 onPressMore={() => setPopoverUser(item.user)}
                 moreButtonRef={
                   moreButtonRefs.current[item.user._id] ||
@@ -458,6 +459,11 @@ export default function Member() {
               />
             );
           }}
+          style={styles.resultList}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          showsVerticalScrollIndicator={false}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.1}
           ListHeaderComponent={
             <ThemedView
               style={[styles.titleTextContainer, { borderColor: color.border }]}
@@ -466,9 +472,6 @@ export default function Member() {
               <ThemedText style={{ marginLeft: 10 }}>Group Members</ThemedText>
             </ThemedView>
           }
-          style={styles.resultList}
-          contentContainerStyle={{ paddingBottom: 20 }}
-          showsVerticalScrollIndicator={false}
         />
       )}
 
@@ -482,11 +485,13 @@ export default function Member() {
           }}
         >
           {(() => {
-            const isCreator = chat.initiator._id === user?._id;
-            const isAdmin = chat.users.some(
-              (a) => a.role === "admin" && a.user._id === popoverUser._id
+            const isLeader = chat.users.some(
+              (a) => a.role === "leader" && a.user._id === user._id
             );
-            const currentUserRole = isCreator
+            const isAdmin = chat.users.some(
+              (a) => a.role === "admin" && a.user._id === user._id
+            );
+            const currentUserRole = isLeader
               ? "leader"
               : isAdmin
               ? "admin"
@@ -508,7 +513,7 @@ export default function Member() {
                   onPress={handleLeaveGroup}
                   disabled={isLoading}
                 >
-                  <ThemedText style={{ padding: 10 }}>Leave Group</ThemedText>
+                  <ThemedText style={{ padding: 10 }}>Leave group</ThemedText>
                 </TouchableOpacity>
               );
             }
@@ -541,7 +546,7 @@ export default function Member() {
               if (!isTargetAdmin) {
                 options.unshift(
                   <TouchableOpacity key="makeAdmin" onPress={handleMakeAdmin}>
-                    <ThemedText style={{ padding: 10 }}>Make Admin</ThemedText>
+                    <ThemedText style={{ padding: 10 }}>Make admin</ThemedText>
                   </TouchableOpacity>,
                   <TouchableOpacity
                     key="removeUser"
@@ -555,27 +560,27 @@ export default function Member() {
                 );
               }
             } else if (currentUserRole === "admin") {
-              if (isTargetAdmin && !isTargetLeader) {
-                options.unshift(
-                  <TouchableOpacity
-                    disabled={isLoading}
-                    key="removeAdminByAdmin"
-                    onPress={handleRemoveAdmin}
-                  >
-                    <ThemedText style={{ padding: 10 }}>
-                      Remove from group
-                    </ThemedText>
-                  </TouchableOpacity>
-                );
-              }
-              if (!isTargetAdmin) {
+              // if (isTargetAdmin && !isTargetLeader) {
+              //   options.unshift(
+              //     <TouchableOpacity
+              //       disabled={isLoading}
+              //       key="removeAdminByAdmin"
+              //       onPress={handleRemoveAdmin}
+              //     >
+              //       <ThemedText style={{ padding: 10 }}>
+              //         Remove from group
+              //       </ThemedText>
+              //     </TouchableOpacity>
+              //   );
+              // }
+              if (!isTargetAdmin && !isTargetLeader) {
                 options.unshift(
                   <TouchableOpacity
                     disabled={isLoading}
                     key="makeAdminByAdmin"
                     onPress={handleMakeAdmin}
                   >
-                    <ThemedText style={{ padding: 10 }}>Make Admin</ThemedText>
+                    <ThemedText style={{ padding: 10 }}>Make admin</ThemedText>
                   </TouchableOpacity>,
                   <TouchableOpacity
                     disabled={isLoading}
