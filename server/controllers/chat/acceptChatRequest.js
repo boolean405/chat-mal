@@ -1,4 +1,3 @@
-import UserDB from "../../models/user.js";
 import ChatDB from "../../models/chat.js";
 import resJson from "../../utils/resJson.js";
 import resError from "../../utils/resError.js";
@@ -9,16 +8,15 @@ export default async function acceptChatRequest(req, res, next) {
     const chatId = req.body.chatId;
 
     const dbChat = await ChatDB.findById(chatId);
-
     if (!dbChat) throw resError(404, "Chat not found!");
 
-    if (!dbChat.isPending) throw resError(400, "Chat is already accepted.");
+    if (!dbChat.isPending) throw resError(409, "Chat is already accepted.");
 
     if (!dbChat.users.some((u) => u.user.toString() === user._id.toString()))
       throw resError(403, "You are not a user of this chat!");
 
     if (dbChat.initiator.toString() === user._id.toString())
-      throw resError(403, "You can't accept of other user's request!");
+      throw resError(403, "You can't accept your own chat request!");
 
     const chat = await ChatDB.findByIdAndUpdate(
       chatId,
@@ -39,7 +37,7 @@ export default async function acceptChatRequest(req, res, next) {
         },
       });
 
-    resJson(res, 200, "Chat request accepted.", chat);
+    return resJson(res, 200, "Chat request accepted.", chat);
   } catch (error) {
     next(error);
   }

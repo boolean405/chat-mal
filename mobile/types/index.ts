@@ -10,7 +10,6 @@ export type User = {
   gender?: "male" | "female";
   birthday?: Date;
   bio?: string;
-  role: "user" | "admin";
   verified: "verified" | "unverified" | "pending";
   lastOnlineAt: Date;
   createdAt: Date;
@@ -38,10 +37,6 @@ export type Chat = {
     deletedAt: Date;
   }[];
   latestMessage?: Message;
-  groupAdmins: {
-    user: User;
-    joinedAt: Date;
-  }[];
   createdAt: Date;
   updatedAt: Date;
 };

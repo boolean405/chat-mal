@@ -36,7 +36,7 @@ export default async function changeName(req, res, next) {
       { name },
       { new: true }
     ).populate({
-      path: "users.user groupAdmins.user",
+      path: "users.user",
       select: "-password",
     });
 

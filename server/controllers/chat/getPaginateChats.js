@@ -136,45 +136,6 @@ export default async function getPaginateChats(req, res, next) {
         },
       },
 
-      // Populate groupAdmins.user
-      {
-        $lookup: {
-          from: "users",
-          localField: "groupAdmins.user",
-          foreignField: "_id",
-          as: "populatedAdmins",
-        },
-      },
-      {
-        $addFields: {
-          groupAdmins: {
-            $map: {
-              input: "$groupAdmins",
-              as: "adminItem",
-              in: {
-                $mergeObjects: [
-                  "$$adminItem",
-                  {
-                    user: {
-                      $arrayElemAt: [
-                        {
-                          $filter: {
-                            input: "$populatedAdmins",
-                            as: "a",
-                            cond: { $eq: ["$$a._id", "$$adminItem.user"] },
-                          },
-                        },
-                        0,
-                      ],
-                    },
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
-
       // Populate unreadInfos.user
       {
         $lookup: {
@@ -235,8 +196,6 @@ export default async function getPaginateChats(req, res, next) {
         $project: {
           "users.user.password": 0,
           "users.user.refreshToken": 0,
-          "groupAdmins.user.password": 0,
-          "groupAdmins.user.refreshToken": 0,
           "initiator.password": 0,
           "initiator.refreshToken": 0,
           "latestMessage.sender.password": 0,

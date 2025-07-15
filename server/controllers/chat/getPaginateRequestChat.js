@@ -70,7 +70,7 @@ export default async function getPaginateRequestChat(req, res, next) {
         .skip(skipCount)
         .limit(limit)
         .populate({
-          path: "users.user groupAdmins.user deletedInfos.user initiator",
+          path: "users.user deletedInfos.user initiator",
           select: "-password",
         })
         .populate({

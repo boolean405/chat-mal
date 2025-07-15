@@ -8,12 +8,9 @@ import refresh from "../controllers/user/refresh.js";
 import logout from "../controllers/user/logout.js";
 import getUser from "../controllers/user/getUser.js";
 import deleteAccount from "../controllers/user/deleteAccount.js";
-import uploadPicture from "../controllers/user/uploadPicture.js";
-import profilePicture from "../controllers/user/profilePicture.js";
 import changePassword from "../controllers/user/changePassword.js";
 import changeName from "../controllers/user/changeName.js";
 import changeUsername from "../controllers/user/changeUsername.js";
-import getPicture from "../controllers/user/getPicture.js";
 import uploadPhoto from "../controllers/user/uploadPhoto.js";
 import existEmail from "../controllers/user/existEmail.js";
 import existUsername from "../controllers/user/existUsername.js";
@@ -57,18 +54,6 @@ router.delete(
   validateBody(UserSchema.deleteAccount),
   deleteAccount
 );
-
-router.get(
-  "/picture/:userId",
-  validateParam(UserSchema.params.userId, "userId"),
-  getPicture
-);
-
-router
-  .route("/picture")
-  .all(validateToken())
-  .get(profilePicture)
-  .post(uploadPicture);
 
 router.patch(
   "/change-name",

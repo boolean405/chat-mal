@@ -46,7 +46,7 @@ export default async function getPaginateMessages(req, res, next) {
             path: "chat",
             populate: [
               {
-                path: "users.user groupAdmins.user deletedInfos.user initiator unreadInfos.user latestMessage",
+                path: "users.user deletedInfos.user initiator unreadInfos.user latestMessage",
                 select: "-password",
               },
             ],

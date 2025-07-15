@@ -48,10 +48,6 @@ export default async function createOrOpen(req, res, next) {
           select: "-password",
         })
         .populate({
-          path: "groupAdmins.user",
-          select: "-password",
-        })
-        .populate({
           path: "deletedInfos.user",
           select: "-password",
         })
@@ -94,10 +90,6 @@ export default async function createOrOpen(req, res, next) {
       const chat = await ChatDB.findById(dbChat._id)
         .populate({
           path: "users.user",
-          select: "-password",
-        })
-        .populate({
-          path: "groupAdmins.user",
           select: "-password",
         })
         .populate({

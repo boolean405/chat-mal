@@ -31,8 +31,10 @@ export default async function readChat(req, res, next) {
       }
     )
       .populate("latestMessage")
-      .populate("users.user", "-password")
-      .populate("groupAdmins.user", "-password");
+      .populate({
+        path: "users.user",
+        select: "-password",
+      });
 
     return resJson(res, 200, "Chat marked as read.", updatedChat);
   } catch (error) {

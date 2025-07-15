@@ -2,8 +2,6 @@ import UserDB from "../../models/user.js";
 import ChatDB from "../../models/chat.js";
 import resJson from "../../utils/resJson.js";
 import resError from "../../utils/resError.js";
-// import generateGroupPhoto from "../../utils/generateGroupPhoto.js";
-import uploadGroupPhoto from "../../utils/uploadGroupPhoto.js";
 import { getIO } from "../../config/socket.js";
 import Redis from "../../config/redisClient.js";
 
@@ -13,16 +11,19 @@ export default async function createGroup(req, res, next) {
     const userIds = req.body.userIds;
     let name = req.body.name;
 
-    // Parse and validate userIds
+    // Parse and deduplicate user IDs
     let arrayUserIds = Array.isArray(userIds) ? userIds : JSON.parse(userIds);
     arrayUserIds = [...new Set(arrayUserIds.map((id) => id.toString()))];
-    if (!arrayUserIds.includes(user._id.toString()))
-      arrayUserIds.push(user._id);
 
+    if (!arrayUserIds.includes(user._id.toString()))
+      arrayUserIds.push(user._id.toString());
+
+    // Validate users exist
     const users = await UserDB.find({ _id: { $in: arrayUserIds } });
     if (users.length !== arrayUserIds.length)
       throw resError(404, "One or more users not found!");
 
+    // Auto-generate group name if not provided
     if (!name) {
       if (users.length === 2) {
         name = `Group chat ${users[0].name} and ${users[1].name}`;
@@ -34,53 +35,30 @@ export default async function createGroup(req, res, next) {
       }
     }
 
-    // Generate photo
-    // if (!groupPhoto) {
-    //   const imageUrls = users
-    //     .map((u) => u.profilePhoto)
-    //     .filter(Boolean)
-    //     .slice(0, 4);
-    //   if (imageUrls.length) {
-    //     groupPhoto = await generateGroupPhoto(imageUrls);
-    //   }
-    // }
-
-    // let groupPhotoUrl = null;
-    // if (groupPhoto) {
-    //   groupPhotoUrl = await uploadGroupPhoto(
-    //     null,
-    //     "photo",
-    //     groupPhoto,
-    //     "chat-mal/chats/group-photo"
-    //   );
-    // }
-
     const timestamp = new Date();
+
+    // Assign roles: creator = admin, others = user
+    const usersArray = arrayUserIds.map((id) => ({
+      user: id,
+      role: id === user._id.toString() ? "admin" : "user",
+      joinedAt: timestamp,
+    }));
+
     const newGroupChat = await ChatDB.create({
       name,
       initiator: user._id,
       isGroupChat: true,
       groupPhoto: `${process.env.SERVER_URL}/image/group-photo`,
-      users: arrayUserIds.map((id) => ({
-        user: id,
-        joinedAt: timestamp,
-      })),
-      groupAdmins: [
-        {
-          user: user._id,
-          joinedAt: timestamp,
-        },
-      ],
+      users: usersArray,
     });
 
     const groupChat = await ChatDB.findById(newGroupChat._id).populate({
-      path: "users.user groupAdmins.user initiator",
+      path: "users.user initiator",
       select: "-password",
     });
 
-    // Real time
+    // Real-time notifications to other users
     const io = getIO();
-    // Notify all other users in the group if they are online
     await Promise.all(
       groupChat.users.map(async (member) => {
         const memberId = member.user._id.toString();
@@ -93,7 +71,7 @@ export default async function createGroup(req, res, next) {
       })
     );
 
-    resJson(res, 201, "Success created group chat.", groupChat);
+    return resJson(res, 201, "Successfully created group chat.", groupChat);
   } catch (error) {
     next(error);
   }

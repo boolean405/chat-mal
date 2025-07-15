@@ -52,7 +52,7 @@ export default async function leaveGroup(req, res, next) {
       { $pull: pullFields },
       { new: true }
     ).populate({
-      path: "users.user groupAdmins.user",
+      path: "users.user",
       select: "-password",
     });
 

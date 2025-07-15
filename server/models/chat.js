@@ -11,7 +11,11 @@ const chatSchema = new Schema(
     users: [
       {
         user: { type: Schema.Types.ObjectId, ref: "user", required: true },
-        
+        role: {
+          type: String,
+          enum: ["user", "admin"],
+          default: "user",
+        },
         joinedAt: { type: Date, default: Date.now },
       },
     ],
@@ -25,12 +29,6 @@ const chatSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "message",
     },
-    groupAdmins: [
-      {
-        user: { type: Schema.Types.ObjectId, ref: "user", required: true },
-        joinedAt: { type: Date, default: Date.now },
-      },
-    ],
     unreadInfos: [
       {
         user: { type: Schema.Types.ObjectId, ref: "user", required: true },

@@ -12,7 +12,6 @@ import createGroup from "../controllers/chat/createGroup.js";
 import changeName from "../controllers/chat/changeName.js";
 import addUsersToGroup from "../controllers/chat/addUsersToGroup.js";
 import removeUserFromGroup from "../controllers/chat/removeUserFromGroup.js";
-import addAdminsToGroup from "../controllers/chat/addAdminsToGroup.js";
 import leaveGroup from "../controllers/chat/leaveGroup.js";
 import deleteChat from "../controllers/chat/deleteChat.js";
 import getPaginateChats from "../controllers/chat/getPaginateChats.js";
@@ -21,6 +20,7 @@ import getPaginateRequestChats from "../controllers/chat/getPaginateRequestChat.
 import acceptChatRequest from "../controllers/chat/acceptChatRequest.js";
 import readChat from "../controllers/chat/readChat.js";
 import removeAdminFromGroup from "../controllers/chat/removeAdminFromGroup.js";
+import addAdminToGroup from "../controllers/chat/addAdminToGroup.js";
 
 router.post(
   "/",
@@ -69,10 +69,10 @@ router.patch(
   addUsersToGroup
 );
 router.patch(
-  "/add-admins-to-group",
+  "/add-admin-to-group",
   validateToken(),
-  validateBody(ChatSchema.addAdminsToGroup),
-  addAdminsToGroup
+  validateBody(ChatSchema.addAdminToGroup),
+  addAdminToGroup
 );
 router.patch(
   "/remove-user-from-group",

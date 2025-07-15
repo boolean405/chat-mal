@@ -40,7 +40,7 @@ export default async function addUsersToGroup(req, res, next) {
       { new: true }
     )
       .populate({
-        path: "users.user groupAdmins.user deletedInfos.user initiator unreadInfos.user",
+        path: "users.user deletedInfos.user initiator unreadInfos.user",
         select: "-password",
       })
       .populate({
