@@ -111,6 +111,7 @@ export async function getChat(chatId) {
     throw customError;
   }
 }
+
 // Add users to group
 export async function addUsersToGroup(groupId, userIds) {
   try {
@@ -118,6 +119,60 @@ export async function addUsersToGroup(groupId, userIds) {
     const response = await api.patch("/api/chat/add-users-to-group", {
       groupId,
       userIds,
+    });
+    const data = response.data;
+    return data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Something went wrong";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}
+
+// Add users to group
+export async function addAdminsToGroup(groupId, userIds) {
+  try {
+    await refresh();
+    const response = await api.patch("/api/chat/add-admins-to-group", {
+      groupId,
+      userIds,
+    });
+    const data = response.data;
+    return data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Something went wrong";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}
+
+// Remove admin from group
+export async function removeAdminFromGroup(groupId, userId) {
+  try {
+    await refresh();
+    const response = await api.patch("/api/chat/remove-admin-from-group", {
+      groupId,
+      userId,
+    });
+    const data = response.data;
+    return data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Something went wrong";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}
+
+// Remove user from group
+export async function removeUserFromGroup(groupId, userId) {
+  try {
+    await refresh();
+    const response = await api.patch("/api/chat/remove-user-from-group", {
+      groupId,
+      userId,
     });
     const data = response.data;
     return data;

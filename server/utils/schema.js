@@ -157,6 +157,11 @@ export const ChatSchema = {
       .required(),
   }),
 
+  removeAdminFromGroup: Joi.object({
+    groupId: Joi.string().length(24).hex().required(),
+    userId: Joi.string().length(24).hex().required(),
+  }),
+
   removeUserFromGroup: Joi.object({
     groupId: Joi.string().length(24).hex().required(),
     userId: Joi.string().length(24).hex().required(),

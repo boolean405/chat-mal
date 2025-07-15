@@ -84,14 +84,10 @@ export default function Search() {
         pathname: "/(chat)",
         params: { chatId: chat._id },
       });
-
-      // Wait a bit to allow navigation to settle
-      setTimeout(() => {
-        isNavigatingRef.current = false;
-      }, 1000); // Adjust if needed
     } catch (error: any) {
       ToastAndroid.show(error.message, ToastAndroid.SHORT);
     } finally {
+      // Wait a bit to allow navigation to settle
       setTimeout(() => {
         isNavigatingRef.current = false;
       }, 1000); // consistent delay for all cases

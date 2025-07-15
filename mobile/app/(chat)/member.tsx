@@ -6,6 +6,7 @@ import {
   FlatList,
   TextInput,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import React, { useEffect, useState, useRef } from "react";
 import Popover from "react-native-popover-view";
@@ -21,7 +22,14 @@ import { ToastAndroid } from "react-native";
 import SelectableUserItem from "@/components/user/SelectableUserItem";
 import { useUsersSearchStore } from "@/stores/usersSearchStore";
 import useDebounce from "@/hooks/useDebounce";
-import { addUsersToGroup } from "@/api/chat";
+import {
+  addAdminsToGroup,
+  addUsersToGroup,
+  createOrOpen,
+  leaveGroup,
+  removeAdminFromGroup,
+  removeUserFromGroup,
+} from "@/api/chat";
 import { useAuthStore } from "@/stores/authStore";
 import { useChatStore } from "@/stores/chatStore";
 
@@ -30,15 +38,23 @@ export default function Member() {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
 
+  const isNavigatingRef = useRef(false);
+
   const [isAddMode, setIsAddMode] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
-  const [popoverUserId, setPopoverUserId] = useState<string | null>(null);
+  const [popoverUser, setPopoverUser] = useState<User | null>(null);
   const moreButtonRefs = useRef<{ [key: string]: React.RefObject<any> }>({});
 
   const { user } = useAuthStore();
-  const { getChatById, onlineUserIds, updateChat, setCurrentChat } =
-    useChatStore();
+  const {
+    onlineUserIds,
+    getChatById,
+    clearChat,
+    updateChat,
+    setCurrentChat,
+    setChats,
+  } = useChatStore();
 
   const { chatId: rawChatId } = useLocalSearchParams();
   const chatId = Array.isArray(rawChatId) ? rawChatId[0] : rawChatId;
@@ -50,7 +66,7 @@ export default function Member() {
     keyword,
     selectedFilter,
     hasMore,
-    isLoading,
+    isLoading: loading,
     isPaging,
     errorMessage,
     setKeyword,
@@ -66,12 +82,16 @@ export default function Member() {
 
   if (!user || !chat) return null;
 
-  const handleMembers = (user: User) => {
-    console.log(user.name);
+  // Load more
+  const handleLoadMore = async () => {
+    if (hasMore && !isPaging && !loading) {
+      await fetchSearchUsers(true);
+    }
   };
 
   // Handle invite members
   const handleAddMembers = async () => {
+    setIsLoading(true);
     // Api call
     try {
       const data = await addUsersToGroup(
@@ -87,24 +107,177 @@ export default function Member() {
       }
     } catch (err: any) {
       ToastAndroid.show(err.message, ToastAndroid.SHORT);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleLoadMore = async () => {
-    if (hasMore && !isPaging && !isLoading) {
-      await fetchSearchUsers(true);
-    }
+  // Handle make admin
+  const handleMakeAdmin = async () => {
+    Alert.alert(
+      "Make Admin",
+      `Are you sure you want to make '${popoverUser?.name}' to be an admin?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "OK",
+          onPress: async () => {
+            setIsLoading(true);
+            // Api call
+            try {
+              const data = await addAdminsToGroup(chatId, [
+                popoverUser?._id.toString(),
+              ]);
+              if (data.status) {
+                updateChat(data.result);
+                setCurrentChat(data.result);
+                setPopoverUser(null);
+                ToastAndroid.show(data.message, ToastAndroid.SHORT);
+              }
+            } catch (err: any) {
+              ToastAndroid.show(err.message, ToastAndroid.SHORT);
+            } finally {
+              setIsLoading(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
-  const handleResult = async (user: any) => {
+  // Handle remove admin
+  const handleRemoveAdmin = async () => {
+    Alert.alert(
+      "Remove Admin Role",
+      `Are you sure you want remove '${popoverUser?.name}' from an admin?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "OK",
+          style: "destructive",
+          onPress: async () => {
+            setIsLoading(true);
+            // Api call
+            try {
+              const data = await removeAdminFromGroup(chatId, popoverUser?._id);
+              if (data.status) {
+                updateChat(data.result);
+                setCurrentChat(data.result);
+                setPopoverUser(null);
+                ToastAndroid.show(data.message, ToastAndroid.SHORT);
+              }
+            } catch (err: any) {
+              ToastAndroid.show(err.message, ToastAndroid.SHORT);
+            } finally {
+              setIsLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // Handle remove admin
+  const handleRemoveUser = async () => {
+    Alert.alert(
+      "Remove Member",
+      `Are you sure you want remove '${popoverUser?.name}' from the group?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "OK",
+          style: "destructive",
+          onPress: async () => {
+            setIsLoading(true);
+            // Api call
+            try {
+              const data = await removeUserFromGroup(chatId, popoverUser?._id);
+              if (data.status) {
+                updateChat(data.result);
+                setCurrentChat(data.result);
+                setPopoverUser(null);
+                ToastAndroid.show(data.message, ToastAndroid.SHORT);
+              }
+            } catch (err: any) {
+              ToastAndroid.show(err.message, ToastAndroid.SHORT);
+            } finally {
+              setIsLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // Handle leave group
+  const handleLeaveGroup = async () => {
+    Alert.alert("Leave Group", `Are you sure you want to leave the group?`, [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Leave",
+        style: "destructive",
+        onPress: async () => {
+          setIsLoading(true);
+          // Api call
+          try {
+            const data = await leaveGroup(chatId); // no result
+            if (data.status) {
+              setCurrentChat(null);
+              clearChat(chatId);
+              setPopoverUser(null);
+              ToastAndroid.show(data.message, ToastAndroid.SHORT);
+              router.replace("/(tab)");
+            }
+          } catch (err: any) {
+            ToastAndroid.show(err.message, ToastAndroid.SHORT);
+          } finally {
+            setIsLoading(false);
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleItemPress = async (user: User) => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+    setIsLoading(true);
+    setPopoverUser(null);
+
+    // Api call
     try {
-      // const data = await createOrOpen(user._id);
-      // router.push({
-      //   pathname: "/(chat)",
-      //   params: { chatId: data.result._id },
-      // });
-    } catch (err: any) {
-      // ToastAndroid.show(err.message, ToastAndroid.SHORT);
+      const response = await createOrOpen(user._id);
+      const chat = response.data.result;
+
+      if (response.status === 200 && !getChatById(chat._id)) {
+        setChats([chat]);
+      } else if (response.status === 201) {
+        setChats([chat]);
+      }
+      router.push({
+        pathname: "/(chat)",
+        params: { chatId: chat._id },
+      });
+    } catch (error: any) {
+      ToastAndroid.show(error.message, ToastAndroid.SHORT);
+    } finally {
+      // Wait a bit to allow navigation to settle
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 1000); // consistent delay for all cases
+      setIsLoading(false);
     }
   };
 
@@ -129,13 +302,28 @@ export default function Member() {
 
   const adminUserIds = new Set(chat.groupAdmins.map((a) => a.user._id));
 
-  const filteredAdmins = chat ? filterByKeyword(chat.groupAdmins, keyword) : [];
-  const filteredUsers = chat
-    ? filterByKeyword(
-        chat.users.filter(({ user }) => !adminUserIds.has(user._id)),
-        keyword
-      )
-    : [];
+  // const filteredAdmins = chat ? filterByKeyword(chat.groupAdmins, keyword) : [];
+  // const filteredUsers = chat
+  //   ? filterByKeyword(
+  //       chat.users.filter(({ user }) => !adminUserIds.has(user._id)),
+  //       keyword
+  //     )
+  //   : [];
+
+  const allChatMembers = [
+    ...chat.groupAdmins.map((admin) => ({
+      ...admin,
+      role: "admin" as const,
+    })),
+    ...chat.users
+      .filter(({ user }) => !adminUserIds.has(user._id))
+      .map((member) => ({
+        ...member,
+        role: "member" as const,
+      })),
+  ];
+
+  const filteredMembers = filterByKeyword(allChatMembers, keyword);
 
   return (
     <KeyboardAvoidingView
@@ -230,7 +418,7 @@ export default function Member() {
             contentContainerStyle={{ paddingBottom: 20 }}
             showsVerticalScrollIndicator={false}
             onEndReached={handleLoadMore}
-            onEndReachedThreshold={1}
+            onEndReachedThreshold={0.1}
             ListFooterComponent={
               hasMore && results.length > 0 && isPaging ? (
                 <ActivityIndicator size="small" color={color.icon} />
@@ -257,24 +445,26 @@ export default function Member() {
       ) : (
         // Admin
         <FlatList
-          data={filteredAdmins}
+          data={filteredMembers}
           keyExtractor={(item) => item.user._id}
           renderItem={({ item }) => {
-            const isInitiator = item.user._id === chat.initiator._id;
-            const adminTag = isInitiator ? "👑" : "🛡️";
-
             const isOnline = onlineUserIds.includes(item.user._id);
+            const tag =
+              item.role === "admin"
+                ? item.user._id === chat.initiator._id
+                  ? "👑"
+                  : "🛡️"
+                : "🍀";
+
             return (
               <UserItem
                 user={item.user}
                 isOnline={isOnline}
                 disabled={loading}
                 chatJoinedAt={item.joinedAt}
-                tag={adminTag}
-                onPress={() => {
-                  handleMembers(item.user);
-                }}
-                onPressMore={() => setPopoverUserId(item.user._id)}
+                tag={tag}
+                onPress={() => handleItemPress(item.user)}
+                onPressMore={() => setPopoverUser(item.user)}
                 moreButtonRef={
                   moreButtonRefs.current[item.user._id] ||
                   (moreButtonRefs.current[item.user._id] = React.createRef())
@@ -282,79 +472,25 @@ export default function Member() {
               />
             );
           }}
-          style={styles.resultList}
-          contentContainerStyle={{ paddingBottom: 20 }}
-          showsVerticalScrollIndicator={false}
-          // onEndReached={handleLoadMore}
-          onEndReachedThreshold={1}
           ListHeaderComponent={
             <ThemedView
               style={[styles.titleTextContainer, { borderColor: color.border }]}
             >
-              <Ionicons name="laptop-outline" size={22} color={color.icon} />
-              <ThemedText style={{ marginLeft: 10 }}>Admins</ThemedText>
+              <Ionicons name="people-outline" size={22} color={color.icon} />
+              <ThemedText style={{ marginLeft: 10 }}>Group Members</ThemedText>
             </ThemedView>
           }
-          ListFooterComponent={
-            // Users
-            <FlatList
-              data={filteredUsers}
-              keyExtractor={(item) => item.user._id}
-              renderItem={({ item }) => {
-                const isOnline = onlineUserIds.includes(item.user._id);
-                return (
-                  <UserItem
-                    user={item.user}
-                    isOnline={isOnline}
-                    disabled={loading}
-                    chatJoinedAt={item.joinedAt}
-                    tag="🍀"
-                    onPress={() => {
-                      handleMembers(item.user);
-                    }}
-                    onPressMore={() => setPopoverUserId(item.user._id)}
-                    moreButtonRef={
-                      moreButtonRefs.current[item.user._id] ||
-                      (moreButtonRefs.current[item.user._id] =
-                        React.createRef())
-                    }
-                  />
-                );
-              }}
-              ListHeaderComponent={
-                <ThemedView
-                  style={[
-                    styles.titleTextContainer,
-                    { borderColor: color.border },
-                  ]}
-                >
-                  <Ionicons
-                    name="people-outline"
-                    size={22}
-                    color={color.icon}
-                  />
-                  <ThemedText style={{ marginLeft: 10 }}>Members</ThemedText>
-                </ThemedView>
-              }
-              style={styles.resultList}
-              showsVerticalScrollIndicator={false}
-              // onEndReached={handleLoadMore}
-              onEndReachedThreshold={0.1}
-              // ListFooterComponent={
-              //   hasMore && results.length > 0 && isPaging ? (
-              //     <ActivityIndicator size="small" color={color.icon} />
-              //   ) : null
-              // }
-            />
-          }
+          style={styles.resultList}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          showsVerticalScrollIndicator={false}
         />
       )}
 
-      {popoverUserId && (
+      {popoverUser && (
         <Popover
-          isVisible={!!popoverUserId}
-          onRequestClose={() => setPopoverUserId(null)}
-          from={moreButtonRefs.current[popoverUserId]}
+          isVisible={!!popoverUser}
+          onRequestClose={() => setPopoverUser(null)}
+          from={moreButtonRefs.current[popoverUser._id]}
           popoverStyle={{
             backgroundColor: color.secondary,
           }}
@@ -365,17 +501,17 @@ export default function Member() {
               (a) => a.user._id === user?._id
             );
             const currentUserRole = isCreator
-              ? "creator"
+              ? "leader"
               : isAdmin
               ? "admin"
               : "member";
 
             const isTargetAdmin = chat.groupAdmins.some(
-              (a) => a.user._id === popoverUserId
+              (a) => a.user._id === popoverUser._id
             );
-            const isTargetCreator = chat.initiator._id === popoverUserId;
+            const isTargetCreator = chat.initiator._id === popoverUser._id;
 
-            const isSelf = user?._id === popoverUserId;
+            const isSelf = user?._id === popoverUser._id;
 
             const options = [];
 
@@ -383,11 +519,8 @@ export default function Member() {
             if (isSelf) {
               return (
                 <TouchableOpacity
-                  onPress={() => {
-                    ToastAndroid.show("Leave Group", ToastAndroid.SHORT);
-                    setPopoverUserId(null);
-                    // 👉 Here you could also call a leaveGroup() function
-                  }}
+                  onPress={handleLeaveGroup}
+                  disabled={isLoading}
                 >
                   <ThemedText style={{ padding: 10 }}>Leave Group</ThemedText>
                 </TouchableOpacity>
@@ -398,54 +531,36 @@ export default function Member() {
             options.push(
               <TouchableOpacity
                 key="pm"
-                onPress={() => {
-                  ToastAndroid.show("PM Chat", ToastAndroid.SHORT);
-                  setPopoverUserId(null);
-                }}
+                disabled={isLoading}
+                onPress={() => handleItemPress(popoverUser)}
               >
                 <ThemedText style={{ padding: 10 }}>PM Chat</ThemedText>
               </TouchableOpacity>
             );
 
-            if (currentUserRole === "creator") {
+            if (currentUserRole === "leader") {
               if (isTargetAdmin && !isTargetCreator) {
                 options.unshift(
                   <TouchableOpacity
                     key="removeAdmin"
-                    onPress={() => {
-                      ToastAndroid.show(
-                        "Remove from group",
-                        ToastAndroid.SHORT
-                      );
-                      setPopoverUserId(null);
-                    }}
+                    disabled={isLoading}
+                    onPress={handleRemoveAdmin}
                   >
                     <ThemedText style={{ padding: 10 }}>
-                      Remove from group
+                      Remove admin role
                     </ThemedText>
                   </TouchableOpacity>
                 );
               }
               if (!isTargetAdmin) {
                 options.unshift(
-                  <TouchableOpacity
-                    key="makeAdmin"
-                    onPress={() => {
-                      ToastAndroid.show("Make Admin", ToastAndroid.SHORT);
-                      setPopoverUserId(null);
-                    }}
-                  >
+                  <TouchableOpacity key="makeAdmin" onPress={handleMakeAdmin}>
                     <ThemedText style={{ padding: 10 }}>Make Admin</ThemedText>
                   </TouchableOpacity>,
                   <TouchableOpacity
                     key="removeUser"
-                    onPress={() => {
-                      ToastAndroid.show(
-                        "Remove from group",
-                        ToastAndroid.SHORT
-                      );
-                      setPopoverUserId(null);
-                    }}
+                    onPress={handleRemoveUser}
+                    disabled={isLoading}
                   >
                     <ThemedText style={{ padding: 10 }}>
                       Remove from group
@@ -457,14 +572,9 @@ export default function Member() {
               if (isTargetAdmin && !isTargetCreator) {
                 options.unshift(
                   <TouchableOpacity
+                    disabled={isLoading}
                     key="removeAdminByAdmin"
-                    onPress={() => {
-                      ToastAndroid.show(
-                        "Remove from group",
-                        ToastAndroid.SHORT
-                      );
-                      setPopoverUserId(null);
-                    }}
+                    onPress={handleRemoveAdmin}
                   >
                     <ThemedText style={{ padding: 10 }}>
                       Remove from group
@@ -475,23 +585,16 @@ export default function Member() {
               if (!isTargetAdmin) {
                 options.unshift(
                   <TouchableOpacity
+                    disabled={isLoading}
                     key="makeAdminByAdmin"
-                    onPress={() => {
-                      ToastAndroid.show("Make Admin", ToastAndroid.SHORT);
-                      setPopoverUserId(null);
-                    }}
+                    onPress={handleMakeAdmin}
                   >
                     <ThemedText style={{ padding: 10 }}>Make Admin</ThemedText>
                   </TouchableOpacity>,
                   <TouchableOpacity
+                    disabled={isLoading}
                     key="removeUserByAdmin"
-                    onPress={() => {
-                      ToastAndroid.show(
-                        "Remove from group",
-                        ToastAndroid.SHORT
-                      );
-                      setPopoverUserId(null);
-                    }}
+                    onPress={handleRemoveUser}
                   >
                     <ThemedText style={{ padding: 10 }}>
                       Remove from group

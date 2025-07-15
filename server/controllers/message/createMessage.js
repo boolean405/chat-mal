@@ -85,15 +85,7 @@ export default async function createMessage(req, res, next) {
         path: "chat",
         populate: [
           {
-            path: "initiator",
-            select: "-password",
-          },
-          {
-            path: "users.user",
-            select: "-password",
-          },
-          {
-            path: "unreadInfos.user",
+            path: "users.user groupAdmins.user deletedInfos.user unreadInfos.user initiator",
             select: "-password",
           },
           {

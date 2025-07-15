@@ -5,19 +5,15 @@ import resError from "../../utils/resError.js";
 
 export default async function addAdminsToGroup(req, res, next) {
   try {
-    const userId = req.userId;
+    const user = req.user;
     const { groupId, userIds } = req.body;
 
-    const [userExists, dbChat] = await Promise.all([
-      UserDB.exists({ _id: userId }),
-      ChatDB.findById(groupId),
-    ]);
-    if (!userExists) throw resError(401, "Authenticated user not found!");
+    const dbChat = await ChatDB.findById(groupId);
     if (!dbChat) throw resError(404, "Group chat not found!");
 
     // Check if user is admin
     const isAdmin = dbChat.groupAdmins.some(
-      (admin) => admin.user.toString() === userId.toString()
+      (admin) => admin.user.toString() === user._id.toString()
     );
     if (!isAdmin) throw resError(403, "Only group admin can add admin!");
 
@@ -61,12 +57,20 @@ export default async function addAdminsToGroup(req, res, next) {
     const updatedChat = await ChatDB.findByIdAndUpdate(
       groupId,
       { $addToSet: { groupAdmins: { $each: newAdmins } } },
-
       { new: true }
-    ).populate({
-      path: "users.user groupAdmins.user",
-      select: "-password",
-    });
+    )
+      .populate({
+        path: "users.user groupAdmins.user deletedInfos.user initiator unreadInfos.user",
+        select: "-password",
+      })
+      .populate({
+        path: "latestMessage",
+        populate: {
+          path: "sender",
+          select: "-password",
+        },
+      })
+      .lean();
 
     resJson(res, 200, "Success add admin to group chat.", updatedChat);
   } catch (error) {

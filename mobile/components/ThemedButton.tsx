@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "semibold",
   },
   secondary: {
     backgroundColor: "#ccc",

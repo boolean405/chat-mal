@@ -11,10 +11,11 @@ export default async function leaveGroup(req, res, next) {
     if (!dbGroup) throw resError(404, "Group chat not found!");
 
     // Check if user is member
-    const isMember = dbGroup.users.some(
-      (u) => u.user.toString() === user._id.toString()
-    );
+    const isMember = dbGroup.users.some((u) => u.user.equals(user._id));
     if (!isMember) throw resError(403, "You are not a member of this group!");
+
+    // Check if user is leader
+    const isLeader = dbGroup.initiator.toString() === user._id.toString();
 
     // Check if user is admin
     const isAdmin = dbGroup.groupAdmins.some(
@@ -61,7 +62,18 @@ export default async function leaveGroup(req, res, next) {
         (a, b) => new Date(a.joinedAt) - new Date(b.joinedAt)
       );
       const newAdminUser = sortedUsers[0]?.user;
-      if (newAdminUser) {
+      if (newAdminUser && isLeader) {
+        console.log("leader leave group");
+
+        await ChatDB.findByIdAndUpdate(groupId, {
+          $addToSet: {
+            groupAdmins: { user: newAdminUser, joinedAt: new Date() },
+          },
+          $set: { initiator: newAdminUser },
+        });
+      } else if (newAdminUser) {
+        console.log("admin leave group");
+
         await ChatDB.findByIdAndUpdate(groupId, {
           $addToSet: {
             groupAdmins: { user: newAdminUser, joinedAt: new Date() },

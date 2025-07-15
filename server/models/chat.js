@@ -11,6 +11,7 @@ const chatSchema = new Schema(
     users: [
       {
         user: { type: Schema.Types.ObjectId, ref: "user", required: true },
+        
         joinedAt: { type: Date, default: Date.now },
       },
     ],

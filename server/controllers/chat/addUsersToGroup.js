@@ -37,7 +37,6 @@ export default async function addUsersToGroup(req, res, next) {
     const updatedChat = await ChatDB.findByIdAndUpdate(
       groupId,
       { $addToSet: { users: { $each: newUsers } } },
-
       { new: true }
     )
       .populate({
@@ -50,7 +49,8 @@ export default async function addUsersToGroup(req, res, next) {
           path: "sender",
           select: "-password",
         },
-      });
+      })
+      .lean();
 
     return resJson(res, 200, "Success add user to group chat.", updatedChat);
   } catch (error) {

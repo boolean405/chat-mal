@@ -20,6 +20,7 @@ import getChat from "../controllers/chat/getChat.js";
 import getPaginateRequestChats from "../controllers/chat/getPaginateRequestChat.js";
 import acceptChatRequest from "../controllers/chat/acceptChatRequest.js";
 import readChat from "../controllers/chat/readChat.js";
+import removeAdminFromGroup from "../controllers/chat/removeAdminFromGroup.js";
 
 router.post(
   "/",
@@ -74,7 +75,7 @@ router.patch(
   addAdminsToGroup
 );
 router.patch(
-  "/remove-users-from-group",
+  "/remove-user-from-group",
   validateToken(),
   validateBody(ChatSchema.removeUserFromGroup),
   removeUserFromGroup
@@ -102,6 +103,13 @@ router.patch(
   validateToken(),
   validateBody(ChatSchema.readChat),
   readChat
+);
+
+router.patch(
+  "/remove-admin-from-group",
+  validateToken(),
+  validateBody(ChatSchema.removeAdminFromGroup),
+  removeAdminFromGroup
 );
 
 export default router;
