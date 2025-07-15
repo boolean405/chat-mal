@@ -131,9 +131,9 @@ export default function Member() {
       const data = await addUsersToGroup(chatId, userIds);
       if (data.status) {
         updateChat(data.result);
-        ToastAndroid.show(data.message, ToastAndroid.SHORT);
         setIsAddMode(false);
         setSelectedUsers([]);
+        ToastAndroid.show(data.message, ToastAndroid.SHORT);
       }
     } catch (err: any) {
       ToastAndroid.show(err.message, ToastAndroid.SHORT);
@@ -189,7 +189,7 @@ export default function Member() {
           style: "cancel",
         },
         {
-          text: "OK",
+          text: "Remove",
           style: "destructive",
           onPress: async () => {
             setIsLoading(true);
