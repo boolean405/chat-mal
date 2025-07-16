@@ -116,11 +116,7 @@ export default function Home() {
     // Listen for socket connection
     socket.on("connect", async () => {
       console.log("✅ Connected to socket.io.");
-
-     
     });
-
-    
 
     // Socket connection error
     socket.on("connect_error", (err) => {
@@ -233,7 +229,7 @@ export default function Home() {
 
           // Then sync with backend
           try {
-            await readChat(chat._id);
+            // await readChat(chat._id);
           } catch (error: any) {
             ToastAndroid.show(error.message, ToastAndroid.SHORT);
           }

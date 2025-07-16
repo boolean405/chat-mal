@@ -1,7 +1,5 @@
 import MessageDB from "../../models/message.js";
-import ChatDB from "../../models/chat.js";
 import resJson from "../../utils/resJson.js";
-import { getIO } from "../../config/socket.js";
 
 export default async function messageDelivered(req, res, next) {
   try {
@@ -13,7 +11,7 @@ export default async function messageDelivered(req, res, next) {
       {
         chat: chatId,
         sender: { $ne: user._id },
-        status: { $in: ["sent"] },
+        status: { $in: "sent" },
       },
       { $set: { status: "delivered" } }
     );
@@ -39,28 +37,6 @@ export default async function messageDelivered(req, res, next) {
           ],
         },
       ]);
-
-    const chat = await ChatDB.findById(chatId)
-      .populate({
-        path: "users.user deletedInfos.user unreadInfos.user initiator",
-        select: "-password",
-      })
-      .populate({
-        path: "latestMessage",
-        populate: {
-          path: "sender",
-          select: "-password",
-        },
-      });
-
-    const io = getIO();
-    // const io = req.app.get("io");
-    if (io && messages.length > 0) {
-      io.to(chatId).emit("messages-delivered", {
-        chatId,
-        messages,
-      });
-    }
 
     return resJson(res, 200, "Messages marked as delivered.", messages);
   } catch (error) {

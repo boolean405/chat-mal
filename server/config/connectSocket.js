@@ -3,6 +3,7 @@ import Token from "../utils/token.js";
 import Redis from "./redisClient.js";
 
 import fetchAll from "../socket/fetchAll.js";
+import readChatService from "../services/readChatService.js";
 
 const ONLINE_USERS_KEY = "onlineUsers";
 
@@ -37,10 +38,29 @@ export default function connectSocket(io) {
       io.emit("online-users", onlineUserIds);
 
       // Join chat
-      socket.on("join-chat", (chatId) => {
-        socket.join(chatId);
-        console.log(user.name, "joined chat =>", chatId);
+      socket.on("join-chat", async (chatId) => {
+        // socket.join(chatId);
         socket.emit("join-chat");
+        // console.log(user.name, "joined chat =>", chatId);
+
+        // mark as read chat and messages status
+        try {
+          socket.join(chatId);
+          console.log(user.name, "joined chat =>", chatId);
+
+          const updatedChat = await readChatService(user._id, chatId);
+
+          io.emit("messages-seen", {
+            userId: user._id,
+            chatId,
+          });
+        } catch (err) {
+          console.error("Join-chat error:", err.message || err);
+          socket.emit("error", {
+            message: err.message || "Failed to join chat",
+            status: err.status || 500,
+          });
+        }
       });
 
       // message chat
@@ -62,7 +82,6 @@ export default function connectSocket(io) {
       // Fetch all after online
       socket.on("fetch-all", () => fetchAll(io, socket));
 
-   
       // Disconnect
       socket.on("disconnect", async () => {
         // Remove user from Redis online users hash

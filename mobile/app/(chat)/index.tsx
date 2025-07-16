@@ -137,14 +137,40 @@ export default function ChatMessage() {
       }
     };
 
-    socket.on("receive-message", handleReceiveMessage);
+    const handleMessagesSeen = ({
+      userId,
+      chatId: seenChatId,
+    }: {
+      userId: string;
+      chatId: string;
+    }) => {
+      const currentUserId = useAuthStore.getState().user?._id;
+
+      if (!currentUserId || userId === currentUserId) return;
+
+      // Update message status in chat screen
+      useMessageStore
+        .getState()
+        .updateMessagesStatusToSeen(seenChatId, currentUserId);
+
+      // Update chat preview in chat list screen
+      useChatStore
+        .getState()
+        .markChatLastMessageSeen(seenChatId, currentUserId);
+      console.log("handleMessagesSeen called");
+    };
+
     socket.on("typing", handleTyping);
     socket.on("stop-typing", handleStopTyping);
+    socket.on("messages-seen", handleMessagesSeen);
+    socket.on("receive-message", handleReceiveMessage);
+    // socket.emit("messages-seen", {userId: user._id, chatId });
 
     return () => {
-      socket.off("receive-message", handleReceiveMessage);
       socket.off("typing", handleTyping);
       socket.off("stop-typing", handleStopTyping);
+      socket.off("messages-seen", handleMessagesSeen);
+      socket.off("receive-message", handleReceiveMessage);
     };
   }, [socket, chatId, user]);
 

@@ -2,7 +2,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Chat } from "@/types";
+import { Chat, Message } from "@/types";
 import { useAuthStore } from "./authStore";
 
 interface ChatStore {
@@ -12,6 +12,7 @@ interface ChatStore {
   totalUnreadCount: number;
   requestUnreadCount: number;
   setOnlineUserIds: (ids: string[]) => void;
+  markChatLastMessageSeen: (chatId: string, currentUserId: string) => void;
   updateUserLastOnlineAt: (userId: string, lastOnlineAt: Date) => void;
   setChats: (newChats: Chat[]) => void;
   updateChat: (updatedChat: Chat) => void;
@@ -106,6 +107,31 @@ export const useChatStore = create<ChatStore>()(
 
         setOnlineUserIds: (ids) => set({ onlineUserIds: ids }),
 
+        // mark chat latest message to seen
+        markChatLastMessageSeen: (chatId: string, currentUserId: string) =>
+          set((state) => {
+            const updatedChats = state.chats.map((chat) => {
+              if (
+                chat._id === chatId &&
+                (chat.latestMessage?.sender._id ||
+                  chat.latestMessage?.sender) === currentUserId &&
+                chat.latestMessage?.status !== "seen"
+              ) {
+                return {
+                  ...chat,
+                  latestMessage: {
+                    ...chat.latestMessage,
+                    status: "seen",
+                  },
+                };
+              }
+              return chat;
+            });
+
+            return { chats: updatedChats };
+          }),
+
+        // Update user last online time
         updateUserLastOnlineAt: (userId, lastOnlineAt) =>
           set((state) => {
             const updatedChats = state.chats.map((chat) => {

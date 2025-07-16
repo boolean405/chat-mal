@@ -5,7 +5,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Message } from "@/types";
 
 interface MessageState {
-  messages: Record<string, Message[]>; // Key is chatId, value is messages array
+  messages: Record<string, Message[]>;
+  updateMessagesStatusToSeen: (chatId: string, currentUserId: string) => void;
   setMessages: (chatId: string, msgs: Message[]) => void;
   addMessage: (chatId: string, msg: Message) => void;
   prependMessages: (chatId: string, msgs: Message[]) => void;
@@ -17,6 +18,29 @@ export const useMessageStore = create<MessageState>()(
   persist(
     (set) => ({
       messages: {},
+
+      updateMessagesStatusToSeen: (chatId: string, currentUserId: string) =>
+        set((state) => {
+          const prevMessages = state.messages[chatId] || [];
+
+          const updatedMessages = prevMessages.map((msg) => {
+            if (
+              (msg.sender._id || msg.sender) === currentUserId &&
+              msg.status !== "seen"
+            ) {
+              return { ...msg, status: "seen" };
+            }
+            return msg;
+          });
+
+          return {
+            messages: {
+              ...state.messages,
+              [chatId]: updatedMessages,
+            },
+          };
+        }),
+
       setMessages: (chatId, msgs) =>
         set((state) => ({
           messages: {
