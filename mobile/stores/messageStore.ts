@@ -6,6 +6,7 @@ import { Message } from "@/types";
 
 interface MessageState {
   messages: Record<string, Message[]>;
+  markMessagesAsSeen: (chatId: string, seenByUserId: string) => void;
   setMessages: (chatId: string, msgs: Message[]) => void;
   addMessage: (chatId: string, msg: Message) => void;
   prependMessages: (chatId: string, msgs: Message[]) => void;
@@ -17,6 +18,25 @@ export const useMessageStore = create<MessageState>()(
   persist(
     (set) => ({
       messages: {},
+
+      markMessagesAsSeen: (chatId: string, seenByUserId: string) =>
+        set((state) => {
+          const chatMessages = state.messages[chatId] || [];
+
+          const updatedMessages = chatMessages.map((msg) =>
+            (msg.sender._id || msg.sender) !== seenByUserId &&
+            msg.status !== "seen"
+              ? { ...msg, status: "seen" }
+              : msg
+          );
+
+          return {
+            messages: {
+              ...state.messages,
+              [chatId]: updatedMessages,
+            },
+          };
+        }),
 
       setMessages: (chatId, msgs) =>
         set((state) => ({

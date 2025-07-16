@@ -38,27 +38,20 @@ export default function connectSocket(io) {
 
       // Join chat
       socket.on("join-chat", async (chatId) => {
-        // socket.join(chatId);
+        socket.join(chatId);
         socket.emit("join-chat");
-        // console.log(user.name, "joined chat =>", chatId);
 
-        // mark as read chat and messages status
+        // Mark read chat
         try {
-          socket.join(chatId);
-          console.log(user.name, "joined chat =>", chatId);
+          const updatedChat = await readChatService(socket.user._id, chatId);
 
-          const updatedChat = await readChatService(user._id, chatId);
-
-          io.emit("messages-seen", {
-            userId: user._id,
+          // Emit to all users in that chat (except the one who triggered it)
+          socket.to(chatId).emit("chat-read", {
             chatId,
+            userId: socket.user._id,
           });
         } catch (err) {
-          console.error("Join-chat error:", err.message || err);
-          socket.emit("error", {
-            message: err.message || "Failed to join chat",
-            status: err.status || 500,
-          });
+          console.error("Error in readChatService:", err.message);
         }
       });
 

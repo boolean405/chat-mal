@@ -60,6 +60,7 @@ export default function ChatMessage() {
     addMessage,
     prependMessages,
     setMessages,
+    markMessagesAsSeen,
   } = useMessageStore();
 
   // Get messages for current chat from store
@@ -137,27 +138,25 @@ export default function ChatMessage() {
       }
     };
 
-    const handleMessagesSeen = ({
+    const handleChatRead = ({
+      chatId,
       userId,
-      chatId: seenChatId,
     }: {
-      userId: string;
       chatId: string;
+      userId: string;
     }) => {
-      const currentUserId = useAuthStore.getState().user?._id;
-      if (!currentUserId || userId === currentUserId) return;
-      console.log("handleMessagesSeen called", userId, seenChatId);
+      markMessagesAsSeen(chatId, userId);
     };
 
     socket.on("typing", handleTyping);
+    socket.on("chat-read", handleChatRead);
     socket.on("stop-typing", handleStopTyping);
-    socket.on("messages-seen", handleMessagesSeen);
     socket.on("receive-message", handleReceiveMessage);
 
     return () => {
       socket.off("typing", handleTyping);
+      socket.off("chat-read", handleChatRead);
       socket.off("stop-typing", handleStopTyping);
-      socket.off("messages-seen", handleMessagesSeen);
       socket.off("receive-message", handleReceiveMessage);
     };
   }, [socket, chatId, user]);
