@@ -10,6 +10,7 @@ import {
 
 import createMessage from "../controllers/message/createMessage.js";
 import getPaginateMessages from "../controllers/message/getPaginateMessages.js";
+import messageDelivered from "../controllers/message/messageDelivered.js";
 
 router.post(
   "/",
@@ -24,6 +25,13 @@ router.get(
   validateParam(MessageSchema.params.chatId, "chatId"),
   validateParam(MessageSchema.params.pageNum, "pageNum"),
   getPaginateMessages
+);
+
+router.patch(
+  "/delivered",
+  validateToken(),
+  validateBody(MessageSchema.messageDelivered),
+  messageDelivered
 );
 
 export default router;

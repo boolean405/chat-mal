@@ -4,14 +4,20 @@ const { Schema } = mongoose;
 const messageSchema = new Schema(
   {
     sender: { type: Schema.Types.ObjectId, require: true, ref: "user" },
+    content: { type: String, require: true, trim: true },
+    chat: { type: Schema.Types.ObjectId, ref: "chat" },
     type: {
       type: String,
       require: true,
       enum: ["text", "image"],
       default: "text",
     },
-    content: { type: String, require: true, trim: true },
-    chat: { type: Schema.Types.ObjectId, ref: "chat" },
+    status: {
+      type: String,
+      require: true,
+      enum: ["pending", "sent", "delivered", "seen", "failed"],
+      default: "sent",
+    },
   },
   {
     timestamps: true,

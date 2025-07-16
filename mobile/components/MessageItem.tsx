@@ -76,7 +76,11 @@ export default function MessageItem({
                   ? "checkmark-done"
                   : item.status === "delivered"
                   ? "checkmark-done-outline"
-                  : "checkmark-outline"
+                  : item.status === "sent"
+                  ? "checkmark-outline"
+                  : item.status === "pending"
+                  ? "time-outline"
+                  : "alert-outline"
               }
               size={14}
               color={item.status === "seen" ? "#34B7F1" : "#888"}

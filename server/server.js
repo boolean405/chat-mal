@@ -26,4 +26,5 @@ mongoose.connection.once("open", () => {
 
 // Setup socket
 initSocket(io);
+app.set("io", io);
 connectSocket(io);

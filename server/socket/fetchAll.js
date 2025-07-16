@@ -1,20 +1,22 @@
 import ChatDB from "../models/chat.js";
 import MessageDB from "../models/message.js";
 
-export default async function fetchAll(socket) {
+export default async function fetchAll(io, socket) {
   try {
-    const userId = socket.user._id;
+    const userId = socket.user._id.toString();
+    const ONLINE_USERS_KEY = "onlineUsers";
 
+    // Get all chats this user is part of
     const chats = await ChatDB.find({ "users.user": userId });
 
     for (const chat of chats) {
       const unreadInfo = chat.unreadInfos?.find(
-        (info) => info.user.toString() === userId.toString()
+        (info) => info.user.toString() === userId
       );
 
       if (unreadInfo?.count > 0) {
         const deletedInfo = chat.deletedInfos?.find(
-          (info) => info.user.toString() === userId.toString()
+          (info) => info.user.toString() === userId
         );
         const deletedAt = deletedInfo?.deletedAt || null;
 
@@ -43,6 +45,29 @@ export default async function fetchAll(socket) {
       // Emit the chat (even if no unread messages)
       socket.emit("new-chat", { chat });
     }
+
+    // Mark as delivered when online
+    // for (const chat of chats) {
+    //   const messages = await MessageDB.find({
+    //     chat: chat._id,
+    //     sender: { $ne: userId }, // messages not sent by this user
+    //     createdAt: { $gt: socket.user.lastOnlineAt || new Date(0) }, // new messages
+    //   });
+
+    //   for (const message of messages) {
+    //     // Notify the sender if online
+    //     const senderSocketId = await Redis.hGet(
+    //       ONLINE_USERS_KEY,
+    //       message.sender.toString()
+    //     );
+    //     if (senderSocketId) {
+    //       io.to(senderSocketId).emit("message-delivered", {
+    //         messageId: message._id,
+    //         // deliveredTo: userId,
+    //       });
+    //     }
+    //   }
+    // }
   } catch (err) {
     console.error("❌ Failed to resend messages:", err.message);
     socket.emit("error", { message: "Could not sync missed messages." });

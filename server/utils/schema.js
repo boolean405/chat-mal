@@ -200,6 +200,11 @@ export const MessageSchema = {
       otherwise: Joi.string().uri().required(), // assumes URL for image/video
     }),
   }),
+
+  messageDelivered: Joi.object({
+    chatId: Joi.string().length(24).hex().required(),
+  }),
+
   params: {
     pageNum: Joi.object({
       pageNum: Joi.string().min(1).required(),

@@ -28,6 +28,7 @@ import { useBottomSheetActions } from "@/hooks/useBottomSheetActions";
 import { socket } from "@/config/socket";
 import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
 import { useMessageStore } from "@/stores/messageStore";
+import { messageDelivered } from "@/api/message";
 
 // Stories data - consider moving to a separate file or API call
 const stories: Story[] = [
@@ -54,7 +55,7 @@ export default function Home() {
   // const user = useAuthStore((state) => state.user);
   // const accessToken = useAuthStore((state) => state.accessToken);
   const { user, accessToken } = useAuthStore();
-  const { addMessage, clearMessages } = useMessageStore();
+  const { addMessage, clearMessages, setMessages } = useMessageStore();
 
   const {
     chats,
@@ -113,9 +114,13 @@ export default function Home() {
     }
 
     // Listen for socket connection
-    socket.on("connect", () => {
+    socket.on("connect", async () => {
       console.log("✅ Connected to socket.io.");
+
+     
     });
+
+    
 
     // Socket connection error
     socket.on("connect_error", (err) => {
@@ -123,7 +128,7 @@ export default function Home() {
     });
 
     // Online users
-    socket.on("online-users", (userIds: string[]) => {
+    socket.on("online-users", async (userIds: string[]) => {
       console.log("🟢 Online user count:", userIds.length);
       setOnlineUserIds(userIds);
 

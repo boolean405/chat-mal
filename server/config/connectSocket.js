@@ -60,8 +60,9 @@ export default function connectSocket(io) {
       });
 
       // Fetch all after online
-      socket.on("fetch-all", () => fetchAll(socket));
+      socket.on("fetch-all", () => fetchAll(io, socket));
 
+   
       // Disconnect
       socket.on("disconnect", async () => {
         // Remove user from Redis online users hash
