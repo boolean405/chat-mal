@@ -1,11 +1,10 @@
 import UserDB from "../models/user.js";
 import Token from "../utils/token.js";
 import Redis from "./redisClient.js";
+import { ONLINE_USERS_KEY } from "../constants/index.js";
 
 import fetchAll from "../socket/fetchAll.js";
 import readChatService from "../services/readChatService.js";
-
-const ONLINE_USERS_KEY = "onlineUsers";
 
 export default function connectSocket(io) {
   io.of("/")

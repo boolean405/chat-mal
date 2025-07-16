@@ -145,26 +145,14 @@ export default function ChatMessage() {
       chatId: string;
     }) => {
       const currentUserId = useAuthStore.getState().user?._id;
-
       if (!currentUserId || userId === currentUserId) return;
-
-      // Update message status in chat screen
-      useMessageStore
-        .getState()
-        .updateMessagesStatusToSeen(seenChatId, currentUserId);
-
-      // Update chat preview in chat list screen
-      useChatStore
-        .getState()
-        .markChatLastMessageSeen(seenChatId, currentUserId);
-      console.log("handleMessagesSeen called");
+      console.log("handleMessagesSeen called", userId, seenChatId);
     };
 
     socket.on("typing", handleTyping);
     socket.on("stop-typing", handleStopTyping);
     socket.on("messages-seen", handleMessagesSeen);
     socket.on("receive-message", handleReceiveMessage);
-    // socket.emit("messages-seen", {userId: user._id, chatId });
 
     return () => {
       socket.off("typing", handleTyping);
