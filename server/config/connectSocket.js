@@ -77,9 +77,6 @@ export default function connectSocket(io) {
         if (userInChatId === chatId) {
           await Redis.hDel(REDIS_USER_ACTIVE_CHATS_KEY, user._id.toString());
         }
-
-        // Optionally log
-        console.log(`${socket.user.name} left chat ${chatId}`);
       });
 
       // message chat

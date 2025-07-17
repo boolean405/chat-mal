@@ -134,7 +134,8 @@ export default function Home() {
 
     // Listen for latestMessage updates
     socket.on("new-message", ({ chatId, message }) => {
-      updateChat(message.chat);
+      if (getChatById(chatId)) updateChat(message.chat);
+      else setChats([message.chat]);
       addMessage(chatId, message);
     });
 
@@ -148,20 +149,6 @@ export default function Home() {
       if (!getChatById(chat._id)) {
         setChats([chat]);
       }
-    });
-
-    // Recive new message
-    socket.on("receive-message", ({ message }) => {
-      console.log("receive-message", message.content);
-
-      // updateChat(message.chat);
-
-      // setChats([message.chat]);
-      // addMessage(message.chat._id, message);
-    });
-
-    socket.on("error", ({ message }) => {
-      console.log("❌ Socket error:", message);
     });
 
     // Remove chat
@@ -182,16 +169,20 @@ export default function Home() {
       );
     });
 
+    socket.on("error", ({ message }) => {
+      console.log("❌ Socket error:", message);
+    });
+
     // 🧼 Clean up all listeners on unmount
     return () => {
       socket.disconnect();
       socket.off("connect");
       socket.off("connect_error");
       socket.off("online-users");
-      socket.off("new-messages");
+      socket.off("new-message");
       socket.off("user-went-offline");
       socket.off("new-chat");
-      socket.off("receive-message");
+      socket.off("remove-member");
       socket.off("fetch-all");
       socket.off("error");
       socket.off("remove-chat");

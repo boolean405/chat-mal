@@ -210,18 +210,54 @@ export const useChatStore = create<ChatStore>()(
           }),
 
         clearChat: (chatId) =>
-          set((state) => ({
-            chats: state.chats.filter((chat) => chat._id !== chatId),
-            currentChat:
-              state.currentChat?._id === chatId ? null : state.currentChat,
-          })),
+          set((state) => {
+            const updatedChats = state.chats.filter(
+              (chat) => chat._id !== chatId
+            );
+            const userId = useAuthStore.getState().user?._id || "";
+            const homeChats = filterHomeChats(updatedChats, userId);
+            const totalUnreadCount = calculateTotalUnreadCount(
+              homeChats,
+              userId
+            );
+            const requestUnreadCount = calculateRequestUnreadCount(
+              updatedChats,
+              userId
+            );
+
+            return {
+              chats: updatedChats,
+              currentChat:
+                state.currentChat?._id === chatId ? null : state.currentChat,
+              totalUnreadCount,
+              requestUnreadCount,
+            };
+          }),
 
         clearGroup: (groupId) =>
-          set((state) => ({
-            chats: state.chats.filter((chat) => chat._id !== groupId),
-            currentChat:
-              state.currentChat?._id === groupId ? null : state.currentChat,
-          })),
+          set((state) => {
+            const updatedChats = state.chats.filter(
+              (chat) => chat._id !== groupId
+            );
+            const userId = useAuthStore.getState().user?._id || "";
+            const homeChats = filterHomeChats(updatedChats, userId);
+            const totalUnreadCount = calculateTotalUnreadCount(
+              homeChats,
+              userId
+            );
+            const requestUnreadCount = calculateRequestUnreadCount(
+              updatedChats,
+              userId
+            );
+
+            return {
+              chats: updatedChats,
+              currentChat:
+                state.currentChat?._id === groupId ? null : state.currentChat,
+              totalUnreadCount,
+              requestUnreadCount,
+            };
+          }),
 
         clearChats: () => set({ chats: [], currentChat: null }),
 

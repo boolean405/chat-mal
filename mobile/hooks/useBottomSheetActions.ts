@@ -55,6 +55,7 @@ export function useBottomSheetActions({
                 ToastAndroid.show(data.message, ToastAndroid.SHORT);
                 clearChat(chat._id);
                 clearMessages(chat._id);
+                
               }
               resolve();
             })();

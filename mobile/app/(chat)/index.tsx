@@ -61,6 +61,7 @@ export default function ChatMessage() {
     prependMessages,
     setMessages,
     markMessagesAsSeen,
+    clearMessages,
   } = useMessageStore();
 
   // Get messages for current chat from store
