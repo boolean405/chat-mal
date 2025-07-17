@@ -81,10 +81,6 @@ export default function connectSocket(io) {
 
       // message chat
       socket.on("send-message", async ({ chatId, message }) => {
-        // Emit message to all clients in chat
-        io.to(chatId).emit("receive-message", { message });
-
-        // Check if all chat participants are active in this chat
         const chat = await ChatDB.findById(chatId);
         if (!chat) return;
 
@@ -92,16 +88,23 @@ export default function connectSocket(io) {
           .filter((u) => !u.user.equals(user._id))
           .map((u) => u.user.toString());
 
+        let updatedStatus = "sent"; // default fallback
+
         for (const otherUserId of otherUsers) {
-          const otherUserChatId = await Redis.hGet(
+          const socketId = await Redis.hGet(
+            REDIS_ONLINE_USERS_KEY,
+            otherUserId
+          );
+          const isOnline = !!socketId;
+
+          const activeChatId = await Redis.hGet(
             REDIS_USER_ACTIVE_CHATS_KEY,
             otherUserId
           );
+          const isInChat = activeChatId === chatId;
 
-          const userInChat = otherUserChatId === chatId;
-
-          if (userInChat) {
-            // Mark as seen
+          if (isInChat) {
+            // Update status to 'seen'
             await MessageDB.updateMany(
               {
                 chat: chatId,
@@ -111,19 +114,49 @@ export default function connectSocket(io) {
               { $set: { status: "seen" } }
             );
 
-            // Reset unread count
             await ChatDB.updateOne(
               { _id: chatId, "unreadInfos.user": otherUserId },
               { $set: { "unreadInfos.$.count": 0 } }
             );
 
-            // Emit read status
             io.to(chatId).emit("chat-read", {
               chatId,
               userId: otherUserId,
             });
-          } else {
-            io.emit("new-message", { chatId, message });
+
+            updatedStatus = "seen";
+          } else if (isOnline) {
+            // Update status to 'delivered'
+            await MessageDB.updateOne(
+              { _id: message._id },
+              { $set: { status: "delivered" } }
+            );
+            updatedStatus = "delivered";
+          }
+        }
+
+        // Update local `message` object before broadcasting
+        const updatedMessage = {
+          ...message,
+          status: updatedStatus,
+        };
+
+        // Broadcast to all clients in the chat (including sender)
+        io.to(chatId).emit("receive-message", {
+          message: updatedMessage,
+        });
+
+        // Also send to clients not in the chat (e.g. to update preview in home screen)
+        for (const otherUserId of otherUsers) {
+          const socketId = await Redis.hGet(
+            REDIS_ONLINE_USERS_KEY,
+            otherUserId
+          );
+          if (socketId) {
+            io.to(socketId).emit("new-message", {
+              chatId,
+              message: updatedMessage,
+            });
           }
         }
       });
