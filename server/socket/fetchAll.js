@@ -1,7 +1,10 @@
 import ChatDB from "../models/chat.js";
 import MessageDB from "../models/message.js";
 import Redis from "../config/redisClient.js"; // make sure Redis is imported
-import { REDIS_ONLINE_USERS_KEY } from "../constants/index.js";
+import {
+  REDIS_ONLINE_USERS_KEY,
+  REDIS_USER_ACTIVE_CHATS_KEY,
+} from "../constants/index.js";
 
 export default async function fetchAll(io, socket) {
   try {
@@ -11,16 +14,24 @@ export default async function fetchAll(io, socket) {
     const chats = await ChatDB.find({ "users.user": userId });
 
     for (const chat of chats) {
+      // Check if user is currently viewing this chat screen
+      const recipientChatId = chat._id.toString();
+      const currentChatId = await Redis.hGet(
+        REDIS_USER_ACTIVE_CHATS_KEY,
+        userId
+      );
+      const isInChatScreen = currentChatId === recipientChatId;
+      const newStatus = isInChatScreen ? "seen" : "delivered";
+
+      // Unreads
       const unreadInfo = chat.unreadInfos?.find(
         (info) => info.user.toString() === userId
       );
-
       if (unreadInfo?.count > 0) {
         const deletedInfo = chat.deletedInfos?.find(
           (info) => info.user.toString() === userId
         );
         const deletedAt = deletedInfo?.deletedAt || null;
-
         const messages = await MessageDB.find({
           chat: chat._id,
           ...(deletedAt && { createdAt: { $gt: deletedAt } }),
@@ -42,14 +53,13 @@ export default async function fetchAll(io, socket) {
           });
 
         for (const msg of messages.reverse()) {
-          // Update status to delivered
+          // Update status to real status
           await MessageDB.updateOne(
             { _id: msg._id },
-            { $set: { status: "delivered" } }
+            { $set: { status: newStatus } }
           );
 
-          // Emit to the current (receiver) user
-          const updatedMessage = { ...msg.toObject(), status: "delivered" };
+          const updatedMessage = { ...msg.toObject(), status: newStatus };
           socket.emit("receive-message", { message: updatedMessage });
 
           socket.emit("new-message", {
@@ -57,7 +67,6 @@ export default async function fetchAll(io, socket) {
             message: updatedMessage,
           });
 
-          // Notify sender if they're online
           const senderId = msg.sender._id.toString();
           const senderSocketId = await Redis.hGet(
             REDIS_ONLINE_USERS_KEY,

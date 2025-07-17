@@ -62,7 +62,7 @@ export const LogoutButton: React.FC = () => {
 const styles = StyleSheet.create({
   button: {
     flexDirection: "row",
-    paddingVertical: 14,
+    paddingVertical: 12,
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",

@@ -20,17 +20,17 @@ export const WalletTab: React.FC<Props> = ({
     <ThemedView
       style={[styles.walletInfo, { backgroundColor: backgroundColor }]}
     >
-      <ThemedText style={[styles.walletLabel, { color: tint }]}>
-        Wallet Balance
+      <ThemedText type="large" style={[styles.walletLabel, { color: tint }]}>
+        Balance
       </ThemedText>
-      <ThemedText style={[styles.walletAmount, { color: tint }]}>
+      <ThemedText type="larger" style={[styles.walletAmount, { color: tint }]}>
         ${balance.toFixed(2)}
       </ThemedText>
     </ThemedView>
     <TouchableOpacity style={styles.addMoneyButton}>
       <Ionicons name="add-circle-outline" size={28} color={tint} />
-      <ThemedText style={[styles.addMoneyText, { color: tint }]}>
-        Add Money
+      <ThemedText type="large" style={[styles.addMoneyText, { color: tint }]}>
+        Deposit
       </ThemedText>
     </TouchableOpacity>
   </ThemedView>
@@ -51,12 +51,10 @@ const styles = StyleSheet.create({
     marginLeft: 15,
   },
   walletLabel: {
-    fontSize: 14,
     fontWeight: "600",
   },
   walletAmount: {
-    fontSize: 26,
-    fontWeight: "700",
+    fontWeight: "bold",
     marginTop: 4,
   },
   addMoneyButton: {
@@ -64,7 +62,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   addMoneyText: {
-    fontSize: 16,
     fontWeight: "600",
     marginLeft: 6,
   },
