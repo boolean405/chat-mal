@@ -2,7 +2,6 @@ import ChatDB from "../../models/chat.js";
 import resJson from "../../utils/resJson.js";
 import resError from "../../utils/resError.js";
 import Redis from "../../config/redisClient.js";
-import { getIO } from "../../config/socket.js";
 
 export default async function removeUserFromGroup(req, res, next) {
   try {
@@ -73,9 +72,9 @@ export default async function removeUserFromGroup(req, res, next) {
     console.log(updatedGroup);
 
     // Real-time: Emit to other chat members
-    const io = getIO();
+    const io = req.app.get("io");
     const socketId = await Redis.hGet("onlineUsers", targetUserId);
-    if (socketId) io.to(socketId).emit("remove-member", { chat: updatedGroup });
+    if (socketId) io.to(socketId).emit("remove-chat", { chat: updatedGroup });
 
     return resJson(
       res,

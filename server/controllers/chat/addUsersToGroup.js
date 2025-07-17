@@ -2,7 +2,6 @@ import UserDB from "../../models/user.js";
 import ChatDB from "../../models/chat.js";
 import resJson from "../../utils/resJson.js";
 import resError from "../../utils/resError.js";
-import { getIO } from "../../config/socket.js";
 import Redis from "../../config/redisClient.js";
 
 export default async function addUsersToGroup(req, res, next) {
@@ -56,7 +55,7 @@ export default async function addUsersToGroup(req, res, next) {
       .lean();
 
     // Real-time: Emit to other chat members
-    // const io = getIO();
+    // const io = req.app.get('io');
     // await Promise.all(
     //   updatedChat.users.map(async (entry) => {
     //     const userId = entry.user?._id?.toString?.() || entry.user.toString();

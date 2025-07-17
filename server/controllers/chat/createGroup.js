@@ -2,7 +2,6 @@ import UserDB from "../../models/user.js";
 import ChatDB from "../../models/chat.js";
 import resJson from "../../utils/resJson.js";
 import resError from "../../utils/resError.js";
-import { getIO } from "../../config/socket.js";
 import Redis from "../../config/redisClient.js";
 
 export default async function createGroup(req, res, next) {
@@ -58,7 +57,7 @@ export default async function createGroup(req, res, next) {
     });
 
     // Real-time notifications to other users
-    const io = getIO();
+    const io = req.app.get("io");
     await Promise.all(
       groupChat.users.map(async (member) => {
         const memberId = member.user._id.toString();

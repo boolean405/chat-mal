@@ -152,20 +152,13 @@ export default function Home() {
     });
 
     // Remove chat
-    socket.on("remove-member", ({ chat }) => {
+    socket.on("remove-chat", ({ chat }) => {
       clearMessages(chat._id);
       clearChat(chat._id);
-      Alert.alert(
-        "Kicked From Group",
-        `You have been kicked from '${chat.name}' group!`,
-        [
-          {
-            text: "OK",
-            onPress: () => {
-              router.replace("/(tab)");
-            },
-          },
-        ]
+      router.replace("/(tab)");
+      ToastAndroid.show(
+        `You have been removed from ${chat.name}`,
+        ToastAndroid.SHORT
       );
     });
 
@@ -182,7 +175,6 @@ export default function Home() {
       socket.off("new-message");
       socket.off("user-went-offline");
       socket.off("new-chat");
-      socket.off("remove-member");
       socket.off("fetch-all");
       socket.off("error");
       socket.off("remove-chat");

@@ -5,7 +5,6 @@ import { Server } from "socket.io";
 
 import app from "./app.js";
 import connectDB from "./config/connectDB.js";
-import { initSocket } from "./config/socket.js";
 import { Migrator } from "./migrations/migrator.js";
 import connectSocket from "./config/connectSocket.js";
 
@@ -25,6 +24,5 @@ mongoose.connection.once("open", () => {
 });
 
 // Setup socket
-initSocket(io);
 app.set("io", io);
 connectSocket(io);
