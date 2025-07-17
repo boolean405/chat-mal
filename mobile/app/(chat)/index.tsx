@@ -158,6 +158,7 @@ export default function ChatMessage() {
       socket.off("chat-read", handleChatRead);
       socket.off("stop-typing", handleStopTyping);
       socket.off("receive-message", handleReceiveMessage);
+      socket.emit("leave-chat", chatId);
     };
   }, [socket, chatId, user]);
 
@@ -210,6 +211,7 @@ export default function ChatMessage() {
     // Create tmp message
     if (!newMessage.trim() || !chatId || !currentChat) return;
     const tempId = `temp-${Date.now()}`;
+
     const tempMessage: Message = {
       _id: tempId,
       content: newMessage.trim(),
@@ -220,14 +222,26 @@ export default function ChatMessage() {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
+
     addMessage(chatId, tempMessage);
     setNewMessage("");
+
     socket.emit("stop-typing", { chatId });
+
+    // Send to server
+    // socket.emit("send-message", {
+    //   chatId,
+    //   message: {
+    //     ...tempMessage,
+    //     status: "sent", // real status server should confirm
+    //   },
+    // });
 
     // Call api message
     try {
       const data = await createMessage(chatId, newMessage.trim());
       const message = data.result;
+      socket.emit("send-message", { chatId, message });
 
       // Replace temp message with the real one
       setMessages(chatId, [

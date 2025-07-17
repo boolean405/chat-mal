@@ -1,7 +1,12 @@
 import UserDB from "../models/user.js";
+import ChatDB from "../models/chat.js";
+import MessageDB from "../models/message.js";
 import Token from "../utils/token.js";
 import Redis from "./redisClient.js";
-import { ONLINE_USERS_KEY } from "../constants/index.js";
+import {
+  REDIS_ONLINE_USERS_KEY,
+  REDIS_USER_ACTIVE_CHATS_KEY,
+} from "../constants/index.js";
 
 import fetchAll from "../socket/fetchAll.js";
 import readChatService from "../services/readChatService.js";
@@ -30,17 +35,21 @@ export default function connectSocket(io) {
       const user = socket.user;
 
       // Add user to Redis set of online users
-      await Redis.hSet(ONLINE_USERS_KEY, user._id.toString(), socket.id);
+      await Redis.hSet(REDIS_ONLINE_USERS_KEY, user._id.toString(), socket.id);
 
       // Broadcast current online users (keys of the hash)
-      const onlineUserIds = await Redis.hKeys(ONLINE_USERS_KEY);
+      const onlineUserIds = await Redis.hKeys(REDIS_ONLINE_USERS_KEY);
       io.emit("online-users", onlineUserIds);
 
       // Join chat
       socket.on("join-chat", async (chatId) => {
         socket.join(chatId);
         socket.emit("join-chat");
-
+        await Redis.hSet(
+          REDIS_USER_ACTIVE_CHATS_KEY,
+          user._id.toString(),
+          chatId
+        );
         // Mark read chat
         try {
           const updatedChat = await readChatService(socket.user._id, chatId);
@@ -55,10 +64,71 @@ export default function connectSocket(io) {
         }
       });
 
+      // Leave chat
+      socket.on("leave-chat", async (chatId) => {
+        socket.leave(chatId);
+
+        const userInChatId = await Redis.hGet(
+          REDIS_USER_ACTIVE_CHATS_KEY,
+          user._id.toString()
+        );
+
+        // Clean up from the active chat tracking map
+        if (userInChatId === chatId) {
+          await Redis.hDel(REDIS_USER_ACTIVE_CHATS_KEY, user._id.toString());
+        }
+
+        // Optionally log
+        console.log(`${socket.user.name} left chat ${chatId}`);
+      });
+
       // message chat
-      socket.on("send-message", ({ chatId, message }) => {
+      socket.on("send-message", async ({ chatId, message }) => {
+        // Emit message to all clients in chat
         io.to(chatId).emit("receive-message", { message });
-        io.emit("new-message", { message });
+
+        // Check if all chat participants are active in this chat
+        const chat = await ChatDB.findById(chatId);
+        if (!chat) return;
+
+        const otherUsers = chat.users
+          .filter((u) => !u.user.equals(user._id))
+          .map((u) => u.user.toString());
+
+        for (const otherUserId of otherUsers) {
+          const otherUserChatId = await Redis.hGet(
+            REDIS_USER_ACTIVE_CHATS_KEY,
+            otherUserId
+          );
+
+          const userInChat = otherUserChatId === chatId;
+
+          if (userInChat) {
+            // Mark as seen
+            await MessageDB.updateMany(
+              {
+                chat: chatId,
+                sender: socket.user._id,
+                status: { $ne: "seen" },
+              },
+              { $set: { status: "seen" } }
+            );
+
+            // Reset unread count
+            await ChatDB.updateOne(
+              { _id: chatId, "unreadInfos.user": otherUserId },
+              { $set: { "unreadInfos.$.count": 0 } }
+            );
+
+            // Emit read status
+            io.to(chatId).emit("chat-read", {
+              chatId,
+              userId: otherUserId,
+            });
+          } else {
+            io.emit("new-message", { chatId, message });
+          }
+        }
       });
 
       // Typing
@@ -77,7 +147,7 @@ export default function connectSocket(io) {
       // Disconnect
       socket.on("disconnect", async () => {
         // Remove user from Redis online users hash
-        await Redis.hDel(ONLINE_USERS_KEY, user._id.toString());
+        await Redis.hDel(REDIS_ONLINE_USERS_KEY, user._id.toString());
         const lastOnlineAt = new Date();
 
         // Save last online timestamp to DB
@@ -86,10 +156,13 @@ export default function connectSocket(io) {
         });
 
         // Send online user back
-        const onlineUserIds = await Redis.hKeys(ONLINE_USERS_KEY);
+        const onlineUserIds = await Redis.hKeys(REDIS_ONLINE_USERS_KEY);
         io.emit("online-users", onlineUserIds);
 
         io.emit("user-went-offline", { userId: user._id, lastOnlineAt });
+
+        // Delete in redis
+        await Redis.hDel(REDIS_USER_ACTIVE_CHATS_KEY, user._id.toString());
       });
     });
 }

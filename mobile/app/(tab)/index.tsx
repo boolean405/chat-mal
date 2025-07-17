@@ -133,9 +133,9 @@ export default function Home() {
     });
 
     // Listen for latestMessage updates
-    socket.on("new-message", ({ message }) => {
+    socket.on("new-message", ({ chatId, message }) => {
       updateChat(message.chat);
-      addMessage(message.chat._id, message);
+      addMessage(chatId, message);
     });
 
     // User offline
@@ -152,8 +152,12 @@ export default function Home() {
 
     // Recive new message
     socket.on("receive-message", ({ message }) => {
-      setChats([message.chat]);
-      addMessage(message.chat._id, message);
+      console.log("receive-message", message.content);
+
+      // updateChat(message.chat);
+
+      // setChats([message.chat]);
+      // addMessage(message.chat._id, message);
     });
 
     socket.on("error", ({ message }) => {
@@ -184,7 +188,7 @@ export default function Home() {
       socket.off("connect");
       socket.off("connect_error");
       socket.off("online-users");
-      socket.off("new-message");
+      socket.off("new-messages");
       socket.off("user-went-offline");
       socket.off("new-chat");
       socket.off("receive-message");

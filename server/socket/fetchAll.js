@@ -1,10 +1,10 @@
 import ChatDB from "../models/chat.js";
 import MessageDB from "../models/message.js";
+import { REDIS_ONLINE_USERS_KEY } from "../constants/index.js";
 
 export default async function fetchAll(io, socket) {
   try {
     const userId = socket.user._id.toString();
-    const ONLINE_USERS_KEY = "onlineUsers";
 
     // Get all chats this user is part of
     const chats = await ChatDB.find({ "users.user": userId });
@@ -57,7 +57,7 @@ export default async function fetchAll(io, socket) {
     //   for (const message of messages) {
     //     // Notify the sender if online
     //     const senderSocketId = await Redis.hGet(
-    //       ONLINE_USERS_KEY,
+    //       REDIS_ONLINE_USERS_KEY,
     //       message.sender.toString()
     //     );
     //     if (senderSocketId) {
