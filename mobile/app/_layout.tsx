@@ -1,3 +1,9 @@
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from "@react-navigation/native";
+
 import { useEffect } from "react";
 import "react-native-reanimated";
 import { Stack } from "expo-router";
@@ -7,15 +13,10 @@ import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
 
 import SafeScreen from "@/components/SafeScreen";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { setupNotificationPermissions } from "@/utils/notifications";
+import { useNotifications } from "@/hooks/useNotifications";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -26,9 +27,8 @@ export default function RootLayout() {
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
-  useEffect(() => {
-    setupNotificationPermissions();
-  }, []);
+  // Call notification setup hook
+  useNotifications();
 
   // Hide splash screen when fonts are loaded
   useEffect(() => {

@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   RefreshControl,
   ToastAndroid,
-  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
@@ -22,14 +21,13 @@ import ChatHeader from "@/components/chat/ChatHeader";
 import { useAuthStore } from "@/stores/authStore";
 import usePaginatedData from "@/hooks/usePaginateData";
 import BottomSheetAction from "@/components/BottomSheetActions";
-import { getPaginateChats, readChat } from "@/api/chat";
+import { getPaginateChats } from "@/api/chat";
 import { useChatStore } from "@/stores/chatStore";
 import { useBottomSheetActions } from "@/hooks/useBottomSheetActions";
 import { socket } from "@/config/socket";
 import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
 import { useMessageStore } from "@/stores/messageStore";
-import { messageDelivered } from "@/api/message";
-import { showNotification } from "@/utils/notifications";
+import { showNotification } from "@/utils/showNotifications";
 
 // Stories data - consider moving to a separate file or API call
 const stories: Story[] = [
@@ -143,10 +141,11 @@ export default function Home() {
       else setChats([message.chat]);
       addMessage(chatId, message);
 
-      // 🚨 Show local notification if not in the same chat
+      // Show local notification if not in the same chat
       if (!isInCurrentChat) {
         showNotification({
-          title: message.sender.name,
+          identifier: chatId,
+          title: message.chat.name || message.sender.name,
           body: message.content,
           data: { chatId },
         });
