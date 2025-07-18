@@ -11,6 +11,8 @@ interface ChatStore {
   currentChat: Chat | null;
   totalUnreadCount: number;
   requestUnreadCount: number;
+  activeChatId: string | null;
+  setActiveChatId: (chatId: string | null) => void;
   setOnlineUserIds: (ids: string[]) => void;
   updateUserLastOnlineAt: (userId: string, lastOnlineAt: Date) => void;
   setChats: (newChats: Chat[]) => void;
@@ -103,6 +105,9 @@ export const useChatStore = create<ChatStore>()(
         onlineUserIds: [],
         totalUnreadCount: 0,
         requestUnreadCount: 0,
+        activeChatId: null,
+
+        setActiveChatId: (chatId) => set({ activeChatId: chatId }),
 
         setOnlineUserIds: (ids) => set({ onlineUserIds: ids }),
 

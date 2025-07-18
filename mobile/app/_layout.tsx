@@ -15,6 +15,7 @@ import {
 
 import SafeScreen from "@/components/SafeScreen";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { setupNotificationPermissions } from "@/utils/notifications";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -24,6 +25,10 @@ export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
+
+  useEffect(() => {
+    setupNotificationPermissions();
+  }, []);
 
   // Hide splash screen when fonts are loaded
   useEffect(() => {

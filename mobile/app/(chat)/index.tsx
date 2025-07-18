@@ -53,6 +53,7 @@ export default function ChatMessage() {
     setCurrentChat,
     updateChat,
     clearChat,
+    setActiveChatId,
   } = useChatStore();
 
   const {
@@ -100,6 +101,11 @@ export default function ChatMessage() {
       };
     },
   });
+
+  useEffect(() => {
+    setActiveChatId(chatId); // when entering
+    return () => setActiveChatId(null); // when leaving
+  }, [chatId]);
 
   // Listening socket
   useEffect(() => {

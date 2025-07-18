@@ -29,6 +29,7 @@ import { socket } from "@/config/socket";
 import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
 import { useMessageStore } from "@/stores/messageStore";
 import { messageDelivered } from "@/api/message";
+import { showNotification } from "@/utils/notifications";
 
 // Stories data - consider moving to a separate file or API call
 const stories: Story[] = [
@@ -134,9 +135,22 @@ export default function Home() {
 
     // Listen for latestMessage updates
     socket.on("new-message", ({ chatId, message }) => {
+      const currentChatId = useChatStore.getState().activeChatId;
+      const isInCurrentChat = currentChatId === chatId;
+      console.log(isInCurrentChat);
+
       if (getChatById(chatId)) updateChat(message.chat);
       else setChats([message.chat]);
       addMessage(chatId, message);
+
+      // 🚨 Show local notification if not in the same chat
+      if (!isInCurrentChat) {
+        showNotification({
+          title: message.sender.name,
+          body: message.content,
+          data: { chatId },
+        });
+      }
     });
 
     // User offline
