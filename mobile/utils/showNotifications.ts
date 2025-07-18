@@ -2,20 +2,18 @@ import * as Notifications from "expo-notifications";
 
 // Show a local notification
 export function showNotification({
-  identifier = "default",
   title,
   body,
   data,
 }: {
-  identifier?: string;
   title: string;
   body: string;
-  data: {
-    chatId: string;
+  data?: {
+    chatId?: string;
   };
 }) {
   Notifications.scheduleNotificationAsync({
-    identifier,
+    identifier: data?.chatId || "default",
     content: {
       title,
       body,

@@ -144,7 +144,6 @@ export default function Home() {
       // Show local notification if not in the same chat
       if (!isInCurrentChat) {
         showNotification({
-          identifier: chatId,
           title: message.chat.name || message.sender.name,
           body: message.content,
           data: { chatId },

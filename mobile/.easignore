@@ -41,7 +41,7 @@ package-lock.json
 .env
 .vscode/
 
-google-services.json
+
 /ios
 /android
 /web
