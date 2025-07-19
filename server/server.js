@@ -7,7 +7,6 @@ import app from "./app.js";
 import connectDB from "./config/connectDB.js";
 import { Migrator } from "./migrations/migrator.js";
 import connectSocket from "./socket/index.js";
-// import connectSocket from "./config/connectSocket.js";
 
 const port = process.env.PORT || 3000;
 const server = http.createServer(app);

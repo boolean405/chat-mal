@@ -126,7 +126,7 @@ export default function Home() {
       setOnlineUserIds(userIds);
 
       // Request all new
-      socket.emit("fetch-all", () => {});
+      // socket.emit("fetch-all", () => {});
     });
 
     // Listen for latestMessage updates
