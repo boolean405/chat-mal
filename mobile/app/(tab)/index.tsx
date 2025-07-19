@@ -51,10 +51,8 @@ export default function Home() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  // const user = useAuthStore((state) => state.user);
-  // const accessToken = useAuthStore((state) => state.accessToken);
   const { user, accessToken } = useAuthStore();
-  const { addMessage, clearMessages, setMessages } = useMessageStore();
+  const { addMessage, clearMessages } = useMessageStore();
 
   const {
     chats,
@@ -135,18 +133,19 @@ export default function Home() {
     socket.on("new-message", ({ chatId, message }) => {
       const currentChatId = useChatStore.getState().activeChatId;
       const isInCurrentChat = currentChatId === chatId;
-      console.log(isInCurrentChat);
+      const isSameUser = message.sender._id === user._id;
 
       if (getChatById(chatId)) updateChat(message.chat);
       else setChats([message.chat]);
       addMessage(chatId, message);
 
       // Show local notification if not in the same chat
-      if (!isInCurrentChat) {
+      if (!isInCurrentChat && !isSameUser) {
+        // Show local notification
         showNotification({
           title: message.chat.name || message.sender.name,
           body: message.content,
-          data: { chatId },
+          data: { chatId, messageId: message._id },
         });
       }
     });

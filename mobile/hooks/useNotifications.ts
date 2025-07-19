@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import * as Device from "expo-device";
 import { useRouter } from "expo-router";
+import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
+import { updatePushToken } from "@/api/user";
 
 export function useNotifications() {
   const router = useRouter();
@@ -37,12 +39,22 @@ export function useNotifications() {
       }
     };
 
+    // Register notifications token
+    const registerForPushNotifications = async () => {
+      const pushToken = (
+        await Notifications.getExpoPushTokenAsync({
+          projectId: Constants.expoConfig?.extra?.eas.projectId,
+        })
+      ).data;
+
+      // Send this token to your backend
+      await updatePushToken(pushToken);
+    };
+
     // Handle notification taps
     const subscription = Notifications.addNotificationResponseReceivedListener(
       (response) => {
-        const data = response.notification.request.content?.data;
-
-        const chatId = data?.chatId;
+        const chatId = response.notification.request.content?.data?.chatId;
 
         if (chatId) {
           router.push({
@@ -54,6 +66,7 @@ export function useNotifications() {
     );
 
     requestPermissions();
+    registerForPushNotifications();
 
     return () => {
       subscription.remove();

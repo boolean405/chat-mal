@@ -10,6 +10,8 @@ import {
 
 import fetchAll from "../socket/fetchAll.js";
 import readChatService from "../services/readChatService.js";
+import { sendPushNotifications } from "../utils/sendPushNotifications.js";
+import isUserInChat from "../utils/isUserInChat.js";
 
 export default function connectSocket(io) {
   io.of("/")
@@ -52,12 +54,12 @@ export default function connectSocket(io) {
         );
         // Mark read chat
         try {
-          const updatedChat = await readChatService(socket.user._id, chatId);
+          const updatedChat = await readChatService(user._id, chatId);
 
           // Emit to all users in that chat (except the one who triggered it)
           socket.to(chatId).emit("chat-read", {
             chatId,
-            userId: socket.user._id,
+            userId: user._id,
           });
         } catch (err) {
           console.error("Error in readChatService:", err.message);
@@ -108,7 +110,7 @@ export default function connectSocket(io) {
             await MessageDB.updateMany(
               {
                 chat: chatId,
-                sender: socket.user._id,
+                sender: user._id,
                 status: { $ne: "seen" },
               },
               { $set: { status: "seen" } }
@@ -125,13 +127,28 @@ export default function connectSocket(io) {
             });
 
             updatedStatus = "seen";
-          } else if (isOnline) {
+          }
+          // User online change status to delivered
+          else if (isOnline) {
             // Update status to 'delivered'
             await MessageDB.updateOne(
               { _id: message._id },
               { $set: { status: "delivered" } }
             );
             updatedStatus = "delivered";
+          }
+          // User offline send notifications
+          else if (!isOnline) {
+            await sendPushNotifications(
+              message.chat.users,
+              user._id,
+              message.chat.name || message.sender.name,
+              message.content,
+              {
+                chatId,
+                messageId: message._id,
+              }
+            );
           }
         }
 
@@ -176,8 +193,10 @@ export default function connectSocket(io) {
 
       // Disconnect
       socket.on("disconnect", async () => {
-        // Remove user from Redis online users hash
+        // Remove in redis
         await Redis.hDel(REDIS_ONLINE_USERS_KEY, user._id.toString());
+        await Redis.hDel(REDIS_USER_ACTIVE_CHATS_KEY, user._id.toString());
+
         const lastOnlineAt = new Date();
 
         // Save last online timestamp to DB
@@ -190,9 +209,6 @@ export default function connectSocket(io) {
         io.emit("online-users", onlineUserIds);
 
         io.emit("user-went-offline", { userId: user._id, lastOnlineAt });
-
-        // Delete in redis
-        await Redis.hDel(REDIS_USER_ACTIVE_CHATS_KEY, user._id.toString());
       });
     });
 }

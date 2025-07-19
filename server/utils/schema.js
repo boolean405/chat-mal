@@ -103,6 +103,10 @@ export const UserSchema = {
     email: Joi.string().email({ minDomainSegments: 2 }).lowercase().required(),
   }),
 
+  updatePushToken: Joi.object({
+    pushToken: Joi.string().required(),
+  }),
+
   params: {
     userId: Joi.object({
       userId: Joi.string()

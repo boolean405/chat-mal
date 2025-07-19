@@ -10,6 +10,7 @@ export function showNotification({
   body: string;
   data?: {
     chatId?: string;
+    messageId?: string;
   };
 }) {
   Notifications.scheduleNotificationAsync({

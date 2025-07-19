@@ -52,6 +52,9 @@ const userSchema = new Schema(
       type: Date,
       default: Date.now,
     },
+    pushToken: {
+      type: String,
+    },
   },
   {
     timestamps: true,

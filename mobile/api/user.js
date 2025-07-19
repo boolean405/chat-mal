@@ -317,3 +317,20 @@ export async function getPaginateUsers(PageNum, keyword, gender, isOnline) {
     throw customError;
   }
 }
+
+// Update push token
+export async function updatePushToken(pushToken) {
+  try {
+    await refresh();
+    const response = await api.post(`/api/user/update-push-token`, {
+      pushToken,
+    });
+    return response.data;
+  } catch (error) {
+    const message =
+      error.response?.data?.message || "Update push token failed!";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}

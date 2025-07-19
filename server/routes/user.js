@@ -29,6 +29,7 @@ import {
   validateParam,
   validateQuery,
 } from "../utils/validator.js";
+import updatePushToken from "../controllers/user/updaetPushToken.js";
 
 router.get("/exist-email", validateQuery(UserSchema.existEmail), existEmail);
 router.get(
@@ -121,6 +122,13 @@ router.get(
   validateParam(UserSchema.params.pageNum, "pageNum"),
   // validateQuery(UserSchema.query.keyword),
   getPaginateUsers
+);
+
+router.post(
+  "/update-push-token",
+  validateToken(),
+  validateBody(UserSchema.updatePushToken),
+  updatePushToken
 );
 
 export default router;
