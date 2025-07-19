@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
 import { updatePushToken } from "@/api/user";
+import { Platform } from "react-native";
 
 export function useNotifications() {
   const router = useRouter();
@@ -18,6 +19,16 @@ export function useNotifications() {
         shouldShowList: true,
       }),
     });
+
+    // Set Android notification channel for heads-up & sound
+    if (Platform.OS === "android") {
+      Notifications.setNotificationChannelAsync("default", {
+        name: "default",
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        sound: "default",
+      });
+    }
 
     // Request notification permissions
     const requestPermissions = async () => {
@@ -71,5 +82,5 @@ export function useNotifications() {
     return () => {
       subscription.remove();
     };
-  }, []);
+  }, [router]);
 }

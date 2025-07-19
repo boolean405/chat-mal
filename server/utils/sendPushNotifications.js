@@ -29,6 +29,10 @@ export async function sendPushNotifications(
       body,
       data,
       sound: "default",
+      priority: "high",
+      channelId: "default",
+      android: { collapseKey: data.chatId },
+      apns: { headers: { "apns-collapse-id": data.chatId } },
     });
   }
 
