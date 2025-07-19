@@ -98,7 +98,19 @@ export default function ChatItem({
             ]}
             numberOfLines={1}
           >
-            {chat.latestMessage?.content}
+            {chat.latestMessage ? (
+              chat.latestMessage.type === "text" ? (
+                chat.latestMessage.content
+              ) : chat.latestMessage.type === "image" ? (
+                <Image
+                  source={{ uri: chat.latestMessage.content }}
+                  style={{ width: 20, height: 20, borderRadius: 4 }}
+                  contentFit="cover"
+                />
+              ) : (
+                "Video"
+              )
+            ) : null}
           </ThemedText>
           {unreadCount > 0 && (
             <ThemedView

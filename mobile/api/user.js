@@ -214,8 +214,7 @@ export async function refresh() {
         if (data.status) {
           setUser(data.result.user, data.result.accessToken);
           return data.result.accessToken;
-        }
-        throw new Error(data.message || "Failed to refresh token!");
+        } else throw new Error(data.message || "Failed to refresh token!");
       }
     }
     return accessToken;

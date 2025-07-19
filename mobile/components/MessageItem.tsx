@@ -58,7 +58,15 @@ export default function MessageItem({
             : [styles.otherMessage, { backgroundColor: color.secondary }],
         ]}
       >
-        <ThemedText style={styles.contentText}>{item.content}</ThemedText>
+        {item.type === "image" ? (
+          <Image
+            source={{ uri: item.content }}
+            style={{ width: 200, height: 300, borderRadius: 10 }}
+            contentFit="cover"
+          />
+        ) : item.type === "text" ? (
+          <ThemedText style={styles.contentText}>{item.content}</ThemedText>
+        ) : null}
 
         <View
           style={[

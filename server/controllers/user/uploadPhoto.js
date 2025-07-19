@@ -5,15 +5,12 @@ import uploadUserPhoto from "../../utils/uploadUserPhoto.js";
 
 export default async function uploadPhoto(req, res, next) {
   try {
-    const userId = req.userId;
+    const user = req.user;
     const body = req.body;
     if (!body) throw resError(400, "Photo is required to upload!");
 
     const coverPhoto = body.coverPhoto;
     const profilePhoto = body.profilePhoto;
-
-    const user = await UserDB.findById(userId);
-    if (!user) throw resError(401, "Authenticated user not found!");
 
     const editedPhoto = {};
 
@@ -40,7 +37,7 @@ export default async function uploadPhoto(req, res, next) {
       select: "-password",
     });
 
-    resJson(res, 200, "Success upload photo.", {
+    return resJson(res, 200, "Success upload photo.", {
       user: updatedUser,
     });
   } catch (error) {

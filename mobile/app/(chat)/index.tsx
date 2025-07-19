@@ -14,7 +14,7 @@ import {
   useColorScheme,
 } from "react-native";
 
-import { Chat, Message, User } from "@/types";
+import { Message, User } from "@/types";
 import { Colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import MessageItem from "@/components/MessageItem";
@@ -32,6 +32,8 @@ import getLastTime from "@/utils/getLastTime";
 import { socket } from "@/config/socket";
 import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
 import { useUiStore } from "@/stores/uiStore";
+import { pickImage } from "@/utils/messageImageUploader";
+import getImageMimeType from "@/utils/getImageMimeType";
 
 export default function ChatMessage() {
   useTimeTickWhenFocused();
@@ -104,7 +106,7 @@ export default function ChatMessage() {
   useEffect(() => {
     setActiveChatId(chatId); // when entering
     return () => setActiveChatId(null); // when leaving
-  }, [chatId]);
+  }, [chatId, setActiveChatId]);
 
   // Listening socket
   useEffect(() => {
@@ -166,7 +168,7 @@ export default function ChatMessage() {
       socket.off("received-message", handleReceiveMessage);
       socket.emit("leave-chat", chatId);
     };
-  }, [socket, chatId, user]);
+  }, [chatId, user, addMessage, markMessagesAsSeen, updateChat]);
 
   // Emiting socket
   useEffect(() => {
@@ -177,7 +179,7 @@ export default function ChatMessage() {
     } else {
       socket.emit("stop-typing", { chatId, user });
     }
-  }, [newMessage]);
+  }, [newMessage, chatId, user]);
 
   // Set current chat when screen mounts
   useEffect(() => {
@@ -193,7 +195,7 @@ export default function ChatMessage() {
     return () => {
       setCurrentChat(null);
     };
-  }, [chatId]);
+  }, [chatId, getChatById, setCurrentChat]);
 
   useEffect(() => {
     if (isSentMessage && currentMessages.length > 0) {
@@ -233,15 +235,6 @@ export default function ChatMessage() {
     setNewMessage("");
 
     socket.emit("stop-typing", { chatId });
-
-    // Send to server
-    // socket.emit("send-message", {
-    //   chatId,
-    //   message: {
-    //     ...tempMessage,
-    //     status: "sent", // real status server should confirm
-    //   },
-    // });
 
     // Call api message
     try {
@@ -306,6 +299,63 @@ export default function ChatMessage() {
         },
       },
     ]);
+  };
+
+  // Handle press image
+  const handlePressImage = async () => {
+    if (!chatId || !currentChat) return;
+
+    const imageData = await pickImage();
+    if (!imageData) return;
+
+    const { base64, uri, fileName } = imageData;
+    const imageType = getImageMimeType(fileName);
+    const imageBase64 = `data:${imageType};base64,${base64}`;
+
+    const tempId = `temp-${Date.now()}`;
+
+    const tempMessage: Message = {
+      _id: tempId,
+      content: uri, // Temporarily show local image
+      sender: user,
+      chat: currentChat,
+      type: "image",
+      status: "pending",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    addMessage(chatId, tempMessage);
+    setIsSentMessage(true);
+
+    try {
+      const response = await createMessage(chatId, imageBase64, "image");
+
+      const realMessage = response.result;
+
+      socket.emit("send-message", { chatId, message: realMessage });
+
+      setMessages(chatId, [
+        realMessage,
+        ...currentMessages.filter((msg) => msg._id !== tempId),
+      ]);
+
+      updateChat(realMessage.chat);
+    } catch (error: any) {
+      console.error("Image upload failed:", error);
+      ToastAndroid.show(
+        error.message || "Image upload failed",
+        ToastAndroid.SHORT
+      );
+
+      // mark as failed
+      setMessages(
+        chatId,
+        currentMessages.map((msg) =>
+          msg._id === tempId ? { ...msg, status: "failed" } : msg
+        )
+      );
+    }
   };
 
   const otherUser = currentChat.users?.find(
@@ -481,7 +531,7 @@ export default function ChatMessage() {
               multiline
             />
             <TouchableOpacity
-              onPress={() => console.log("image")}
+              onPress={handlePressImage}
               style={styles.imageButton}
             >
               <Ionicons name="image-outline" size={22} color={color.icon} />
@@ -495,6 +545,7 @@ export default function ChatMessage() {
               styles.sendButton,
               { backgroundColor: color.messageBackground },
             ]}
+            disabled={newMessage.length === 0}
             onPress={handleSendMessage}
           >
             <Ionicons name="send-outline" size={22} color={color.icon} />

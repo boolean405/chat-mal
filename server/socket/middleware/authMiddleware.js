@@ -10,7 +10,7 @@ export default async function authMiddleware(socket, next) {
     if (!decoded) throw new Error("Invalid authorization token!");
 
     const user = await UserDB.findById(decoded.id);
-    if (!user) throw new Error("User not found!");
+    if (!user) throw new Error("Authenticated user not found!");
 
     socket.user = user;
     next();

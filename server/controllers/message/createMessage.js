@@ -1,18 +1,28 @@
 import ChatDB from "../../models/chat.js";
-import UserDB from "../../models/user.js";
 import MessageDB from "../../models/message.js";
 import resJson from "../../utils/resJson.js";
 import resError from "../../utils/resError.js";
-import Redis from "../../config/redisClient.js";
+import uploadMessageMedia from "../../utils/uploadMessageMedia.js";
 
 export default async function createMessage(req, res, next) {
   try {
     const user = req.user;
-    const { chatId, content, type } = req.body;
+    const { chatId, content: orgContent, type } = req.body;
 
     const chat = await ChatDB.findById(chatId).populate("users unreadInfos");
 
     if (!chat) throw resError(404, "Chat not found!");
+
+    let content = orgContent;
+
+    if (type === "image") {
+      content = await uploadMessageMedia(
+        user,
+        type,
+        orgContent,
+        "chat-mal/chats/image"
+      );
+    }
 
     // Create message
     const newMessage = await MessageDB.create({
@@ -97,21 +107,6 @@ export default async function createMessage(req, res, next) {
         ],
       })
       .lean();
-
-    // // Real-time: Emit to other chat members
-    // const io = req.app.get('io');
-    // await Promise.all(
-    //   chat.users.map(async (entry) => {
-    //     const userId = (entry.user || entry).toString();
-    //     if (userId === user._id.toString()) return;
-
-    //     const socketId = await Redis.hGet("onlineUsers", userId);
-    //     if (socketId) {
-    //       io.to(socketId).emit("receive-message", { message }); // for current chat screen
-    //       io.to(socketId).emit("new-message", { message }); // for chat list preview
-    //     }
-    //   })
-    // );
 
     resJson(res, 201, "Success send message.", message);
   } catch (error) {
