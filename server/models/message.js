@@ -5,6 +5,7 @@ const messageSchema = new Schema(
   {
     sender: { type: Schema.Types.ObjectId, require: true, ref: "user" },
     content: { type: String, require: true, trim: true },
+    isNotify: { type: Boolean, default: false },
     chat: { type: Schema.Types.ObjectId, ref: "chat" },
     type: {
       type: String,

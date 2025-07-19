@@ -60,7 +60,7 @@ export default async function fetchAll(io, socket) {
           );
 
           const updatedMessage = { ...msg.toObject(), status: newStatus };
-          socket.emit("receive-message", { message: updatedMessage });
+          socket.emit("received-message", { message: updatedMessage });
 
           socket.emit("new-message", {
             chatId: msg.chat._id.toString(),

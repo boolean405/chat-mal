@@ -140,7 +140,7 @@ export default function Home() {
       addMessage(chatId, message);
 
       // Show local notification if not in the same chat
-      if (!isInCurrentChat && !isSameUser) {
+      if (!isInCurrentChat && !isSameUser && !message.isNotify) {
         // Show local notification
         showNotification({
           title: message.chat.name || message.sender.name,
@@ -190,15 +190,26 @@ export default function Home() {
       socket.off("error");
       socket.off("remove-chat");
     };
-  }, [accessToken]);
+  }, [
+    accessToken,
+    addMessage,
+    clearChat,
+    setChats,
+    setOnlineUserIds,
+    updateChat,
+    clearMessages,
+    getChatById,
+    router,
+    user,
+  ]);
 
   // Update store when new chats are fetched
   useEffect(() => {
-    if (newChats.length > 0) {
+    if (!isFetching && newChats.length > 0) {
       clearChats();
       setChats(newChats);
     }
-  }, [newChats]);
+  }, [newChats, clearChats, setChats, isFetching]);
 
   if (!user) return null;
 

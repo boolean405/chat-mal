@@ -62,7 +62,6 @@ export default function ChatMessage() {
     prependMessages,
     setMessages,
     markMessagesAsSeen,
-    clearMessages,
   } = useMessageStore();
 
   // Get messages for current chat from store
@@ -158,13 +157,13 @@ export default function ChatMessage() {
     socket.on("typing", handleTyping);
     socket.on("chat-read", handleChatRead);
     socket.on("stop-typing", handleStopTyping);
-    socket.on("receive-message", handleReceiveMessage);
+    socket.on("received-message", handleReceiveMessage);
 
     return () => {
       socket.off("typing", handleTyping);
       socket.off("chat-read", handleChatRead);
       socket.off("stop-typing", handleStopTyping);
-      socket.off("receive-message", handleReceiveMessage);
+      socket.off("received-message", handleReceiveMessage);
       socket.emit("leave-chat", chatId);
     };
   }, [socket, chatId, user]);

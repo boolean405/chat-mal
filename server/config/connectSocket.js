@@ -35,6 +35,7 @@ export default function connectSocket(io) {
     })
     .on("connection", async (socket) => {
       const user = socket.user;
+      console.log("✅ User connected:", user.name);
 
       // Add user to Redis set of online users
       await Redis.hSet(REDIS_ONLINE_USERS_KEY, user._id.toString(), socket.id);
@@ -149,6 +150,11 @@ export default function connectSocket(io) {
                 messageId: message._id,
               }
             );
+            // Make as already pushed notification from server
+            await MessageDB.updateOne(
+              { _id: message._id },
+              { $set: { isNotify: true } }
+            );
           }
         }
 
@@ -159,7 +165,7 @@ export default function connectSocket(io) {
         };
 
         // Broadcast to all clients in the chat (including sender)
-        io.to(chatId).emit("receive-message", {
+        io.to(chatId).emit("received-message", {
           message: updatedMessage,
         });
 
