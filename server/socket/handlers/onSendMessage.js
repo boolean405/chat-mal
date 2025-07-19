@@ -49,11 +49,24 @@ export default async function onSendMessage(socket, io, { chatId, message }) {
       );
       updatedStatus = "delivered";
     } else {
+      const content =
+        message.type === "text"
+          ? message.content
+          : message.type === "image"
+          ? "Recieved an new photo"
+          : message.type === "video"
+          ? "Recieved a new video"
+          : message.type === "audio"
+          ? "Recieved a new voice message"
+          : message.type === "file"
+          ? "Recieved a new file"
+          : "Recieved a new message";
+
       await sendPushNotifications(
         message.chat.users,
         sender._id,
         message.chat.name || message.sender.name,
-        message.content,
+        content,
         { chatId, messageId: message._id }
       );
 

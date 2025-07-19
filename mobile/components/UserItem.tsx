@@ -58,12 +58,39 @@ const UserItem: React.FC<Props> = ({
 
         {isOnline ? (
           <ThemedView
-            style={[styles.onlineIndicator, { borderColor: color.secondary }]}
+            style={[
+              styles.onlineIndicator,
+              {
+                borderColor: color.secondary,
+                backgroundColor: "limegreen",
+              },
+            ]}
           />
         ) : (
-          <ThemedText type="smallest" style={styles.lastOnlineText}>
-            {getLastTime(user.lastOnlineAt)}
-          </ThemedText>
+          <>
+            {getLastTime(user.lastOnlineAt) === "0m" ? (
+              <ThemedView
+                style={[
+                  styles.onlineIndicator,
+                  {
+                    borderColor: color.secondary,
+                    backgroundColor: "#A9A9A9",
+                  },
+                ]}
+              />
+            ) : (
+              <ThemedText
+                style={[
+                  styles.lastOnlineText,
+                  {
+                    backgroundColor: color.secondary,
+                  },
+                ]}
+              >
+                {getLastTime(user.lastOnlineAt)}
+              </ThemedText>
+            )}
+          </>
         )}
       </ThemedView>
       <ThemedView style={styles.textContainer}>
@@ -137,15 +164,19 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: "limegreen",
-    borderWidth: 1,
+    borderWidth: 1.5,
   },
   lastOnlineText: {
     position: "absolute",
     bottom: 0,
     right: 15,
-    color: "gray",
     fontWeight: "bold",
+    width: 12,
+    height: 10,
+    borderRadius: 5,
+    fontSize: 5,
+    textAlign: "center",
+    textAlignVertical: "center",
   },
   tagBadge: {
     position: "absolute",
@@ -155,7 +186,6 @@ const styles = StyleSheet.create({
     // alignItems: "center",
     // justifyContent: "center",
   },
-
   tagBadgeText: {
     color: "white",
     fontSize: 10,

@@ -60,12 +60,36 @@ export default function ChatItem({
           <Image source={{ uri: chatPhoto }} style={styles.photo} />
           {!chat.isGroupChat && isOnline ? (
             <ThemedView
-              style={[styles.onlineIndicator, { borderColor: color.secondary }]}
+              style={[
+                styles.onlineIndicator,
+                { borderColor: color.secondary, backgroundColor: "limegreen" },
+              ]}
             />
-          ) : !chat.isGroupChat && targetUser ? (
-            <ThemedText type="smaller" style={styles.lastOnlineText}>
-              {getLastTime(targetUser.lastOnlineAt)}
-            </ThemedText>
+          ) : !chat.isGroupChat && !isOnline && targetUser ? (
+            <>
+              {getLastTime(targetUser.lastOnlineAt) === "0m" ? (
+                <ThemedView
+                  style={[
+                    styles.onlineIndicator,
+                    {
+                      borderColor: color.secondary,
+                      backgroundColor: "#A9A9A9",
+                    },
+                  ]}
+                />
+              ) : (
+                <ThemedText
+                  style={[
+                    styles.lastOnlineText,
+                    {
+                      backgroundColor: color.secondary,
+                    },
+                  ]}
+                >
+                  {getLastTime(targetUser.lastOnlineAt)}
+                </ThemedText>
+              )}
+            </>
           ) : null}
         </ThemedView>
       </TouchableOpacity>
@@ -102,14 +126,39 @@ export default function ChatItem({
               chat.latestMessage.type === "text" ? (
                 chat.latestMessage.content
               ) : chat.latestMessage.type === "image" ? (
-                <Image
-                  source={{ uri: chat.latestMessage.content }}
-                  style={{ width: 20, height: 20, borderRadius: 4 }}
-                  contentFit="cover"
-                />
-              ) : (
+                <ThemedView
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    alignContent: "center",
+                  }}
+                >
+                  <Image
+                    source={{ uri: chat.latestMessage.content }}
+                    style={{ width: 20, height: 20, borderRadius: 4 }}
+                    contentFit="cover"
+                  />
+                  <ThemedText
+                    style={[
+                      styles.unreadText,
+                      unreadCount > 0
+                        ? {
+                            fontWeight: "bold",
+                          }
+                        : {
+                            color: "#666",
+                          },
+                      {
+                        marginLeft: 5,
+                      },
+                    ]}
+                  >
+                    Photo
+                  </ThemedText>
+                </ThemedView>
+              ) : chat.latestMessage.type === "video" ? (
                 "Video"
-              )
+              ) : null
             ) : null}
           </ThemedText>
           {unreadCount > 0 && (
@@ -183,7 +232,6 @@ const styles = StyleSheet.create({
     right: 15,
     width: 12,
     height: 12,
-    backgroundColor: "limegreen",
     borderRadius: 6,
     borderWidth: 2,
     // or use theme background
@@ -192,7 +240,13 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     right: 15,
-    color: "gray",
+    width: 12,
+    height: 12,
+    borderRadius: 6,
     fontWeight: "bold",
+    fontSize: 5,
+    textAlign: "center",
+    textAlignVertical: "center",
+    // borderWidth: 1,
   },
 });

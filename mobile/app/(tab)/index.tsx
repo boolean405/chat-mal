@@ -134,6 +134,18 @@ export default function Home() {
       const currentChatId = useChatStore.getState().activeChatId;
       const isInCurrentChat = currentChatId === chatId;
       const isSameUser = message.sender._id === user._id;
+      const content =
+        message.type === "text"
+          ? message.content
+          : message.type === "image"
+          ? "Recieved an new photo"
+          : message.type === "video"
+          ? "Recieved a new video"
+          : message.type === "audio"
+          ? "Recieved a new voice message"
+          : message.type === "file"
+          ? "Recieved a new file"
+          : "Recieved a new message";
 
       if (getChatById(chatId)) updateChat(message.chat);
       else setChats([message.chat]);
@@ -144,7 +156,7 @@ export default function Home() {
         // Show local notification
         showNotification({
           title: message.chat.name || message.sender.name,
-          body: message.content,
+          body: content,
           data: { chatId, messageId: message._id },
         });
       }

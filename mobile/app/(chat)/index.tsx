@@ -385,13 +385,37 @@ export default function ChatMessage() {
               <ThemedView
                 style={[
                   styles.onlineIndicator,
-                  { borderColor: color.secondary },
+                  {
+                    borderColor: color.secondary,
+                    backgroundColor: "limegreen",
+                  },
                 ]}
               />
-            ) : !currentChat.isGroupChat ? (
-              <ThemedText type="smallest" style={styles.lastOnlineText}>
-                {otherUser && getLastTime(otherUser.lastOnlineAt)}
-              </ThemedText>
+            ) : !currentChat.isGroupChat && otherUser ? (
+              <>
+                {getLastTime(otherUser.lastOnlineAt) === "0m" ? (
+                  <ThemedView
+                    style={[
+                      styles.onlineIndicator,
+                      {
+                        borderColor: color.secondary,
+                        backgroundColor: "#A9A9A9",
+                      },
+                    ]}
+                  />
+                ) : (
+                  <ThemedText
+                    style={[
+                      styles.lastOnlineText,
+                      {
+                        backgroundColor: color.secondary,
+                      },
+                    ]}
+                  >
+                    {getLastTime(otherUser.lastOnlineAt)}
+                  </ThemedText>
+                )}
+              </>
             ) : null}
           </ThemedView>
         </TouchableOpacity>
@@ -674,22 +698,25 @@ const styles = StyleSheet.create({
     position: "relative",
     marginLeft: 10,
   },
-
   onlineIndicator: {
     position: "absolute",
     bottom: 0,
-    right: 0,
+    right: 1,
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: "limegreen",
-    borderWidth: 1,
+    borderWidth: 1.5,
   },
   lastOnlineText: {
     position: "absolute",
     bottom: 0,
-    right: 0,
-    color: "gray",
+    right: 1,
     fontWeight: "bold",
+    width: 12,
+    height: 10,
+    borderRadius: 5,
+    fontSize: 5,
+    textAlign: "center",
+    textAlignVertical: "center",
   },
 });
