@@ -20,9 +20,10 @@ export async function pickImage(): Promise<{
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images", "videos", "livePhotos"],
+      mediaTypes: ["images", "livePhotos"],
       quality: 0.5,
       base64: true,
+      allowsMultipleSelection: true,
     });
 
     if (!result.canceled && result.assets.length > 0) {
@@ -31,7 +32,6 @@ export async function pickImage(): Promise<{
       const fileName = asset.fileName || "image.jpg";
       const type = asset.type || "image";
       let base64 = null;
-      
 
       if (asset.base64) {
         base64 = asset.base64;

@@ -1,12 +1,18 @@
 import React from "react";
 import { Image } from "expo-image";
-import { StyleSheet, useColorScheme, View } from "react-native";
+import {
+  StyleSheet,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { Message, User } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
 import formatDate from "@/utils/formatDate";
+import { useRouter } from "expo-router";
 
 export default function MessageItem({
   item,
@@ -19,6 +25,7 @@ export default function MessageItem({
   messages: Message[];
   user: User;
 }) {
+  const router = useRouter();
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
   const isMe = item.sender._id === user._id;
@@ -59,11 +66,21 @@ export default function MessageItem({
         ]}
       >
         {item.type === "image" ? (
-          <Image
-            source={{ uri: item.content }}
-            style={{ width: 200, height: 300, borderRadius: 10 }}
-            contentFit="cover"
-          />
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() =>
+              router.push({
+                pathname: "/(chat)/ImageViewer",
+                params: { imageUrl: item.content },
+              })
+            }
+          >
+            <Image
+              source={{ uri: item.content }}
+              style={{ width: 200, height: 300, borderRadius: 10 }}
+              contentFit="cover"
+            />
+          </TouchableOpacity>
         ) : item.type === "text" ? (
           <ThemedText style={styles.contentText}>{item.content}</ThemedText>
         ) : null}
