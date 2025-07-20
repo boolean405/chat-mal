@@ -305,56 +305,58 @@ export default function ChatMessage() {
   const handlePressImage = async () => {
     if (!chatId || !currentChat) return;
 
-    const imageData = await pickImage();
-    if (!imageData) return;
+    const imagesData = await pickImage();
+    if (!imagesData || imagesData.length === 0) return;
 
-    const { base64, uri, fileName } = imageData;
-    const imageType = getImageMimeType(fileName);
-    const imageBase64 = `data:${imageType};base64,${base64}`;
-
-    const tempId = `temp-${Date.now()}`;
-
-    const tempMessage: Message = {
-      _id: tempId,
-      content: uri, // Temporarily show local image
-      sender: user,
-      chat: currentChat,
-      type: "image",
-      status: "pending",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    addMessage(chatId, tempMessage);
     setIsSentMessage(true);
 
-    try {
-      const response = await createMessage(chatId, imageBase64, "image");
+    for (const imageData of imagesData) {
+      const { base64, uri, fileName } = imageData;
+      const imageType = getImageMimeType(fileName);
+      const imageBase64 = `data:${imageType};base64,${base64}`;
 
-      const realMessage = response.result;
+      const tempId = `temp-${Date.now()}-${Math.random()}`;
 
-      socket.emit("send-message", { chatId, message: realMessage });
+      const tempMessage: Message = {
+        _id: tempId,
+        content: uri, // Temporarily show local image
+        sender: user,
+        chat: currentChat,
+        type: "image",
+        status: "pending",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-      setMessages(chatId, [
-        realMessage,
-        ...currentMessages.filter((msg) => msg._id !== tempId),
-      ]);
+      addMessage(chatId, tempMessage);
 
-      updateChat(realMessage.chat);
-    } catch (error: any) {
-      console.error("Image upload failed:", error);
-      ToastAndroid.show(
-        error.message || "Image upload failed",
-        ToastAndroid.SHORT
-      );
+      try {
+        const response = await createMessage(chatId, imageBase64, "image");
+        const realMessage = response.result;
 
-      // mark as failed
-      setMessages(
-        chatId,
-        currentMessages.map((msg) =>
-          msg._id === tempId ? { ...msg, status: "failed" } : msg
-        )
-      );
+        socket.emit("send-message", { chatId, message: realMessage });
+
+        setMessages(chatId, [
+          realMessage,
+          ...currentMessages.filter((msg) => msg._id !== tempId),
+        ]);
+
+        updateChat(realMessage.chat);
+      } catch (error: any) {
+        console.error("Image upload failed:", error);
+        ToastAndroid.show(
+          error.message || "Image upload failed",
+          ToastAndroid.SHORT
+        );
+
+        // mark as failed
+        setMessages(
+          chatId,
+          currentMessages.map((msg) =>
+            msg._id === tempId ? { ...msg, status: "failed" } : msg
+          )
+        );
+      }
     }
   };
 
