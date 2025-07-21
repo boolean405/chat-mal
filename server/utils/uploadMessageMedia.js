@@ -4,7 +4,7 @@ import cloudinary from "../config/cloudinary.js";
 export default async function uploadMessageMedia(
   chat,
   type,
-  imageBase64,
+  base64Media,
   folder
 ) {
   try {
@@ -13,22 +13,19 @@ export default async function uploadMessageMedia(
       throw resError(400, "Only image and video are allowed!");
     }
 
-    // Image upload
-    if (type === "image") {
-      // Custom file name
-      const public_id = `${chat._id}_${type}_${Date.now()}`;
+    // Custom file name
+    const public_id = `${chat._id}_${type}_${Date.now()}`;
 
-      // Upload new imageBase64
-      const result = await cloudinary.uploader.upload(imageBase64, {
-        folder,
-        public_id,
-      });
-      if (!result) throw resError(400, "Cloudinary upload failed!");
+    // Upload new base64Media
+    const result = await cloudinary.uploader.upload(base64Media, {
+      folder,
+      public_id,
+      resource_type: type,
+    });
+    if (!result) throw resError(400, "Cloudinary upload failed!");
 
-      return result.secure_url;
-    }
-    return null;
+    return result.secure_url;
   } catch (err) {
-    throw resError(400, "Failed to upload imageBase64 to Cloudinary");
+    throw resError(400, "Failed to upload base64Media to Cloudinary");
   }
 }

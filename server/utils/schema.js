@@ -197,11 +197,11 @@ export const ChatSchema = {
 export const MessageSchema = {
   createMessage: Joi.object({
     chatId: Joi.string().length(24).hex().required(),
-    type: Joi.string().valid("text", "image").default("text"),
+    type: Joi.string().valid("text", "image", "video").default("text"),
     content: Joi.when("type", {
       is: "text",
       then: Joi.string().min(1).required(),
-      otherwise: Joi.string().uri().required(), // assumes URL for image/video
+      otherwise: Joi.string().uri().required(),
     }),
   }),
 

@@ -12,7 +12,8 @@
     },
     "preview": {
       "distribution": "internal",
-      "channel": "preview"
+      "channel": "preview",
+      "resourceClass": "medium"
     },
     "production": {
       "autoIncrement": true,

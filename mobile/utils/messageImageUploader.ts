@@ -1,51 +1,66 @@
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
-import { Alert, Platform } from "react-native";
+import { Alert, Platform, Linking } from "react-native";
+import videoCompressor from "./videoCompressor";
 
-export async function pickImage() {
+export async function pickMedia() {
   try {
     if (Platform.OS !== "web") {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      let { status, canAskAgain } =
+        await ImagePicker.getMediaLibraryPermissionsAsync();
 
       if (status !== "granted") {
-        Alert.alert("Permission Required", "Please allow media access!");
-        return null;
+        if (canAskAgain) {
+          const result =
+            await ImagePicker.requestMediaLibraryPermissionsAsync();
+          status = result.status;
+        }
+
+        if (status !== "granted") {
+          Alert.alert(
+            "Permission Required",
+            "Please enable media library access in settings.",
+            [
+              { text: "Cancel", style: "cancel" },
+              { text: "Open Settings", onPress: () => Linking.openSettings() },
+            ]
+          );
+          return null;
+        }
       }
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images", "livePhotos"],
+      mediaTypes: ["images", "videos"],
       quality: 0.5,
       base64: true,
       allowsMultipleSelection: true,
     });
 
     if (!result.canceled && result.assets.length > 0) {
-      const imageDataPromises = result.assets.map(async (asset) => {
-        const uri = asset.uri;
-        const fileName = asset.fileName || "image.jpg";
-        const type = asset.type || "image";
-        let base64: string;
+      const mediaDataArray = await Promise.all(
+        result.assets.map(async (asset) => {
+          const { uri: originalUri, fileName = "media", type, base64 } = asset;
+          
+          // Compress video
+          const uri = await videoCompressor(originalUri);
 
-        if (asset.base64) {
-          base64 = asset.base64;
-        } else {
-          base64 = await FileSystem.readAsStringAsync(asset.uri, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-        }
+          const base64Data =
+            base64 ??
+            (await FileSystem.readAsStringAsync(uri, {
+              encoding: FileSystem.EncodingType.Base64,
+            }));
 
-        return { base64, uri, fileName, type };
-      });
+          return { uri, fileName, type, base64: base64Data };
+        })
+      );
 
-      const imageDataArray = await Promise.all(imageDataPromises);
-      return imageDataArray;
+      return mediaDataArray;
     }
 
     return null;
   } catch (error) {
-    console.error("Image picker error:", error);
+    console.error("Media picker error:", error);
     return null;
   }
 }

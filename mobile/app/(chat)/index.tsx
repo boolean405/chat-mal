@@ -32,7 +32,7 @@ import getLastTime from "@/utils/getLastTime";
 import { socket } from "@/config/socket";
 import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
 import { useUiStore } from "@/stores/uiStore";
-import { pickImage } from "@/utils/messageImageUploader";
+import { pickMedia } from "@/utils/messageImageUploader";
 import getImageMimeType from "@/utils/getImageMimeType";
 
 export default function ChatMessage() {
@@ -305,15 +305,15 @@ export default function ChatMessage() {
   const handlePressImage = async () => {
     if (!chatId || !currentChat) return;
 
-    const imagesData = await pickImage();
+    const imagesData = await pickMedia();
     if (!imagesData || imagesData.length === 0) return;
 
     setIsSentMessage(true);
 
     for (const imageData of imagesData) {
-      const { base64, uri, fileName } = imageData;
-      const imageType = getImageMimeType(fileName);
-      const imageBase64 = `data:${imageType};base64,${base64}`;
+      const { base64, uri, type } = imageData;
+      const mimeType = type === "image" ? "image/jpeg" : "video/mp4";
+      const imageBase64 = `data:${mimeType};base64,${base64}`;
 
       const tempId = `temp-${Date.now()}-${Math.random()}`;
 
@@ -331,7 +331,7 @@ export default function ChatMessage() {
       addMessage(chatId, tempMessage);
 
       try {
-        const response = await createMessage(chatId, imageBase64, "image");
+        const response = await createMessage(chatId, imageBase64, type);
         const realMessage = response.result;
 
         socket.emit("send-message", { chatId, message: realMessage });
@@ -359,6 +359,9 @@ export default function ChatMessage() {
       }
     }
   };
+
+  // In ChatMessage.js
+  const handlePressCamera = () => {};
 
   const otherUser = currentChat.users?.find(
     (u) => u.user._id !== user._id
@@ -562,7 +565,10 @@ export default function ChatMessage() {
             >
               <Ionicons name="image-outline" size={22} color={color.icon} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.imageButton}>
+            <TouchableOpacity
+              onPress={handlePressCamera}
+              style={styles.imageButton}
+            >
               <Ionicons name="camera-outline" size={22} color={color.icon} />
             </TouchableOpacity>
           </ThemedView>

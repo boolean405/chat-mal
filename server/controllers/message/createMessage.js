@@ -7,20 +7,21 @@ import uploadMessageMedia from "../../utils/uploadMessageMedia.js";
 export default async function createMessage(req, res, next) {
   try {
     const user = req.user;
-    const { chatId, content: orgContent, type } = req.body;
+    const { chatId, content: origContent, type } = req.body;
 
     const chat = await ChatDB.findById(chatId).populate("users unreadInfos");
 
     if (!chat) throw resError(404, "Chat not found!");
 
-    let content = orgContent;
+    let content = origContent;
 
-    if (type === "image") {
+    // Upload media if image or video to cloudinary
+    if (type === "image" || type === "video") {
       content = await uploadMessageMedia(
         user,
         type,
-        orgContent,
-        "chat-mal/chats/image"
+        origContent,
+        `chat-mal/chats/${type}`
       );
     }
 
