@@ -6,9 +6,7 @@ export default async function videoCompressor(uri: string) {
     {
       compressionMethod: "auto", // or 'manual'
     },
-    (progress) => {
-      console.log("Compression progress:", progress);
-    }
+    (progress) => {}
   );
   return compressedUri;
 }

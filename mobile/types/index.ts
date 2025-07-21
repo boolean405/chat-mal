@@ -60,7 +60,7 @@ export type BottomSheetOption = {
 export type Message = {
   _id: string;
   sender: User;
-  type: "text" | "image";
+  type: "text" | "image" | "video";
   content: string;
   chat: Chat;
   status: "pending" | "sent" | "delivered" | "seen" | "failed";

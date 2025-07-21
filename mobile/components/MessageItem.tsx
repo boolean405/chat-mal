@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
 import formatDate from "@/utils/formatDate";
 import { useRouter } from "expo-router";
+import { useVideoPlayer, VideoView } from "expo-video";
 
 export default function MessageItem({
   item,
@@ -33,6 +34,10 @@ export default function MessageItem({
   const isFirstFromSender =
     !isMe &&
     (index === 0 || messages[index - 1].sender._id !== item.sender._id);
+
+  const videoPlayer = useVideoPlayer(
+    item.type === "video" ? item.content : null
+  );
 
   return (
     <ThemedView
@@ -70,7 +75,7 @@ export default function MessageItem({
             activeOpacity={0.9}
             onPress={() =>
               router.push({
-                pathname: "/(chat)/ImageViewer",
+                pathname: "/(chat)/image-viewer",
                 params: { imageUrl: item.content },
               })
             }
@@ -83,6 +88,14 @@ export default function MessageItem({
           </TouchableOpacity>
         ) : item.type === "text" ? (
           <ThemedText style={styles.contentText}>{item.content}</ThemedText>
+        ) : item.type === "video" ? (
+          <VideoView
+            player={videoPlayer}
+            style={{ width: 200, height: 300, borderRadius: 10 }}
+            allowsFullscreen
+            allowsPictureInPicture
+            contentFit="cover"
+          />
         ) : null}
 
         <View

@@ -302,16 +302,21 @@ export default function ChatMessage() {
   };
 
   // Handle press image
-  const handlePressImage = async () => {
+  const handlePressMedia = async () => {
     if (!chatId || !currentChat) return;
 
-    const imagesData = await pickMedia();
-    if (!imagesData || imagesData.length === 0) return;
+    const mediasData = await pickMedia();
+    if (!mediasData || mediasData.length === 0) return;
 
     setIsSentMessage(true);
 
-    for (const imageData of imagesData) {
-      const { base64, uri, type } = imageData;
+    for (const mediaData of mediasData) {
+      const { base64, uri, type: rawType } = mediaData;
+
+      let type: "image" | "video";
+      if (rawType === "image" || rawType === "video") type = rawType;
+      else type = rawType?.startsWith("video") ? "video" : "image";
+
       const mimeType = type === "image" ? "image/jpeg" : "video/mp4";
       const imageBase64 = `data:${mimeType};base64,${base64}`;
 
@@ -322,7 +327,7 @@ export default function ChatMessage() {
         content: uri, // Temporarily show local image
         sender: user,
         chat: currentChat,
-        type: "image",
+        type,
         status: "pending",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -560,7 +565,7 @@ export default function ChatMessage() {
               multiline
             />
             <TouchableOpacity
-              onPress={handlePressImage}
+              onPress={handlePressMedia}
               style={styles.imageButton}
             >
               <Ionicons name="image-outline" size={22} color={color.icon} />
