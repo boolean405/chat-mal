@@ -16,10 +16,19 @@ export default function TabLayout() {
   const unreadCount = useChatStore((state) => state.totalUnreadCount);
   const insets = useSafeAreaInsets();
 
-  const tabBarLabel =
-    (label: string) =>
-    ({ focused, color }: any) =>
+  const tabBarLabel = (label: string) => {
+    const Component = ({
+      focused,
+      color,
+    }: {
+      focused: boolean;
+      color: string;
+    }) =>
       focused ? <Text style={{ color, fontSize: 12 }}>{label}</Text> : null;
+
+    Component.displayName = `TabLabel_${label}`;
+    return Component;
+  };
 
   return (
     <Tabs
@@ -34,7 +43,7 @@ export default function TabLayout() {
           },
           default: {
             backgroundColor: Colors[colorScheme ?? "light"].background,
-            paddingBottom: insets.bottom, // Add bottom safe area
+            // paddingBottom: insets.bottom, // Add bottom safe area
             // height: 50 + insets.bottom, // Optional: adjust height to avoid layout squeeze
           },
         }),

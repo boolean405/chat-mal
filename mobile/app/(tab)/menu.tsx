@@ -72,7 +72,7 @@ export default function Menu() {
   return (
     <SafeAreaView
       style={[{ flex: 1, backgroundColor: color.background }]}
-      edges={["top" ]}
+      edges={["top"]}
     >
       <ScrollView
         style={[styles.outerContainer, { backgroundColor: color.background }]}

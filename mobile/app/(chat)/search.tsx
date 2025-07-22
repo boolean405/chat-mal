@@ -101,10 +101,7 @@ export default function Search() {
   const filterTypes = ["All", "Online", "Male", "Female", "Group"];
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: color.background }}
-      edges={["top", "bottom"]}
-    >
+    <SafeAreaView style={{ flex: 1, backgroundColor: color.background }}>
       <KeyboardAvoidingView
         style={[styles.container, { backgroundColor: color.background }]}
         behavior={Platform.OS === "ios" ? "padding" : "height"}

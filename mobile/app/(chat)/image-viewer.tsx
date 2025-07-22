@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   },
   downloadButton: {
     position: "absolute",
-    top: 10,
+    top: 20,
     right: 20,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     padding: 10,

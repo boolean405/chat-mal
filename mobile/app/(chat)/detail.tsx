@@ -135,10 +135,7 @@ export default function Detail() {
   };
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: color.background }}
-      edges={["top", "bottom"]}
-    >
+    <SafeAreaView style={{ flex: 1, backgroundColor: color.background }}>
       {/* Header */}
       <ThemedView style={[styles.header, { borderBottomColor: color.border }]}>
         <TouchableOpacity onPress={() => router.back()}>

@@ -26,6 +26,7 @@ import { changeNames, deletePhoto, uploadPhoto } from "@/api/user";
 import { ThemedButton } from "@/components/ThemedButton";
 import getImageMimeType from "@/utils/getImageMimeType";
 import { useAuthStore } from "@/stores/authStore";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -251,227 +252,232 @@ export default function EditProfile() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={[{ flex: 1 }]}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
-    >
-      <ScrollView
-        contentContainerStyle={[styles.scrollContainer]}
-        keyboardShouldPersistTaps="handled"
+    <SafeAreaView style={[{ flex: 1, backgroundColor: color.background }]}>
+      <KeyboardAvoidingView
+        style={[{ flex: 1 }]}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
       >
-        <ThemedView style={[styles.container]}>
-          {/* Cover Image */}
-          <TouchableOpacity
-            onPress={() =>
-              !isLoading &&
-              pickImage(
-                setCoverPhoto,
-                setCoverPhotoBase64,
-                setIsError,
-                setErrorMessage,
-                [2, 1],
-                handleCoverUpload
-              )
-            }
-          >
-            <ThemedView style={styles.coverPhotoContainer}>
-              {isCoverLoading && (
+        <ScrollView
+          contentContainerStyle={[styles.scrollContainer]}
+          keyboardShouldPersistTaps="handled"
+        >
+          <ThemedView style={[styles.container]}>
+            {/* Cover Image */}
+            <TouchableOpacity
+              onPress={() =>
+                !isLoading &&
+                pickImage(
+                  setCoverPhoto,
+                  setCoverPhotoBase64,
+                  setIsError,
+                  setErrorMessage,
+                  [2, 1],
+                  handleCoverUpload
+                )
+              }
+            >
+              <ThemedView style={styles.coverPhotoContainer}>
+                {isCoverLoading && (
+                  <ActivityIndicator
+                    size="small"
+                    color={color.background}
+                    style={[styles.coverUploadingIcon]}
+                  />
+                )}
+                {coverPhoto ? (
+                  <ThemedView>
+                    <Image
+                      source={{ uri: coverPhoto }}
+                      style={[styles.coverPhoto]}
+                    />
+                    <TouchableOpacity
+                      style={styles.deleteIconCover}
+                      onPress={handleRemoveCover}
+                    >
+                      <Ionicons name="trash-outline" size={24} color="red" />
+                    </TouchableOpacity>
+                  </ThemedView>
+                ) : (
+                  <ThemedView
+                    style={[
+                      styles.coverPlaceholder,
+                      { backgroundColor: color.secondary },
+                    ]}
+                  >
+                    <ThemedText type="small">Add Cover Photo</ThemedText>
+                  </ThemedView>
+                )}
+              </ThemedView>
+            </TouchableOpacity>
+
+            {/* Profile Image */}
+            <TouchableOpacity
+              onPress={() =>
+                !isLoading &&
+                pickImage(
+                  setProfilePhoto,
+                  setProfilePhotoBase64,
+                  setIsError,
+                  setErrorMessage,
+                  [1, 1],
+                  handleProfileUpload
+                )
+              }
+              style={[
+                styles.profileImageWrapper,
+                { borderColor: color.border },
+              ]}
+            >
+              {isProfileLoading && (
                 <ActivityIndicator
                   size="small"
                   color={color.background}
-                  style={[styles.coverUploadingIcon]}
+                  style={[styles.profileUploadingIcon]}
                 />
               )}
-              {coverPhoto ? (
-                <ThemedView>
+              {profilePhoto ? (
+                <>
                   <Image
-                    source={{ uri: coverPhoto }}
-                    style={[styles.coverPhoto]}
+                    source={{ uri: profilePhoto }}
+                    style={styles.profilePhoto}
                   />
-                  <TouchableOpacity
-                    style={styles.deleteIconCover}
-                    onPress={handleRemoveCover}
-                  >
-                    <Ionicons name="trash-outline" size={24} color="red" />
-                  </TouchableOpacity>
-                </ThemedView>
-              ) : (
-                <ThemedView
-                  style={[
-                    styles.coverPlaceholder,
-                    { backgroundColor: color.secondary },
-                  ]}
-                >
-                  <ThemedText type="small">Add Cover Photo</ThemedText>
-                </ThemedView>
-              )}
-            </ThemedView>
-          </TouchableOpacity>
-
-          {/* Profile Image */}
-          <TouchableOpacity
-            onPress={() =>
-              !isLoading &&
-              pickImage(
-                setProfilePhoto,
-                setProfilePhotoBase64,
-                setIsError,
-                setErrorMessage,
-                [1, 1],
-                handleProfileUpload
-              )
-            }
-            style={[styles.profileImageWrapper, { borderColor: color.border }]}
-          >
-            {isProfileLoading && (
-              <ActivityIndicator
-                size="small"
-                color={color.background}
-                style={[styles.profileUploadingIcon]}
-              />
-            )}
-            {profilePhoto ? (
-              <>
-                <Image
-                  source={{ uri: profilePhoto }}
-                  style={styles.profilePhoto}
-                />
-                <Ionicons
-                  name="create-outline"
-                  size={24}
-                  color={color.secondary}
-                  style={styles.addPhotoText}
-                />
-                {/* <TouchableOpacity
+                  <Ionicons
+                    name="create-outline"
+                    size={24}
+                    color={color.secondary}
+                    style={styles.addPhotoText}
+                  />
+                  {/* <TouchableOpacity
                   style={styles.deleteIconProfile}
                   onPress={handleRemoveProfile}
                 >
-                  <Ionicons name="trash-outline" size={24} color="red" />
+                <Ionicons name="trash-outline" size={24} color="red" />
                 </TouchableOpacity> */}
-              </>
-            ) : (
+                </>
+              ) : (
+                <ThemedView
+                  style={[
+                    styles.profilePlaceholder,
+                    { backgroundColor: color.secondary },
+                  ]}
+                >
+                  <ThemedText type="small">Add Profile Photo</ThemedText>
+                </ThemedView>
+              )}
+            </TouchableOpacity>
+
+            {/* Inputs and Button */}
+            <ThemedView style={styles.bottomContainer}>
+              <ThemedText type="title">{name}</ThemedText>
+              <ThemedText type="subtitle">
+                {username && `@${username}`}
+              </ThemedText>
+
+              <ThemedText type="subtitle" style={styles.nameText}>
+                Edit your profile
+              </ThemedText>
+
+              {/* Name Input */}
+              <ThemedView
+                style={[styles.inputContainer, { borderColor: color.border }]}
+              >
+                <Ionicons
+                  name="person-outline"
+                  size={24}
+                  style={{ color: color.icon }}
+                />
+                <TextInput
+                  style={[styles.textInput, { color: color.primary }]}
+                  placeholder="Name"
+                  autoComplete="name"
+                  placeholderTextColor="gray"
+                  value={name}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  editable={!isLoading}
+                  onBlur={() => setName(name.trim())}
+                  onChangeText={(text) => {
+                    setIsError(false);
+                    const sanitized = text
+                      .replace(/^\s+/, "") // Remove leading spaces
+                      .replace(/[^A-Za-z\s]/g, ""); // Remove all non-letter characters
+                    setName(sanitized);
+                  }}
+                />
+              </ThemedView>
+
+              {/* Username Input */}
               <ThemedView
                 style={[
-                  styles.profilePlaceholder,
-                  { backgroundColor: color.secondary },
+                  styles.inputContainer,
+                  { borderColor: isExistUsername ? "red" : color.border },
                 ]}
               >
-                <ThemedText type="small">Add Profile Photo</ThemedText>
+                <Ionicons
+                  name="at-outline"
+                  size={24}
+                  style={{ color: color.icon }}
+                />
+                <TextInput
+                  style={[styles.textInput, { color: color.primary }]}
+                  placeholder="Username"
+                  autoComplete="username-new"
+                  placeholderTextColor="gray"
+                  value={username}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  editable={!isLoading}
+                  onSubmitEditing={() =>
+                    !isInvalidName &&
+                    !isInvalidUsername &&
+                    !isError &&
+                    handleContinue()
+                  }
+                  onChangeText={(text) => {
+                    setIsError(false);
+                    setIsExistUsername(false);
+                    const sanitized = text
+                      .replace(/[^a-z0-9]/g, "")
+                      .toLowerCase();
+                    setUsername(sanitized);
+                  }}
+                />
               </ThemedView>
-            )}
-          </TouchableOpacity>
 
-          {/* Inputs and Button */}
-          <ThemedView style={styles.bottomContainer}>
-            <ThemedText type="title">{name}</ThemedText>
-            <ThemedText type="subtitle">
-              {username && `@${username}`}
-            </ThemedText>
+              {isError && (
+                <ThemedText style={{ color: "red" }}>{errorMessage}</ThemedText>
+              )}
 
-            <ThemedText type="subtitle" style={styles.nameText}>
-              Edit your profile
-            </ThemedText>
-
-            {/* Name Input */}
-            <ThemedView
-              style={[styles.inputContainer, { borderColor: color.border }]}
-            >
-              <Ionicons
-                name="person-outline"
-                size={24}
-                style={{ color: color.icon }}
-              />
-              <TextInput
-                style={[styles.textInput, { color: color.primary }]}
-                placeholder="Name"
-                autoComplete="name"
-                placeholderTextColor="gray"
-                value={name}
-                autoCapitalize="words"
-                autoCorrect={false}
-                editable={!isLoading}
-                onBlur={() => setName(name.trim())}
-                onChangeText={(text) => {
-                  setIsError(false);
-                  const sanitized = text
-                    .replace(/^\s+/, "") // Remove leading spaces
-                    .replace(/[^A-Za-z\s]/g, ""); // Remove all non-letter characters
-                  setName(sanitized);
-                }}
-              />
-            </ThemedView>
-
-            {/* Username Input */}
-            <ThemedView
-              style={[
-                styles.inputContainer,
-                { borderColor: isExistUsername ? "red" : color.border },
-              ]}
-            >
-              <Ionicons
-                name="at-outline"
-                size={24}
-                style={{ color: color.icon }}
-              />
-              <TextInput
-                style={[styles.textInput, { color: color.primary }]}
-                placeholder="Username"
-                autoComplete="username-new"
-                placeholderTextColor="gray"
-                value={username}
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!isLoading}
-                onSubmitEditing={() =>
-                  !isInvalidName &&
-                  !isInvalidUsername &&
-                  !isError &&
-                  handleContinue()
-                }
-                onChangeText={(text) => {
-                  setIsError(false);
-                  setIsExistUsername(false);
-                  const sanitized = text
-                    .replace(/[^a-z0-9]/g, "")
-                    .toLowerCase();
-                  setUsername(sanitized);
-                }}
-              />
-            </ThemedView>
-
-            {isError && (
-              <ThemedText style={{ color: "red" }}>{errorMessage}</ThemedText>
-            )}
-
-            <ThemedButton
-              style={[
-                styles.button,
-                (isInvalidUsername ||
+              <ThemedButton
+                style={[
+                  styles.button,
+                  (isInvalidUsername ||
+                    isInvalidName ||
+                    isLoading ||
+                    isError ||
+                    isExistUsername ||
+                    !canChange) && {
+                    opacity: 0.5,
+                  },
+                ]}
+                title={!isLoading && "Change names"}
+                onPress={handleContinue}
+                disabled={
+                  isInvalidUsername ||
                   isInvalidName ||
                   isLoading ||
                   isError ||
                   isExistUsername ||
-                  !canChange) && {
-                  opacity: 0.5,
-                },
-              ]}
-              title={!isLoading && "Change names"}
-              onPress={handleContinue}
-              disabled={
-                isInvalidUsername ||
-                isInvalidName ||
-                isLoading ||
-                isError ||
-                isExistUsername ||
-                !canChange
-              }
-              isLoading={isLoading}
-            />
+                  !canChange
+                }
+                isLoading={isLoading}
+              />
+            </ThemedView>
           </ThemedView>
-        </ThemedView>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

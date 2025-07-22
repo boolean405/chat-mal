@@ -435,10 +435,7 @@ export default function ChatMessage() {
     otherUser && onlineUserIds.includes(otherUser?._id) ? true : false;
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: color.background }}
-      edges={["top",'bottom']}
-    >
+    <SafeAreaView style={{ flex: 1, backgroundColor: color.background }}>
       <KeyboardAvoidingView
         style={[styles.container, { backgroundColor: color.background }]}
         behavior={Platform.OS === "ios" ? "padding" : "height"}

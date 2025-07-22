@@ -312,10 +312,7 @@ export default function Member() {
   };
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: color.background }}
-      edges={["top", "bottom"]}
-    >
+    <SafeAreaView style={{ flex: 1, backgroundColor: color.background }}>
       <KeyboardAvoidingView
         style={[styles.container, { backgroundColor: color.background }]}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
