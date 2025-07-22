@@ -6,6 +6,7 @@ import {
   Alert,
   FlatList,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   StyleSheet,
   TextInput,
@@ -36,6 +37,7 @@ import { pickMedia } from "@/utils/messageMediaPicker";
 import getImageMimeType from "@/utils/getImageMimeType";
 import CameraModal from "@/components/Camera";
 import { SafeAreaView } from "react-native-safe-area-context";
+import ImagePreview from "@/components/ImagePreview";
 
 export default function ChatMessage() {
   useTimeTickWhenFocused();
@@ -80,6 +82,10 @@ export default function ChatMessage() {
   const [isTyping, setIsTyping] = useState(false);
   const [typingUser, setTypingUser] = useState<User | null>(null);
   const [isCameraVisible, setIsCameraVisible] = useState(false);
+  const [capturedPhoto, setCapturedPhoto] = useState<{
+    uri: string;
+    base64?: string;
+  } | null>(null);
 
   // Pagination handling
   const {
@@ -666,7 +672,6 @@ export default function ChatMessage() {
               isVisible={isCameraVisible}
               onClose={() => setIsCameraVisible(false)}
               onPictureTaken={handlePictureTaken}
-              // onVideoRecorded={handlePictureTaken}
             />
           </ThemedView>
         )}

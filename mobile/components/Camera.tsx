@@ -10,9 +10,11 @@ import {
 } from "react-native";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
+import * as ImagePicker from "expo-image-picker";
 import Modal from "react-native-modal";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemedText } from "./ThemedText";
+import ImagePreview from "./ImagePreview";
 
 type CameraModalProps = {
   isVisible: boolean;
@@ -32,14 +34,16 @@ export default function CameraModal({
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [permissionDeniedCount, setPermissionDeniedCount] = useState(0);
   const cameraRef = useRef<CameraView>(null);
+  const [previewPhoto, setPreviewPhoto] = useState<{
+    uri: string;
+    base64?: string;
+  } | null>(null);
 
   useEffect(() => {
     const checkPermissions = async () => {
       if (isVisible) {
-        // Reset permission denied count when modal opens
         setPermissionDeniedCount(0);
 
-        // Request camera permissions if not granted
         if (!permission?.granted) {
           const cameraStatus = await requestPermission();
           if (!cameraStatus.granted) {
@@ -48,7 +52,6 @@ export default function CameraModal({
           }
         }
 
-        // Request media library permissions if not granted
         if (!mediaPermission?.granted) {
           const mediaStatus = await requestMediaPermission();
           if (!mediaStatus.granted) {
@@ -72,14 +75,12 @@ export default function CameraModal({
 
   useEffect(() => {
     if (permissionDeniedCount === 1) {
-      // First denial - show toast and close
       ToastAndroid.show(
         "Camera permission is required to use this feature",
         ToastAndroid.SHORT
       );
       onClose();
     } else if (permissionDeniedCount >= 2) {
-      // Second denial - show alert to open settings
       Alert.alert(
         "Permission Required",
         "Camera access is needed to take photos. Please enable it in app settings.",
@@ -108,9 +109,7 @@ export default function CameraModal({
           quality: 0.5,
           base64: true,
         });
-        onPictureTaken(photo);
-
-        onClose();
+        setPreviewPhoto(photo); // Show preview modal here
       } catch (error: any) {
         ToastAndroid.show(
           error.message || "Failed to take picture",
@@ -124,7 +123,46 @@ export default function CameraModal({
     setCameraType((current) => (current === "back" ? "front" : "back"));
   };
 
+  const openImageLibrary = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images", "videos"],
+      quality: 0.5,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets?.length) {
+      const photo = result.assets[0];
+      setPreviewPhoto({
+        uri: photo.uri,
+        base64: photo.base64 || undefined,
+      });
+    }
+  };
+
   if (!isVisible) return null;
+
+  // Show preview modal if previewPhoto exists
+  if (previewPhoto) {
+    return (
+      <Modal
+        isVisible={isVisible}
+        style={{ margin: 0 }}
+        onBackdropPress={() => setPreviewPhoto(null)}
+        onBackButtonPress={() => setPreviewPhoto(null)}
+      >
+        <ImagePreview
+          photoUri={previewPhoto.uri}
+          isFrontCamera={cameraType === "front"}
+          onSend={() => {
+            onPictureTaken(previewPhoto);
+            setPreviewPhoto(null);
+            onClose();
+          }}
+          onClose={() => setPreviewPhoto(null)}
+        />
+      </Modal>
+    );
+  }
 
   return (
     <Modal
@@ -135,16 +173,30 @@ export default function CameraModal({
     >
       <View style={styles.cameraContainer}>
         {hasPermission ? (
-          <CameraView
-            ref={cameraRef}
-            style={styles.camera}
-            facing={cameraType}
-            enableTorch={false}
-            autofocus="on"
+          <View
+            style={{
+              flex: 1,
+              width: "100%",
+              height: "100%",
+              backgroundColor: "black",
+              position: "relative",
+            }}
           >
+            <CameraView
+              ref={cameraRef}
+              style={StyleSheet.absoluteFill}
+              facing={cameraType}
+              enableTorch={false}
+              autofocus="on"
+            />
+
+            {/* UI Buttons Overlay */}
             <View style={styles.cameraButtonContainer}>
-              <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                <Ionicons name="close" size={24} color="white" />
+              <TouchableOpacity
+                style={styles.galleryButton}
+                onPress={openImageLibrary}
+              >
+                <Ionicons name="image" size={24} color="white" />
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -161,7 +213,7 @@ export default function CameraModal({
                 <Ionicons name="camera-reverse" size={24} color="white" />
               </TouchableOpacity>
             </View>
-          </CameraView>
+          </View>
         ) : (
           <View style={styles.permissionContainer}>
             <ThemedText>Camera permission is required</ThemedText>
@@ -186,52 +238,77 @@ export default function CameraModal({
 }
 
 const styles = StyleSheet.create({
-  modal: {
-    margin: 0,
-    justifyContent: "flex-end",
-  },
   cameraContainer: {
     flex: 1,
     backgroundColor: "black",
+    position: "relative",
   },
-  camera: {
+  modal: {
+    margin: 0,
     flex: 1,
   },
   cameraButtonContainer: {
-    flex: 1,
-    backgroundColor: "transparent",
+    position: "absolute",
+    bottom: 40,
+    left: 20,
+    right: 20,
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-end",
-    padding: 20,
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.4)", // translucent background behind buttons
+    borderRadius: 50,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
   },
   closeButton: {
-    alignSelf: "flex-start",
+    backgroundColor: "rgba(0,0,0,0.6)",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  flipButton: {
+    backgroundColor: "rgba(0,0,0,0.6)",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: "center",
+    alignItems: "center",
   },
   captureButton: {
-    // alignSelf: "center",
     width: 70,
     height: 70,
     borderRadius: 35,
-    borderWidth: 5,
+    borderWidth: 6,
     borderColor: "white",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 10,
+    backgroundColor: "transparent",
+    shadowColor: "#fff",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.7,
+    shadowRadius: 4,
+    elevation: 5,
   },
   captureButtonInner: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: "white",
-  },
-  flipButton: {
-    alignSelf: "flex-end",
   },
   permissionContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "white",
+  },
+  galleryButton: {
+    backgroundColor: "rgba(0,0,0,0.6)",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
