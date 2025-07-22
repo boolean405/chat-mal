@@ -22,6 +22,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { User } from "@/types";
 import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Search() {
   const router = useRouter();
@@ -100,113 +101,118 @@ export default function Search() {
   const filterTypes = ["All", "Online", "Male", "Female", "Group"];
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: color.background }]}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: color.background }}
+      edges={["top", "bottom"]}
     >
-      <ThemedView style={styles.header}>
-        <ThemedView style={styles.inputContainer}>
-          <ThemedView
-            style={[
-              styles.inputTextContainer,
-              { backgroundColor: color.secondary },
-            ]}
-          >
-            <TouchableOpacity onPress={() => router.back()}>
-              <Ionicons
-                name="chevron-back-outline"
-                size={22}
-                color={color.icon}
-              />
-            </TouchableOpacity>
-            <TextInput
-              ref={inputRef}
-              value={keyword}
-              onChangeText={setKeyword}
-              placeholder="Search"
-              placeholderTextColor="gray"
-              style={[styles.textInput, { color: color.text }]}
-            />
-            <TouchableOpacity onPress={() => console.log("QR scan")}>
-              <MaterialCommunityIcons
-                name="qrcode-scan"
-                size={22}
-                color={color.icon}
-              />
-            </TouchableOpacity>
-          </ThemedView>
-        </ThemedView>
-      </ThemedView>
-
-      <ThemedView
-        style={[styles.filterContainer, { borderBottomColor: color.border }]}
+      <KeyboardAvoidingView
+        style={[styles.container, { backgroundColor: color.background }]}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
       >
-        {filterTypes.map((filter) => (
-          <TouchableOpacity
-            key={filter}
-            style={[
-              styles.filterButton,
-              { borderColor: color.border },
-              selectedFilter === filter && { backgroundColor: color.primary },
-            ]}
-            onPress={() => setSelectedFilter(filter)}
-          >
-            <ThemedText
+        <ThemedView style={styles.header}>
+          <ThemedView style={styles.inputContainer}>
+            <ThemedView
               style={[
-                styles.filterText,
-                {
-                  color:
-                    selectedFilter === filter ? color.background : color.text,
-                },
+                styles.inputTextContainer,
+                { backgroundColor: color.secondary },
               ]}
             >
-              {filter}
-            </ThemedText>
-          </TouchableOpacity>
-        ))}
-      </ThemedView>
+              <TouchableOpacity onPress={() => router.back()}>
+                <Ionicons
+                  name="chevron-back-outline"
+                  size={22}
+                  color={color.icon}
+                />
+              </TouchableOpacity>
+              <TextInput
+                ref={inputRef}
+                value={keyword}
+                onChangeText={setKeyword}
+                placeholder="Search"
+                placeholderTextColor="gray"
+                style={[styles.textInput, { color: color.text }]}
+              />
+              <TouchableOpacity onPress={() => console.log("QR scan")}>
+                <MaterialCommunityIcons
+                  name="qrcode-scan"
+                  size={22}
+                  color={color.icon}
+                />
+              </TouchableOpacity>
+            </ThemedView>
+          </ThemedView>
+        </ThemedView>
 
-      {isLoading && (
-        <ThemedText style={{ textAlign: "center", marginVertical: 10 }}>
-          Searching...
-        </ThemedText>
-      )}
+        <ThemedView
+          style={[styles.filterContainer, { borderBottomColor: color.border }]}
+        >
+          {filterTypes.map((filter) => (
+            <TouchableOpacity
+              key={filter}
+              style={[
+                styles.filterButton,
+                { borderColor: color.border },
+                selectedFilter === filter && { backgroundColor: color.primary },
+              ]}
+              onPress={() => setSelectedFilter(filter)}
+            >
+              <ThemedText
+                style={[
+                  styles.filterText,
+                  {
+                    color:
+                      selectedFilter === filter ? color.background : color.text,
+                  },
+                ]}
+              >
+                {filter}
+              </ThemedText>
+            </TouchableOpacity>
+          ))}
+        </ThemedView>
 
-      <FlatList
-        data={results}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => {
-          let isOnline = false;
-          const otherUserId = item._id !== user._id ? item._id : null;
-          if (otherUserId) isOnline = onlineUserIds.includes(otherUserId);
-          return (
-            <UserItem
-              user={item}
-              isOnline={isOnline}
-              disabled={loading}
-              onPress={() => handleResult(item)}
-            />
-          );
-        }}
-        ListEmptyComponent={
-          debouncedKeyword && !isLoading ? (
-            <ThemedText style={{ textAlign: "center", marginVertical: 10 }}>
-              No results found!
-            </ThemedText>
-          ) : null
-        }
-        style={styles.resultList}
-        showsVerticalScrollIndicator={false}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={1}
-        ListFooterComponent={
-          hasMore && results.length > 0 && isPaging ? (
-            <ActivityIndicator size="small" color={color.icon} />
-          ) : null
-        }
-      />
-    </KeyboardAvoidingView>
+        {isLoading && (
+          <ThemedText style={{ textAlign: "center", marginVertical: 10 }}>
+            Searching...
+          </ThemedText>
+        )}
+
+        <FlatList
+          data={results}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => {
+            let isOnline = false;
+            const otherUserId = item._id !== user._id ? item._id : null;
+            if (otherUserId) isOnline = onlineUserIds.includes(otherUserId);
+            return (
+              <UserItem
+                user={item}
+                isOnline={isOnline}
+                disabled={loading}
+                onPress={() => handleResult(item)}
+              />
+            );
+          }}
+          ListEmptyComponent={
+            debouncedKeyword && !isLoading ? (
+              <ThemedText style={{ textAlign: "center", marginVertical: 10 }}>
+                No results found!
+              </ThemedText>
+            ) : null
+          }
+          style={styles.resultList}
+          showsVerticalScrollIndicator={false}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={1}
+          ListFooterComponent={
+            hasMore && results.length > 0 && isPaging ? (
+              <ActivityIndicator size="small" color={color.icon} />
+            ) : null
+          }
+        />
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

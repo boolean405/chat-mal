@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams } from "expo-router";
 import * as MediaLibrary from "expo-media-library";
+import { StatusBar } from "expo-status-bar";
 
 export default function ImageViewer() {
   const { imageUrl } = useLocalSearchParams();
@@ -61,23 +62,29 @@ export default function ImageViewer() {
   if (!imageUrl || typeof imageUrl !== "string") return null;
 
   return (
-    <View style={styles.container}>
-      <Image
-        source={{ uri: imageUrl }}
-        contentFit="contain"
-        style={styles.image}
-        cachePolicy="memory-disk"
-      />
+    <>
+      <StatusBar hidden />
+      <View style={styles.container}>
+        <Image
+          source={{ uri: imageUrl }}
+          contentFit="contain"
+          style={styles.image}
+          cachePolicy="memory-disk"
+        />
 
-      {/* Download button */}
-      <TouchableOpacity style={styles.downloadButton} onPress={handleDownload}>
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Ionicons name="download-outline" size={28} color="white" />
-        )}
-      </TouchableOpacity>
-    </View>
+        {/* Download button */}
+        <TouchableOpacity
+          style={styles.downloadButton}
+          onPress={handleDownload}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Ionicons name="download-outline" size={28} color="white" />
+          )}
+        </TouchableOpacity>
+      </View>
+    </>
   );
 }
 

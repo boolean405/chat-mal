@@ -1,12 +1,8 @@
-import React from "react";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ThemedView } from "./ThemedView";
+// import React from "react";
+// import { useSafeAreaInsets } from "react-native-safe-area-context";
+// import { ThemedView } from "./ThemedView";
 
-export default function SafeScreen({ children }: React.PropsWithChildren) {
-  const insets = useSafeAreaInsets();
-  return (
-    <ThemedView style={{ flex: 1, paddingTop: insets.top }}>
-      {children}
-    </ThemedView>
-  );
-}
+// export default function SafeScreen({ children }: React.PropsWithChildren) {
+//   const insets = useSafeAreaInsets();
+//   return <ThemedView style={{ flex: 1 }}>{children}</ThemedView>;
+// }

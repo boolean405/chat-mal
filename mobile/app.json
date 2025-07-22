@@ -39,6 +39,7 @@
       "expo-router",
       "expo-video",
       "expo-web-browser",
+      "react-native-compressor",
       [
         "expo-splash-screen",
         {
@@ -86,7 +87,12 @@
           "experimentalLauncherActivity": true
         }
       ],
-      "react-native-compressor"
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

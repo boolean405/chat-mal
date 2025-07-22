@@ -14,7 +14,6 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-import SafeScreen from "@/components/SafeScreen";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useNotifications } from "@/hooks/useNotifications";
 
@@ -49,20 +48,15 @@ export default function RootLayout() {
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <KeyboardProvider>
           <SafeAreaProvider style={{ flex: 1 }}>
-            <SafeScreen>
-              <Stack>
-                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                <Stack.Screen name="(tab)" options={{ headerShown: false }} />
-                <Stack.Screen name="(chat)" options={{ headerShown: false }} />
-                <Stack.Screen name="(menu)" options={{ headerShown: false }} />
-                <Stack.Screen
-                  name="(setting)"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen name="+not-found" />
-              </Stack>
-              <StatusBar style="auto" />
-            </SafeScreen>
+            <Stack>
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+              <Stack.Screen name="(tab)" options={{ headerShown: false }} />
+              <Stack.Screen name="(chat)" options={{ headerShown: false }} />
+              <Stack.Screen name="(menu)" options={{ headerShown: false }} />
+              <Stack.Screen name="(setting)" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+            <StatusBar style="auto" />
           </SafeAreaProvider>
         </KeyboardProvider>
       </ThemeProvider>

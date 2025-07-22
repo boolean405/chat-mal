@@ -18,13 +18,14 @@ import {
   ToastAndroid,
   useColorScheme,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const screenWidth = Dimensions.get("window").width;
 const CONTAINER_WIDTH = screenWidth * 0.8;
 
 export default function Menu() {
   const colorScheme = useColorScheme();
-  const colors = colorScheme === "dark" ? Colors.dark : Colors.light;
+  const color = colorScheme === "dark" ? Colors.dark : Colors.light;
   const router = useRouter();
   const isNavigatingRef = useRef(false);
 
@@ -34,7 +35,7 @@ export default function Menu() {
   const { user } = useAuthStore();
   const { requestUnreadCount } = useChatStore();
 
-  const walletBalance = 250.75;
+  const walletBalance = 0.0;
   const isOnline = true;
 
   const handleUsernameCopied = (username: string) => {
@@ -69,64 +70,70 @@ export default function Menu() {
   };
 
   return (
-    <ScrollView
-      style={[styles.outerContainer, { backgroundColor: colors.background }]}
-      contentContainerStyle={{ paddingBottom: 40 }}
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefreshing}
-          onRefresh={onRefresh}
-          tintColor={colors.tint}
-          colors={[colors.background]}
-          progressBackgroundColor={colors.tint}
-        />
-      }
+    <SafeAreaView
+      style={[{ flex: 1, backgroundColor: color.background }]}
+      edges={["top" ]}
     >
-      <ThemedView style={styles.container}>
-        <ProfileHeader
-          name={user?.name}
-          username={user?.username}
-          isOnline={isOnline}
-          tint={colors.tint}
-          textColor={colors.text}
-          iconColor={colors.icon}
-          secondary={colors.secondary}
-          onUsernameCopied={handleUsernameCopied}
-          profilePhoto={user?.profilePhoto}
-          onPress={() => router.push("/(setting)/edit-profile")}
-        />
+      <ScrollView
+        style={[styles.outerContainer, { backgroundColor: color.background }]}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            tintColor={color.tint}
+            colors={[color.background]}
+            progressBackgroundColor={color.tint}
+          />
+        }
+      >
+        <ThemedView style={styles.container}>
+          <ProfileHeader
+            name={user?.name}
+            username={user?.username}
+            isOnline={isOnline}
+            tint={color.tint}
+            textColor={color.text}
+            iconColor={color.icon}
+            secondary={color.secondary}
+            onUsernameCopied={handleUsernameCopied}
+            profilePhoto={user?.profilePhoto}
+            onPress={() => router.push("/(setting)/edit-profile")}
+          />
 
-        <WalletTab
-          balance={walletBalance}
-          tint={colors.tint}
-          backgroundColor={colors.secondary}
-        />
+          <WalletTab
+            balance={walletBalance}
+            tint={color.tint}
+            backgroundColor={color.secondary}
+          />
 
-        <ListSection
-          title="Menus"
-          data={MENUS}
-          disabled={isLoading}
-          notificationCount={{
-            // add more next time
-            "/message-request": requestUnreadCount,
-          }}
-          onItemPress={(item) => {
-            handleItemPress(item);
-          }}
-        />
+          <ListSection
+            title="Menus"
+            data={MENUS}
+            disabled={isLoading}
+            notificationCount={{
+              // add more next time
+              "/message-request": requestUnreadCount,
+            }}
+            onItemPress={(item) => {
+              handleItemPress(item);
+            }}
+          />
 
-        <ListSection
-          title="Settings"
-          data={SETTINGS}
-          disabled={isLoading}
-          onItemPress={(item) => {
-            console.log(item.label);
-          }}
-        />
+          <ListSection
+            title="Settings"
+            data={SETTINGS}
+            disabled={isLoading}
+            onItemPress={(item) => {
+              console.log(item.label);
+            }}
+          />
 
-        <LogoutButton />
-      </ThemedView>
-    </ScrollView>
+          <LogoutButton />
+        </ThemedView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -137,6 +144,6 @@ const styles = StyleSheet.create({
   container: {
     width: CONTAINER_WIDTH,
     alignSelf: "center",
-    paddingTop: 50,
+    paddingTop: 40,
   },
 });

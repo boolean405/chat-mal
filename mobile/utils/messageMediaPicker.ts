@@ -40,18 +40,24 @@ export async function pickMedia() {
     if (!result.canceled && result.assets.length > 0) {
       const mediaDataArray = await Promise.all(
         result.assets.map(async (asset) => {
-          const { uri: originalUri, fileName = "media", type, base64 } = asset;
-          
-          // Compress video
-          const uri = await videoCompressor(originalUri);
+          const {
+            uri: originalUri,
+            fileName = "media",
+            type,
+            base64: originalBase64,
+          } = asset;
 
-          const base64Data =
-            base64 ??
+          // Compress video
+          const uri =
+            type === "video" ? await videoCompressor(originalUri) : originalUri;
+
+          const base64 =
+            originalBase64 ??
             (await FileSystem.readAsStringAsync(uri, {
               encoding: FileSystem.EncodingType.Base64,
             }));
 
-          return { uri, fileName, type, base64: base64Data };
+          return { uri, fileName, type, base64 };
         })
       );
 
