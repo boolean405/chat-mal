@@ -6,7 +6,6 @@ import {
   Alert,
   FlatList,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   StyleSheet,
   TextInput,
@@ -33,10 +32,10 @@ import getLastTime from "@/utils/getLastTime";
 import { socket } from "@/config/socket";
 import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
 import { useUiStore } from "@/stores/uiStore";
-import { pickMedia } from "@/utils/messageMediaPicker";
 import CameraModal from "@/components/Camera";
 import ImagePreview from "@/components/ImagePreview";
 import VideoPreview from "@/components/VideoPreview";
+import { chatMediaPicker } from "@/utils/chatMediaPicker";
 
 export default function ChatMessage() {
   useTimeTickWhenFocused();
@@ -83,8 +82,9 @@ export default function ChatMessage() {
   const [isCameraVisible, setIsCameraVisible] = useState(false);
   const [pendingMediaPreview, setPendingMediaPreview] = useState<{
     uri: string;
-    base64?: string;
+    base64: string;
     type: "image" | "video";
+    isLoading: boolean;
   } | null>(null);
 
   // Pagination handling
@@ -314,22 +314,22 @@ export default function ChatMessage() {
   const handlePressMedia = async () => {
     if (!chatId || !currentChat) return;
 
-    const mediasData = await pickMedia();
-    if (!mediasData || mediasData.length === 0) return;
+    setPendingMediaPreview({
+      uri: "",
+      base64: "",
+      type: "video",
+      isLoading: true,
+    });
 
-    // Only preview the first one for now (you can extend for multiple later)
-    const mediaData = mediasData[0];
-    let type: "image" | "video";
-    if (mediaData.type === "image" || mediaData.type === "video")
-      type = mediaData.type;
-    else type = mediaData.type?.startsWith("video") ? "video" : "image";
+    const media = await chatMediaPicker();
+    if (!media) return;
 
     setPendingMediaPreview({
-      uri: mediaData.uri,
-      base64: mediaData.base64,
-      type,
+      uri: media.uri,
+      base64: media.base64,
+      type: media.type === "image" ? "image" : "video",
+      isLoading: false,
     });
-    // Don't send yet!
   };
 
   // Function to actually send the media after preview confirmation
@@ -368,15 +368,15 @@ export default function ChatMessage() {
         mediaBase64,
         pendingMediaPreview.type
       );
-      const realMessage = data.result;
+      const message = data.result;
 
-      socket.emit("send-message", { chatId, message: realMessage });
+      socket.emit("send-message", { chatId, message: message });
 
       setMessages(chatId, [
-        realMessage,
+        message,
         ...currentMessages.filter((msg) => msg._id !== tempId),
       ]);
-      updateChat(realMessage.chat);
+      updateChat(message.chat);
     } catch (error: any) {
       ToastAndroid.show(
         error.message || "Media upload failed",
@@ -396,7 +396,7 @@ export default function ChatMessage() {
   // Add this function to handle the taken picture
   const handleMediaTaken = async (media: {
     uri: string;
-    base64?: string;
+    base64: string;
     type: string;
   }) => {
     if (!chatId || !currentChat || !media.base64) return;
@@ -419,21 +419,18 @@ export default function ChatMessage() {
 
     try {
       const mimeType = media.type === "image" ? "image/jpeg" : "video/mp4";
-      const imageBase64 = `data:${mimeType};base64,${media.base64}`;
-      console.log("here", media.type);
+      const mediaBase64 = `data:${mimeType};base64,${media.base64}`;
+      const data = await createMessage(chatId, mediaBase64, media.type);
 
-      const data = await createMessage(chatId, imageBase64, media.type);
-
-      const realMessage = data.result;
-
-      socket.emit("send-message", { chatId, message: realMessage });
+      const message = data.result;
+      socket.emit("send-message", { chatId, message: message });
 
       setMessages(chatId, [
-        realMessage,
+        message,
         ...currentMessages.filter((msg) => msg._id !== tempId),
       ]);
 
-      updateChat(realMessage.chat);
+      updateChat(message.chat);
     } catch (error: any) {
       console.error("Image upload failed:", error);
       ToastAndroid.show(
@@ -462,23 +459,25 @@ export default function ChatMessage() {
       return (
         <ImagePreview
           photoUri={pendingMediaPreview.uri}
+          isLoading={pendingMediaPreview.isLoading}
           isFrontCamera={false}
+          onClose={() => setPendingMediaPreview(null)}
           onSend={() => {
             sendPendingMedia();
             setPendingMediaPreview(null);
           }}
-          onClose={() => setPendingMediaPreview(null)}
         />
       );
     } else {
       return (
         <VideoPreview
           videoUri={pendingMediaPreview.uri}
+          isLoading={pendingMediaPreview.isLoading}
+          onClose={() => setPendingMediaPreview(null)}
           onSend={() => {
             sendPendingMedia();
             setPendingMediaPreview(null);
           }}
-          onClose={() => setPendingMediaPreview(null)}
         />
       );
     }

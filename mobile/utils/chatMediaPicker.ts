@@ -3,7 +3,7 @@ import * as FileSystem from "expo-file-system";
 import { Alert, Platform, Linking } from "react-native";
 import { imageCompressor, videoCompressor } from "./mediaCompressor";
 
-export async function pickMedia() {
+export async function chatMediaPicker() {
   try {
     if (Platform.OS !== "web") {
       let { status, canAskAgain } =
@@ -32,39 +32,35 @@ export async function pickMedia() {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images", "videos"],
-      base64: true,
-      // allowsMultipleSelection: true,
     });
 
-    if (!result.canceled && result.assets.length > 0) {
-      const mediaDataArray = await Promise.all(
-        result.assets.map(async (asset) => {
-          const {
-            uri: originalUri,
-            fileName = "media",
-            type,
-            base64: originalBase64,
-          } = asset;
+    if (!result.canceled && result.assets?.length) {
+      const asset = result.assets[0];
+      const type = asset.type;
 
-          // Compress Media
-          const uri =
-            type === "video"
-              ? await videoCompressor(originalUri)
-              : type === "image"
-              ? await imageCompressor(originalUri)
-              : originalUri;
+      if (type === "video" && asset.duration && asset.duration > 60 * 1000) {
+        Alert.alert(
+          "Video is longer than 1 minute. Please select a shorter one."
+        );
+        return;
+      }
 
-          const base64 =
-            originalBase64 ??
-            (await FileSystem.readAsStringAsync(uri, {
-              encoding: FileSystem.EncodingType.Base64,
-            }));
+      const uri =
+        type === "image"
+          ? await imageCompressor(asset.uri)
+          : type === "video"
+          ? await videoCompressor(asset.uri)
+          : asset.uri;
 
-          return { uri, fileName, type, base64 };
-        })
-      );
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
 
-      return mediaDataArray;
+      return {
+        uri,
+        base64,
+        type,
+      };
     }
 
     return null;

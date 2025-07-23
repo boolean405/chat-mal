@@ -6,7 +6,8 @@ import {
   ToastAndroid,
   Dimensions,
   Alert,
-  Linking, // Import Dimensions for responsive image sizing
+  Linking,
+  ActivityIndicator, // Import Dimensions for responsive image sizing
 } from "react-native";
 import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
@@ -17,6 +18,7 @@ import { APP_NAME } from "@/constants";
 
 type ImagePreviewProps = {
   photoUri: string;
+  isLoading: boolean;
   onSend: () => void;
   onClose: () => void;
   isFrontCamera: boolean; // Prop to indicate if the photo was taken with the front camera
@@ -27,6 +29,7 @@ export default function ImagePreview({
   onSend,
   onClose,
   isFrontCamera,
+  isLoading,
 }: ImagePreviewProps) {
   const [saving, setSaving] = useState(false);
   const { width, height } = Dimensions.get("window"); // Get screen dimensions
@@ -88,6 +91,17 @@ export default function ImagePreview({
       ToastAndroid.show("Failed to share image", ToastAndroid.SHORT);
     }
   };
+
+  if (!photoUri || isLoading) {
+    return (
+      <ThemedView style={styles.container}>
+        <ActivityIndicator size="large" color="#00ffff" />
+        <ThemedText style={{ color: "white", marginTop: 10 }}>
+          Loading image...
+        </ThemedText>
+      </ThemedView>
+    );
+  }
 
   return (
     <ThemedView style={styles.container}>

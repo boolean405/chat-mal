@@ -7,7 +7,6 @@ import {
   Button,
   Alert,
   Linking,
-  ActivityIndicator, // For loading indicator during recording
 } from "react-native";
 import {
   CameraView,
@@ -15,7 +14,6 @@ import {
   useCameraPermissions,
   CameraMode,
   useMicrophonePermissions,
-  Camera,
 } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
 import * as ImagePicker from "expo-image-picker";
@@ -26,18 +24,21 @@ import ImagePreview from "./ImagePreview"; // Import ImagePreview
 import VideoPreview from "./VideoPreview"; // Import VideoPreview
 import * as FileSystem from "expo-file-system";
 import { ThemedView } from "./ThemedView";
+import { imageCompressor, videoCompressor } from "@/utils/mediaCompressor";
+import { chatMediaPicker } from "@/utils/chatMediaPicker";
 
 // Define the type for the captured media
 type CapturedMedia = {
   uri: string;
-  base64?: string;
-  type: "image" | "video"; // Add type property
+  base64: string;
+  type: "image" | "video";
+  isLoading: boolean;
 };
 
 type CameraModalProps = {
   isVisible: boolean;
   onClose: () => void;
-  onMediaCaptured: (media: CapturedMedia) => void; // Renamed for clarity
+  onMediaCaptured: (media: CapturedMedia) => void;
 };
 
 export default function CameraModal({
@@ -146,23 +147,23 @@ export default function CameraModal({
     try {
       if (cameraMode === "picture") {
         // Capture photo
-        const photo = await cameraRef.current.takePictureAsync({
-          quality: 0.5, // Increased quality slightly
-          base64: true,
-        });
-        if (photo) {
-          const base64 = photo.base64
-            ? photo.base64
-            : await FileSystem.readAsStringAsync(photo.uri, {
-                encoding: FileSystem.EncodingType.Base64,
-              });
+        const photo = await cameraRef.current.takePictureAsync();
+        if (!photo) return;
 
-          setPreviewMedia({
-            uri: photo.uri,
-            base64,
-            type: "image",
-          });
-        }
+        // Show loading preview first
+        setPreviewMedia({
+          uri: "",
+          base64: "",
+          type: "image",
+          isLoading: true,
+        });
+
+        const uri = await imageCompressor(photo.uri);
+        const base64 = await FileSystem.readAsStringAsync(uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        setPreviewMedia({ uri, base64, type: "image", isLoading: false });
       } else {
         // cameraMode === "video"
         if (isRecording) {
@@ -195,13 +196,21 @@ export default function CameraModal({
           const video = await cameraRef.current?.recordAsync({
             maxDuration: 60,
           });
-          if (video) {
-            const base64 = await FileSystem.readAsStringAsync(video.uri, {
-              encoding: FileSystem.EncodingType.Base64,
-            });
-            setPreviewMedia({ uri: video.uri, base64, type: "video" });
-          }
-          setIsRecording(false); // Recording stops after video is captured or maxDuration reached
+          if (!video) return;
+
+          setPreviewMedia({
+            uri: "",
+            base64: "",
+            type: "video",
+            isLoading: true,
+          });
+
+          const uri = await videoCompressor(video.uri);
+          const base64 = await FileSystem.readAsStringAsync(uri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          setPreviewMedia({ uri, base64, type: "video", isLoading: false });
+          setIsRecording(false);
         }
       }
     } catch (error: any) {
@@ -212,7 +221,7 @@ export default function CameraModal({
           }`,
         ToastAndroid.SHORT
       );
-      setIsRecording(false); // Ensure recording state is reset on error
+      setIsRecording(false);
     }
   };
 
@@ -227,28 +236,35 @@ export default function CameraModal({
     setIsRecording(false); // Reset recording state when changing mode
   };
 
-  // Function to open image/video library
+  // Open image/video library
   const openMediaLibrary = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images", "videos"],
-      quality: 0.5,
-      base64: true,
-    });
+    try {
+      // Show an immediate loading preview with just the type
+      setPreviewMedia({
+        uri: "",
+        base64: "",
+        type: "video", // Default, will be updated
+        isLoading: true,
+      });
 
-    if (!result.canceled && result.assets?.length) {
-      const media = result.assets[0];
+      // Pick and compress the media
+      const media = await chatMediaPicker();
+      if (!media) {
+        setPreviewMedia(null);
+        return;
+      }
 
-      const base64 = media.base64
-        ? media.base64
-        : await FileSystem.readAsStringAsync(media.uri, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-
+      // Show final preview
       setPreviewMedia({
         uri: media.uri,
-        base64,
-        type: media.type === "image" ? "image" : "video",
+        base64: media.base64,
+        type: media.type === "video" ? "video" : "image",
+        isLoading: false,
       });
+    } catch (error) {
+      console.error("Media pick failed", error);
+      ToastAndroid.show("Failed to pick media", ToastAndroid.SHORT);
+      setPreviewMedia(null);
     }
   };
 
@@ -281,22 +297,24 @@ export default function CameraModal({
           <ImagePreview
             photoUri={previewMedia.uri}
             isFrontCamera={cameraType === "front"} // Pass camera type for image flipping
+            isLoading={previewMedia.isLoading}
+            onClose={() => setPreviewMedia(null)}
             onSend={() => {
               onMediaCaptured(previewMedia);
               setPreviewMedia(null);
               onClose();
             }}
-            onClose={() => setPreviewMedia(null)}
           />
         ) : (
           <VideoPreview
             videoUri={previewMedia.uri}
+            onClose={() => setPreviewMedia(null)}
+            isLoading={previewMedia.isLoading}
             onSend={() => {
               onMediaCaptured(previewMedia);
               setPreviewMedia(null);
               onClose();
             }}
-            onClose={() => setPreviewMedia(null)}
           />
         )}
       </Modal>

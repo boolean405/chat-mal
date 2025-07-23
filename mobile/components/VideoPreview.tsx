@@ -4,6 +4,7 @@ import {
   TouchableOpacity,
   ToastAndroid,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
@@ -17,22 +18,30 @@ type VideoPreviewProps = {
   videoUri: string;
   onSend: () => void;
   onClose: () => void;
+  isLoading: boolean;
 };
 
 export default function VideoPreview({
   videoUri,
   onSend,
   onClose,
+  isLoading,
 }: VideoPreviewProps) {
   const [saving, setSaving] = useState(false);
-  const { width, height } = Dimensions.get("window"); // Get screen dimensions
 
   // Pause video when component unmounts or becomes invisible
-  useEffect(() => {
-    return () => {
-      player.pause();
-    };
-  }, []);
+ useEffect(() => {
+  const timeout = setTimeout(() => {
+    try {
+      player?.pause?.();
+    } catch (e) {
+      console.warn("Failed to pause player on timeout cleanup", e);
+    }
+  }, 50); // give native module time to stabilize
+
+  return () => clearTimeout(timeout);
+}, []);
+
 
   // Initialize video player
   const player = useVideoPlayer(videoUri, (playerInstance) => {
@@ -82,6 +91,17 @@ export default function VideoPreview({
       ToastAndroid.show("Failed to share video", ToastAndroid.SHORT);
     }
   };
+
+  if (!videoUri || isLoading) {
+    return (
+      <ThemedView style={styles.container}>
+        <ActivityIndicator size="large" color="#00ffff" />
+        <ThemedText style={{ color: "white", marginTop: 10 }}>
+          Loading video...
+        </ThemedText>
+      </ThemedView>
+    );
+  }
 
   return (
     <ThemedView style={styles.container}>
