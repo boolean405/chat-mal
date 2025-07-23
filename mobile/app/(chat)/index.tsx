@@ -374,27 +374,23 @@ export default function ChatMessage() {
     }
   };
 
-  // Update your handlePressCamera function
-  const handlePressCamera = () => {
-    setIsCameraVisible(true);
-  };
-
   // Add this function to handle the taken picture
-  const handlePictureTaken = async (photo: {
+  const handleMediaTaken = async (media: {
     uri: string;
     base64?: string;
+    type: string;
   }) => {
-    if (!chatId || !currentChat || !photo.base64) return;
+    if (!chatId || !currentChat || !media.base64) return;
 
     setIsSentMessage(true);
 
     const tempId = `temp-${Date.now()}`;
     const tempMessage: Message = {
       _id: tempId,
-      content: photo.uri, // Temporarily show local image
+      content: media.uri, // Temporarily show local image
       sender: user,
       chat: currentChat,
-      type: "image",
+      type: media.type === "image" ? "image" : "video",
       status: "pending",
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -403,10 +399,12 @@ export default function ChatMessage() {
     addMessage(chatId, tempMessage);
 
     try {
-      const mimeType = getImageMimeType(photo.uri);
-      const imageBase64 = `data:${mimeType};base64,${photo.base64}`;
+      const mimeType = media.type === "image" ? "image/jpeg" : "video/mp4";
+      const imageBase64 = `data:${mimeType};base64,${media.base64}`;
+      console.log("here", media.type);
 
-      const data = await createMessage(chatId, imageBase64, "image");
+      const data = await createMessage(chatId, imageBase64, media.type);
+
       const realMessage = data.result;
 
       socket.emit("send-message", { chatId, message: realMessage });
@@ -652,7 +650,7 @@ export default function ChatMessage() {
                 <Ionicons name="image-outline" size={22} color={color.icon} />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={handlePressCamera}
+                onPress={() => setIsCameraVisible(true)}
                 style={styles.imageButton}
               >
                 <Ionicons name="camera-outline" size={22} color={color.icon} />
@@ -671,7 +669,7 @@ export default function ChatMessage() {
             <CameraModal
               isVisible={isCameraVisible}
               onClose={() => setIsCameraVisible(false)}
-              onPictureTaken={handlePictureTaken}
+              onMediaCaptured={handleMediaTaken}
             />
           </ThemedView>
         )}

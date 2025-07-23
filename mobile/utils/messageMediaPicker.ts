@@ -34,7 +34,7 @@ export async function pickMedia() {
       mediaTypes: ["images", "videos"],
       quality: 0.5,
       base64: true,
-      allowsMultipleSelection: true,
+      // allowsMultipleSelection: true,
     });
 
     if (!result.canceled && result.assets.length > 0) {
