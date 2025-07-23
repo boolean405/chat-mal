@@ -34,7 +34,6 @@ import {
 import { useAuthStore } from "@/stores/authStore";
 import { useChatStore } from "@/stores/chatStore";
 import { useMessageStore } from "@/stores/messageStore";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Member() {
   const router = useRouter();
@@ -312,176 +311,82 @@ export default function Member() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: color.background }}>
-      <KeyboardAvoidingView
-        style={[styles.container, { backgroundColor: color.background }]}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
-      >
-        {/* Header */}
-        <ThemedView
-          style={[styles.header, { borderBottomColor: color.border }]}
-        >
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons
-              name="chevron-back-outline"
-              size={22}
-              color={color.icon}
-            />
-          </TouchableOpacity>
-          <ThemedView style={styles.HeaderTitleContainer}>
-            <ThemedText type="headerTitle">Members</ThemedText>
-          </ThemedView>
-
-          {/* Add members */}
-          {isAddMode ? (
-            <TouchableOpacity
-              onPress={() => {
-                setIsAddMode(false);
-                setSelectedUsers([]);
-              }}
-            >
-              <Ionicons name="close-outline" size={22} color="red" />
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity onPress={() => setIsAddMode(true)}>
-              <Ionicons
-                name="person-add-outline"
-                size={22}
-                color={color.icon}
-              />
-            </TouchableOpacity>
-          )}
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: color.background }]}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+    >
+      {/* Header */}
+      <ThemedView style={[styles.header, { borderBottomColor: color.border }]}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="chevron-back-outline" size={22} color={color.icon} />
+        </TouchableOpacity>
+        <ThemedView style={styles.HeaderTitleContainer}>
+          <ThemedText type="headerTitle">Members</ThemedText>
         </ThemedView>
 
-        <ThemedView style={[styles.searchContainer]}>
-          <ThemedView style={[styles.inputContainer]}>
-            <ThemedView
-              style={[
-                styles.inputTextContainer,
-                { backgroundColor: color.secondary },
-              ]}
-            >
-              <TouchableOpacity>
-                <Ionicons name="search-outline" size={22} color={color.icon} />
-              </TouchableOpacity>
-              <TextInput
-                // ref={inputRef} // Step 3: Attach ref
-                value={keyword}
-                style={[styles.textInput, { color: color.text }]}
-                placeholder="Search"
-                placeholderTextColor="gray"
-                onChangeText={(text) => {
-                  const sanitized = text.replace(/^\s+/, "");
-                  setKeyword(sanitized);
+        {/* Add members */}
+        {isAddMode ? (
+          <TouchableOpacity
+            onPress={() => {
+              setIsAddMode(false);
+              setSelectedUsers([]);
+            }}
+          >
+            <Ionicons name="close-outline" size={22} color="red" />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity onPress={() => setIsAddMode(true)}>
+            <Ionicons name="person-add-outline" size={22} color={color.icon} />
+          </TouchableOpacity>
+        )}
+      </ThemedView>
+
+      <ThemedView style={[styles.searchContainer]}>
+        <ThemedView style={[styles.inputContainer]}>
+          <ThemedView
+            style={[
+              styles.inputTextContainer,
+              { backgroundColor: color.secondary },
+            ]}
+          >
+            <TouchableOpacity>
+              <Ionicons name="search-outline" size={22} color={color.icon} />
+            </TouchableOpacity>
+            <TextInput
+              // ref={inputRef} // Step 3: Attach ref
+              value={keyword}
+              style={[styles.textInput, { color: color.text }]}
+              placeholder="Search"
+              placeholderTextColor="gray"
+              onChangeText={(text) => {
+                const sanitized = text.replace(/^\s+/, "");
+                setKeyword(sanitized);
+              }}
+            />
+          </ThemedView>
+        </ThemedView>
+      </ThemedView>
+
+      {isAddMode ? (
+        // Add members
+        <ThemedView style={{ flex: 1 }}>
+          <FlatList
+            data={filteredResults}
+            keyExtractor={(item) => item._id}
+            renderItem={({ item }) => (
+              <SelectableUserItem
+                user={item}
+                selected={selectedUsers.some((u) => u._id === item._id)}
+                onSelect={() => {
+                  setSelectedUsers((prev) =>
+                    prev.some((u) => u._id === item._id)
+                      ? prev.filter((u) => u._id !== item._id)
+                      : [...prev, item]
+                  );
                 }}
               />
-            </ThemedView>
-          </ThemedView>
-        </ThemedView>
-
-        {isAddMode ? (
-          // Add members
-          <ThemedView style={{ flex: 1 }}>
-            <FlatList
-              data={filteredResults}
-              keyExtractor={(item) => item._id}
-              renderItem={({ item }) => (
-                <SelectableUserItem
-                  user={item}
-                  selected={selectedUsers.some((u) => u._id === item._id)}
-                  onSelect={() => {
-                    setSelectedUsers((prev) =>
-                      prev.some((u) => u._id === item._id)
-                        ? prev.filter((u) => u._id !== item._id)
-                        : [...prev, item]
-                    );
-                  }}
-                />
-              )}
-              ListHeaderComponent={
-                <ThemedView
-                  style={[
-                    styles.titleTextContainer,
-                    { borderColor: color.border },
-                  ]}
-                >
-                  <Ionicons
-                    name="people-outline"
-                    size={22}
-                    color={color.icon}
-                  />
-                  <ThemedText style={{ marginLeft: 10 }}>
-                    Add members to group
-                  </ThemedText>
-                </ThemedView>
-              }
-              contentContainerStyle={{ paddingBottom: 20 }}
-              showsVerticalScrollIndicator={false}
-              onEndReached={handleLoadMore}
-              onEndReachedThreshold={0.1}
-              ListFooterComponent={
-                hasMore && results.length > 0 && isPaging ? (
-                  <ActivityIndicator size="small" color={color.icon} />
-                ) : null
-              }
-            />
-
-            {/* Add to Group Button */}
-            {selectedUsers.length > 0 && (
-              <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: color.primary }]}
-                onPress={handleAddMembers}
-              >
-                <ThemedText
-                  type="defaultBold"
-                  style={{ color: color.background }}
-                >
-                  Add {selectedUsers.length} member
-                  {selectedUsers.length > 1 ? "s" : ""}
-                </ThemedText>
-              </TouchableOpacity>
             )}
-          </ThemedView>
-        ) : (
-          // All members
-          <FlatList
-            data={filteredMembers}
-            keyExtractor={(item) => item.user._id}
-            renderItem={({ item }) => {
-              const isOnline = onlineUserIds.includes(item.user._id);
-              const tag =
-                item.role === "leader"
-                  ? "👑"
-                  : item.role === "admin"
-                  ? "🛡️"
-                  : "🍀";
-
-              const isSelf = item.user._id === user._id;
-              return (
-                <UserItem
-                  user={item.user}
-                  isSelf={isSelf}
-                  isOnline={isOnline}
-                  disabled={loading}
-                  chatJoinedAt={item.joinedAt}
-                  tag={tag}
-                  onPress={
-                    isSelf ? undefined : () => handleItemPress(item.user)
-                  }
-                  onPressMore={() => setPopoverUser(item.user)}
-                  moreButtonRef={
-                    moreButtonRefs.current[item.user._id] ||
-                    (moreButtonRefs.current[item.user._id] = React.createRef())
-                  }
-                />
-              );
-            }}
-            style={styles.resultList}
-            contentContainerStyle={{ paddingBottom: 20 }}
-            showsVerticalScrollIndicator={false}
-            onEndReached={handleLoadMore}
-            onEndReachedThreshold={0.1}
             ListHeaderComponent={
               <ThemedView
                 style={[
@@ -491,143 +396,210 @@ export default function Member() {
               >
                 <Ionicons name="people-outline" size={22} color={color.icon} />
                 <ThemedText style={{ marginLeft: 10 }}>
-                  Group Members
+                  Add members to group
                 </ThemedText>
               </ThemedView>
             }
+            contentContainerStyle={{ paddingBottom: 20 }}
+            showsVerticalScrollIndicator={false}
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.1}
+            ListFooterComponent={
+              hasMore && results.length > 0 && isPaging ? (
+                <ActivityIndicator size="small" color={color.icon} />
+              ) : null
+            }
           />
-        )}
 
-        {popoverUser && (
-          <Popover
-            isVisible={!!popoverUser}
-            onRequestClose={() => setPopoverUser(null)}
-            from={moreButtonRefs.current[popoverUser._id]}
-            popoverStyle={{
-              backgroundColor: color.secondary,
-            }}
-          >
-            {(() => {
-              const isLeader = chat.users.some(
-                (a) => a.role === "leader" && a.user._id === user._id
-              );
-              const isAdmin = chat.users.some(
-                (a) => a.role === "admin" && a.user._id === user._id
-              );
-              const currentUserRole = isLeader
-                ? "leader"
-                : isAdmin
-                ? "admin"
-                : "member";
+          {/* Add to Group Button */}
+          {selectedUsers.length > 0 && (
+            <TouchableOpacity
+              style={[styles.addButton, { backgroundColor: color.primary }]}
+              onPress={handleAddMembers}
+            >
+              <ThemedText
+                type="defaultBold"
+                style={{ color: color.background }}
+              >
+                Add {selectedUsers.length} member
+                {selectedUsers.length > 1 ? "s" : ""}
+              </ThemedText>
+            </TouchableOpacity>
+          )}
+        </ThemedView>
+      ) : (
+        // All members
+        <FlatList
+          data={filteredMembers}
+          keyExtractor={(item) => item.user._id}
+          renderItem={({ item }) => {
+            const isOnline = onlineUserIds.includes(item.user._id);
+            const tag =
+              item.role === "leader"
+                ? "👑"
+                : item.role === "admin"
+                ? "🛡️"
+                : "🍀";
 
-              const isTargetAdmin = chat.users.some(
-                (a) => a.role === "admin" && a.user._id === popoverUser._id
-              );
-              const isTargetLeader = chat.users.some(
-                (a) => a.role === "leader" && a.user._id === popoverUser._id
-              );
-              const isSelf = user?._id === popoverUser._id;
-              const options = [];
+            const isSelf = item.user._id === user._id;
+            return (
+              <UserItem
+                user={item.user}
+                isSelf={isSelf}
+                isOnline={isOnline}
+                disabled={loading}
+                chatJoinedAt={item.joinedAt}
+                tag={tag}
+                onPress={isSelf ? undefined : () => handleItemPress(item.user)}
+                onPressMore={() => setPopoverUser(item.user)}
+                moreButtonRef={
+                  moreButtonRefs.current[item.user._id] ||
+                  (moreButtonRefs.current[item.user._id] = React.createRef())
+                }
+              />
+            );
+          }}
+          style={styles.resultList}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          showsVerticalScrollIndicator={false}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.1}
+          ListHeaderComponent={
+            <ThemedView
+              style={[styles.titleTextContainer, { borderColor: color.border }]}
+            >
+              <Ionicons name="people-outline" size={22} color={color.icon} />
+              <ThemedText style={{ marginLeft: 10 }}>Group Members</ThemedText>
+            </ThemedView>
+          }
+        />
+      )}
 
-              // 👇👇👇 Only show "Leave Group" if user clicked themselves
-              if (isSelf) {
-                return (
+      {popoverUser && (
+        <Popover
+          isVisible={!!popoverUser}
+          onRequestClose={() => setPopoverUser(null)}
+          from={moreButtonRefs.current[popoverUser._id]}
+          popoverStyle={{
+            backgroundColor: color.secondary,
+          }}
+        >
+          {(() => {
+            const isLeader = chat.users.some(
+              (a) => a.role === "leader" && a.user._id === user._id
+            );
+            const isAdmin = chat.users.some(
+              (a) => a.role === "admin" && a.user._id === user._id
+            );
+            const currentUserRole = isLeader
+              ? "leader"
+              : isAdmin
+              ? "admin"
+              : "member";
+
+            const isTargetAdmin = chat.users.some(
+              (a) => a.role === "admin" && a.user._id === popoverUser._id
+            );
+            const isTargetLeader = chat.users.some(
+              (a) => a.role === "leader" && a.user._id === popoverUser._id
+            );
+            const isSelf = user?._id === popoverUser._id;
+            const options = [];
+
+            // 👇👇👇 Only show "Leave Group" if user clicked themselves
+            if (isSelf) {
+              return (
+                <TouchableOpacity
+                  onPress={handleLeaveGroup}
+                  disabled={isLoading}
+                >
+                  <ThemedText style={{ padding: 10 }}>Leave group</ThemedText>
+                </TouchableOpacity>
+              );
+            }
+
+            // Everyone can PM
+            options.push(
+              <TouchableOpacity
+                key="pm"
+                disabled={isLoading}
+                onPress={() => handleItemPress(popoverUser)}
+              >
+                <ThemedText style={{ padding: 10 }}>PM Chat</ThemedText>
+              </TouchableOpacity>
+            );
+
+            if (currentUserRole === "leader") {
+              if (isTargetAdmin && !isTargetLeader) {
+                options.unshift(
                   <TouchableOpacity
-                    onPress={handleLeaveGroup}
+                    key="removeAdmin"
                     disabled={isLoading}
+                    onPress={handleRemoveAdmin}
                   >
-                    <ThemedText style={{ padding: 10 }}>Leave group</ThemedText>
+                    <ThemedText style={{ padding: 10 }}>
+                      Remove admin role
+                    </ThemedText>
                   </TouchableOpacity>
                 );
               }
-
-              // Everyone can PM
-              options.push(
-                <TouchableOpacity
-                  key="pm"
-                  disabled={isLoading}
-                  onPress={() => handleItemPress(popoverUser)}
-                >
-                  <ThemedText style={{ padding: 10 }}>PM Chat</ThemedText>
-                </TouchableOpacity>
-              );
-
-              if (currentUserRole === "leader") {
-                if (isTargetAdmin && !isTargetLeader) {
-                  options.unshift(
-                    <TouchableOpacity
-                      key="removeAdmin"
-                      disabled={isLoading}
-                      onPress={handleRemoveAdmin}
-                    >
-                      <ThemedText style={{ padding: 10 }}>
-                        Remove admin role
-                      </ThemedText>
-                    </TouchableOpacity>
-                  );
-                }
-                if (!isTargetAdmin) {
-                  options.unshift(
-                    <TouchableOpacity key="makeAdmin" onPress={handleMakeAdmin}>
-                      <ThemedText style={{ padding: 10 }}>
-                        Make admin
-                      </ThemedText>
-                    </TouchableOpacity>,
-                    <TouchableOpacity
-                      key="removeUser"
-                      onPress={handleRemoveUser}
-                      disabled={isLoading}
-                    >
-                      <ThemedText style={{ padding: 10 }}>
-                        Remove from group
-                      </ThemedText>
-                    </TouchableOpacity>
-                  );
-                }
-              } else if (currentUserRole === "admin") {
-                // if (isTargetAdmin && !isTargetLeader) {
-                //   options.unshift(
-                //     <TouchableOpacity
-                //       disabled={isLoading}
-                //       key="removeAdminByAdmin"
-                //       onPress={handleRemoveAdmin}
-                //     >
-                //       <ThemedText style={{ padding: 10 }}>
-                //         Remove from group
-                //       </ThemedText>
-                //     </TouchableOpacity>
-                //   );
-                // }
-                if (!isTargetAdmin && !isTargetLeader) {
-                  options.unshift(
-                    <TouchableOpacity
-                      disabled={isLoading}
-                      key="makeAdminByAdmin"
-                      onPress={handleMakeAdmin}
-                    >
-                      <ThemedText style={{ padding: 10 }}>
-                        Make admin
-                      </ThemedText>
-                    </TouchableOpacity>,
-                    <TouchableOpacity
-                      disabled={isLoading}
-                      key="removeUserByAdmin"
-                      onPress={handleRemoveUser}
-                    >
-                      <ThemedText style={{ padding: 10 }}>
-                        Remove from group
-                      </ThemedText>
-                    </TouchableOpacity>
-                  );
-                }
+              if (!isTargetAdmin) {
+                options.unshift(
+                  <TouchableOpacity key="makeAdmin" onPress={handleMakeAdmin}>
+                    <ThemedText style={{ padding: 10 }}>Make admin</ThemedText>
+                  </TouchableOpacity>,
+                  <TouchableOpacity
+                    key="removeUser"
+                    onPress={handleRemoveUser}
+                    disabled={isLoading}
+                  >
+                    <ThemedText style={{ padding: 10 }}>
+                      Remove from group
+                    </ThemedText>
+                  </TouchableOpacity>
+                );
               }
+            } else if (currentUserRole === "admin") {
+              // if (isTargetAdmin && !isTargetLeader) {
+              //   options.unshift(
+              //     <TouchableOpacity
+              //       disabled={isLoading}
+              //       key="removeAdminByAdmin"
+              //       onPress={handleRemoveAdmin}
+              //     >
+              //       <ThemedText style={{ padding: 10 }}>
+              //         Remove from group
+              //       </ThemedText>
+              //     </TouchableOpacity>
+              //   );
+              // }
+              if (!isTargetAdmin && !isTargetLeader) {
+                options.unshift(
+                  <TouchableOpacity
+                    disabled={isLoading}
+                    key="makeAdminByAdmin"
+                    onPress={handleMakeAdmin}
+                  >
+                    <ThemedText style={{ padding: 10 }}>Make admin</ThemedText>
+                  </TouchableOpacity>,
+                  <TouchableOpacity
+                    disabled={isLoading}
+                    key="removeUserByAdmin"
+                    onPress={handleRemoveUser}
+                  >
+                    <ThemedText style={{ padding: 10 }}>
+                      Remove from group
+                    </ThemedText>
+                  </TouchableOpacity>
+                );
+              }
+            }
 
-              return options;
-            })()}
-          </Popover>
-        )}
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            return options;
+          })()}
+        </Popover>
+      )}
+    </KeyboardAvoidingView>
   );
 }
 

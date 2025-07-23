@@ -15,6 +15,7 @@ import {
   useCameraPermissions,
   CameraMode,
   useMicrophonePermissions,
+  Camera,
 } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
 import * as ImagePicker from "expo-image-picker";
@@ -24,6 +25,7 @@ import { ThemedText } from "./ThemedText"; // Assuming ThemedText is available
 import ImagePreview from "./ImagePreview"; // Import ImagePreview
 import VideoPreview from "./VideoPreview"; // Import VideoPreview
 import * as FileSystem from "expo-file-system";
+import { ThemedView } from "./ThemedView";
 
 // Define the type for the captured media
 type CapturedMedia = {
@@ -51,8 +53,22 @@ export default function CameraModal({
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [permissionDeniedCount, setPermissionDeniedCount] = useState(0);
   const cameraRef = useRef<CameraView>(null);
+  const [recordingStartTime, setRecordingStartTime] = useState<number | null>(
+    null
+  );
+  const [recordingTime, setRecordingTime] = useState(0); // in seconds
+  const timerInterval = useRef<number | null>(null);
+
   const [previewMedia, setPreviewMedia] = useState<CapturedMedia | null>(null); // Stores captured photo or video
-  const [isRecording, setIsRecording] = useState(false); // State for video recording status
+  const [isRecording, setIsRecording] = useState(false);
+  const [microphonePermission, requestMicrophonePermission] =
+    useMicrophonePermissions();
+
+  useEffect(() => {
+    if (!microphonePermission?.granted) {
+      requestMicrophonePermission();
+    }
+  }, [microphonePermission, requestMicrophonePermission]);
 
   // Effect to check and request camera and media library permissions
   useEffect(() => {
@@ -148,39 +164,47 @@ export default function CameraModal({
           });
         }
       } else {
-        console.log("here cameraMode", cameraMode);
-
         // cameraMode === "video"
         if (isRecording) {
-          console.log("here isRecording", isRecording);
+          setIsRecording(false);
+
+          // Stop timer
+          if (timerInterval.current) {
+            clearInterval(timerInterval.current);
+            timerInterval.current = null;
+          }
+          setRecordingStartTime(null);
+          setRecordingTime(0); // optional: reset to 0 after stop
 
           // Stop recording
           cameraRef.current?.stopRecording();
-          setIsRecording(false);
           return;
         } else {
-          console.log("here !isRecording");
-
-          // Start recording
           setIsRecording(true);
-          const video = await cameraRef.current?.recordAsync();
-          console.log("here video", video?.uri);
+          setRecordingTime(0); // Reset timer
 
+          // Start timer
+          const startTime = Date.now();
+          setRecordingStartTime(startTime);
+
+          timerInterval.current = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            setRecordingTime(elapsed);
+          }, 1000);
+
+          const video = await cameraRef.current?.recordAsync({
+            maxDuration: 60,
+          });
           if (video) {
-            console.log("Video captured:", video);
-
             const base64 = await FileSystem.readAsStringAsync(video.uri, {
               encoding: FileSystem.EncodingType.Base64,
             });
-
             setPreviewMedia({ uri: video.uri, base64, type: "video" });
           }
           setIsRecording(false); // Recording stops after video is captured or maxDuration reached
         }
       }
     } catch (error: any) {
-      console.log("here error", error.message);
-
       ToastAndroid.show(
         error.message ||
           `Failed to ${
@@ -206,9 +230,9 @@ export default function CameraModal({
   // Function to open image/video library
   const openMediaLibrary = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images", "videos"], // Allow both images and videos
+      mediaTypes: ["images", "videos"],
       quality: 0.5,
-      base64: true, // Request base64 for images, not applicable for videos directly
+      base64: true,
     });
 
     if (!result.canceled && result.assets?.length) {
@@ -223,10 +247,24 @@ export default function CameraModal({
       setPreviewMedia({
         uri: media.uri,
         base64,
-        type: media.type === "image" ? "image" : "video", // Determine media type
+        type: media.type === "image" ? "image" : "video",
       });
     }
   };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  };
+
+  if (cameraType === "front" && cameraMode === "video") {
+    ToastAndroid.show(
+      "Front camera video recording is not supported on this device.",
+      ToastAndroid.LONG
+    );
+    // return;
+  }
 
   if (!isVisible) return null;
 
@@ -291,8 +329,6 @@ export default function CameraModal({
               mode={cameraMode} // Set camera mode (picture/video)
               enableTorch={false}
               autofocus="on"
-              // For video recording, ensure audio is enabled if needed
-              // videoQuality="720p" // Example: set default video quality
             />
 
             {/* UI Buttons Overlay */}
@@ -322,13 +358,6 @@ export default function CameraModal({
                       styles.videoModeButton, // Red circle for video mode
                   ]}
                 />
-                {isRecording && (
-                  <ActivityIndicator
-                    size="small"
-                    color="white"
-                    style={styles.recordingLoader}
-                  />
-                )}
               </TouchableOpacity>
 
               {/* Toggle Camera Type Button (Front/Back) */}
@@ -354,9 +383,23 @@ export default function CameraModal({
                 {cameraMode === "picture" ? "Photo" : "Video"}
               </ThemedText>
             </TouchableOpacity>
+
+            {isRecording && cameraMode === "video" && (
+              <View style={styles.recordingTimerContainer}>
+                <Ionicons
+                  name="ellipse"
+                  size={12}
+                  color="red"
+                  style={{ marginRight: 6 }}
+                />
+                <ThemedText style={styles.recordingTimerText}>
+                  {formatTime(recordingTime)}
+                </ThemedText>
+              </View>
+            )}
           </View>
         ) : (
-          <View style={styles.permissionContainer}>
+          <ThemedView style={styles.permissionContainer}>
             <ThemedText>
               Camera and Media Library permissions are required
             </ThemedText>
@@ -373,7 +416,7 @@ export default function CameraModal({
                 }
               }}
             />
-          </View>
+          </ThemedView>
         )}
       </View>
     </Modal>
@@ -404,7 +447,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   flipButton: {
-    backgroundColor: "rgba(0,0,0,0.6)",
+    backgroundColor: "rgba(0,0,0,0.4)",
     width: 44,
     height: 44,
     borderRadius: 22,
@@ -424,7 +467,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.7,
     shadowRadius: 4,
-    elevation: 5,
   },
   captureButtonInner: {
     width: 44,
@@ -441,14 +483,10 @@ const styles = StyleSheet.create({
     borderRadius: 5, // Square shape for recording indicator
     backgroundColor: "red",
   },
-  recordingLoader: {
-    position: "absolute",
-  },
   permissionContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "white",
   },
   galleryButton: {
     backgroundColor: "rgba(0,0,0,0.6)",
@@ -473,6 +511,21 @@ const styles = StyleSheet.create({
   modeToggleText: {
     color: "white",
     fontSize: 16,
+    fontWeight: "bold",
+  },
+  recordingTimerContainer: {
+    position: "absolute",
+    top: 40,
+    alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  recordingTimerText: {
+    color: "white",
     fontWeight: "bold",
   },
 });

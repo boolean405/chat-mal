@@ -22,7 +22,6 @@ import { useChatStore } from "@/stores/chatStore";
 import { DetailsData } from "@/constants/data";
 import { useMessageStore } from "@/stores/messageStore";
 import { useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Detail() {
   const router = useRouter();
@@ -135,7 +134,7 @@ export default function Detail() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: color.background }}>
+    <ThemedView style={{ flex: 1, backgroundColor: color.background }}>
       {/* Header */}
       <ThemedView style={[styles.header, { borderBottomColor: color.border }]}>
         <TouchableOpacity onPress={() => router.back()}>
@@ -216,7 +215,7 @@ export default function Detail() {
           </ThemedView>
         </ThemedView>
       </ScrollView>
-    </SafeAreaView>
+    </ThemedView>
   );
 }
 

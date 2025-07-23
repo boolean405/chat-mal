@@ -18,7 +18,6 @@ import {
   ToastAndroid,
   useColorScheme,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const screenWidth = Dimensions.get("window").width;
 const CONTAINER_WIDTH = screenWidth * 0.8;
@@ -70,70 +69,65 @@ export default function Menu() {
   };
 
   return (
-    <SafeAreaView
-      style={[{ flex: 1, backgroundColor: color.background }]}
-      edges={["top"]}
+    <ScrollView
+      style={[styles.outerContainer, { backgroundColor: color.background }]}
+      contentContainerStyle={{ paddingBottom: 40 }}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={onRefresh}
+          tintColor={color.tint}
+          colors={[color.background]}
+          progressBackgroundColor={color.tint}
+        />
+      }
     >
-      <ScrollView
-        style={[styles.outerContainer, { backgroundColor: color.background }]}
-        contentContainerStyle={{ paddingBottom: 40 }}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={onRefresh}
-            tintColor={color.tint}
-            colors={[color.background]}
-            progressBackgroundColor={color.tint}
-          />
-        }
-      >
-        <ThemedView style={styles.container}>
-          <ProfileHeader
-            name={user?.name}
-            username={user?.username}
-            isOnline={isOnline}
-            tint={color.tint}
-            textColor={color.text}
-            iconColor={color.icon}
-            secondary={color.secondary}
-            onUsernameCopied={handleUsernameCopied}
-            profilePhoto={user?.profilePhoto}
-            onPress={() => router.push("/(setting)/edit-profile")}
-          />
+      <ThemedView style={styles.container}>
+        <ProfileHeader
+          name={user?.name}
+          username={user?.username}
+          isOnline={isOnline}
+          tint={color.tint}
+          textColor={color.text}
+          iconColor={color.icon}
+          secondary={color.secondary}
+          onUsernameCopied={handleUsernameCopied}
+          profilePhoto={user?.profilePhoto}
+          onPress={() => router.push("/(setting)/edit-profile")}
+        />
 
-          <WalletTab
-            balance={walletBalance}
-            tint={color.tint}
-            backgroundColor={color.secondary}
-          />
+        <WalletTab
+          balance={walletBalance}
+          tint={color.tint}
+          backgroundColor={color.secondary}
+        />
 
-          <ListSection
-            title="Menus"
-            data={MENUS}
-            disabled={isLoading}
-            notificationCount={{
-              // add more next time
-              "/message-request": requestUnreadCount,
-            }}
-            onItemPress={(item) => {
-              handleItemPress(item);
-            }}
-          />
+        <ListSection
+          title="Menus"
+          data={MENUS}
+          disabled={isLoading}
+          notificationCount={{
+            // add more next time
+            "/message-request": requestUnreadCount,
+          }}
+          onItemPress={(item) => {
+            handleItemPress(item);
+          }}
+        />
 
-          <ListSection
-            title="Settings"
-            data={SETTINGS}
-            disabled={isLoading}
-            onItemPress={(item) => {
-              console.log(item.label);
-            }}
-          />
+        <ListSection
+          title="Settings"
+          data={SETTINGS}
+          disabled={isLoading}
+          onItemPress={(item) => {
+            console.log(item.label);
+          }}
+        />
 
-          <LogoutButton />
-        </ThemedView>
-      </ScrollView>
-    </SafeAreaView>
+        <LogoutButton />
+      </ThemedView>
+    </ScrollView>
   );
 }
 

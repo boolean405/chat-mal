@@ -28,7 +28,6 @@ import { socket } from "@/config/socket";
 import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
 import { useMessageStore } from "@/stores/messageStore";
 import { showNotification } from "@/utils/showNotifications";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 // Stories data - consider moving to a separate file or API call
 const stories: Story[] = [
@@ -316,85 +315,78 @@ export default function Home() {
   });
 
   return (
-    <SafeAreaView
-      style={[{ flex: 1, backgroundColor: color.background }]}
-      edges={["top"]}
-    >
-      <ThemedView style={styles.container}>
-        {/* Header */}
-        <ThemedView style={styles.header}>
-          <ThemedText type="title">{APP_NAME}</ThemedText>
-          <Image
-            source={require("@/assets/images/logo.png")}
-            style={styles.logo}
-            contentFit="contain"
-          />
-        </ThemedView>
-
-        {/* Chat List - Now using storedChats instead of chats */}
-        <FlatList
-          data={allChats || []}
-          keyExtractor={(item) => item._id}
-          showsVerticalScrollIndicator={false}
-          refreshing={isRefreshing}
-          ListEmptyComponent={<ChatEmpty />}
-          onRefresh={refresh}
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.1}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => {
-            let targetUser = null;
-
-            if (!item.isGroupChat) {
-              targetUser = item.users.find(
-                (u) => u.user._id !== user._id
-              )?.user;
-            }
-
-            const isOnline = targetUser
-              ? onlineUserIds.includes(targetUser._id)
-              : false;
-
-            return (
-              <ChatItem
-                chat={item}
-                isOnline={isOnline}
-                targetUser={targetUser}
-                onPress={() => handleChatPress(item)}
-                onLongPress={() => openSheet(item)}
-                disabled={isLoading}
-              />
-            );
-          }}
-          ListHeaderComponent={<ChatHeader stories={stories} user={user} />}
-          ListFooterComponent={
-            hasMore && isPaging ? (
-              <ActivityIndicator size="small" color={color.icon} />
-            ) : null
-          }
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={refresh}
-              colors={[color.primary]} // Spinner color (Android)
-              progressBackgroundColor={color.background} // Background color (Android)
-              tintColor={color.primary} // Spinner color (iOS)
-              title="Refreshing..." // Optional (iOS)
-              titleColor={color.text} // Optional (iOS)
-            />
-          }
-        />
-
-        {/* Bottom Sheet Actions */}
-        <BottomSheetAction
-          visible={isSheetVisible}
-          title={selectedChat?.name}
-          options={filteredOptions}
-          onSelect={handleOptionSelect}
-          onCancel={closeSheet}
+    <ThemedView style={styles.container}>
+      {/* Header */}
+      <ThemedView style={styles.header}>
+        <ThemedText type="title">{APP_NAME}</ThemedText>
+        <Image
+          source={require("@/assets/images/logo.png")}
+          style={styles.logo}
+          contentFit="contain"
         />
       </ThemedView>
-    </SafeAreaView>
+
+      {/* Chat List - Now using storedChats instead of chats */}
+      <FlatList
+        data={allChats || []}
+        keyExtractor={(item) => item._id}
+        showsVerticalScrollIndicator={false}
+        refreshing={isRefreshing}
+        ListEmptyComponent={<ChatEmpty />}
+        onRefresh={refresh}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.1}
+        contentContainerStyle={styles.listContent}
+        renderItem={({ item }) => {
+          let targetUser = null;
+
+          if (!item.isGroupChat) {
+            targetUser = item.users.find((u) => u.user._id !== user._id)?.user;
+          }
+
+          const isOnline = targetUser
+            ? onlineUserIds.includes(targetUser._id)
+            : false;
+
+          return (
+            <ChatItem
+              chat={item}
+              isOnline={isOnline}
+              targetUser={targetUser}
+              onPress={() => handleChatPress(item)}
+              onLongPress={() => openSheet(item)}
+              disabled={isLoading}
+            />
+          );
+        }}
+        ListHeaderComponent={<ChatHeader stories={stories} user={user} />}
+        ListFooterComponent={
+          hasMore && isPaging ? (
+            <ActivityIndicator size="small" color={color.icon} />
+          ) : null
+        }
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={refresh}
+            colors={[color.primary]} // Spinner color (Android)
+            progressBackgroundColor={color.background} // Background color (Android)
+            tintColor={color.primary} // Spinner color (iOS)
+            title="Refreshing..." // Optional (iOS)
+            titleColor={color.text} // Optional (iOS)
+          />
+        }
+      />
+
+      {/* Bottom Sheet Actions */}
+      <BottomSheetAction
+        visible={isSheetVisible}
+        title={selectedChat?.name}
+        options={filteredOptions}
+        onSelect={handleOptionSelect}
+        onCancel={closeSheet}
+      />
+    </ThemedView>
   );
 }
 

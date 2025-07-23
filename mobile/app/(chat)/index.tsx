@@ -34,10 +34,9 @@ import { socket } from "@/config/socket";
 import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
 import { useUiStore } from "@/stores/uiStore";
 import { pickMedia } from "@/utils/messageMediaPicker";
-import getImageMimeType from "@/utils/getImageMimeType";
 import CameraModal from "@/components/Camera";
-import { SafeAreaView } from "react-native-safe-area-context";
 import ImagePreview from "@/components/ImagePreview";
+import VideoPreview from "@/components/VideoPreview";
 
 export default function ChatMessage() {
   useTimeTickWhenFocused();
@@ -82,9 +81,10 @@ export default function ChatMessage() {
   const [isTyping, setIsTyping] = useState(false);
   const [typingUser, setTypingUser] = useState<User | null>(null);
   const [isCameraVisible, setIsCameraVisible] = useState(false);
-  const [capturedPhoto, setCapturedPhoto] = useState<{
+  const [pendingMediaPreview, setPendingMediaPreview] = useState<{
     uri: string;
     base64?: string;
+    type: "image" | "video";
   } | null>(null);
 
   // Pagination handling
@@ -317,60 +317,79 @@ export default function ChatMessage() {
     const mediasData = await pickMedia();
     if (!mediasData || mediasData.length === 0) return;
 
+    // Only preview the first one for now (you can extend for multiple later)
+    const mediaData = mediasData[0];
+    let type: "image" | "video";
+    if (mediaData.type === "image" || mediaData.type === "video")
+      type = mediaData.type;
+    else type = mediaData.type?.startsWith("video") ? "video" : "image";
+
+    setPendingMediaPreview({
+      uri: mediaData.uri,
+      base64: mediaData.base64,
+      type,
+    });
+    // Don't send yet!
+  };
+
+  // Function to actually send the media after preview confirmation
+  const sendPendingMedia = async () => {
+    if (
+      !pendingMediaPreview ||
+      !chatId ||
+      !currentChat ||
+      !pendingMediaPreview.base64
+    ) {
+      setPendingMediaPreview(null);
+      return;
+    }
     setIsSentMessage(true);
 
-    for (const mediaData of mediasData) {
-      const { base64, uri, type: rawType } = mediaData;
+    const tempId = `temp-${Date.now()}`;
+    const tempMessage: Message = {
+      _id: tempId,
+      content: pendingMediaPreview.uri,
+      sender: user,
+      chat: currentChat,
+      type: pendingMediaPreview.type,
+      status: "pending",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
 
-      let type: "image" | "video";
-      if (rawType === "image" || rawType === "video") type = rawType;
-      else type = rawType?.startsWith("video") ? "video" : "image";
+    addMessage(chatId, tempMessage);
 
-      const mimeType = type === "image" ? "image/jpeg" : "video/mp4";
-      const imageBase64 = `data:${mimeType};base64,${base64}`;
+    try {
+      const mimeType =
+        pendingMediaPreview.type === "image" ? "image/jpeg" : "video/mp4";
+      const mediaBase64 = `data:${mimeType};base64,${pendingMediaPreview.base64}`;
+      const data = await createMessage(
+        chatId,
+        mediaBase64,
+        pendingMediaPreview.type
+      );
+      const realMessage = data.result;
 
-      const tempId = `temp-${Date.now()}-${Math.random()}`;
+      socket.emit("send-message", { chatId, message: realMessage });
 
-      const tempMessage: Message = {
-        _id: tempId,
-        content: uri, // Temporarily show local image
-        sender: user,
-        chat: currentChat,
-        type,
-        status: "pending",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      addMessage(chatId, tempMessage);
-
-      try {
-        const data = await createMessage(chatId, imageBase64, type);
-        const realMessage = data.result;
-
-        socket.emit("send-message", { chatId, message: realMessage });
-
-        setMessages(chatId, [
-          realMessage,
-          ...currentMessages.filter((msg) => msg._id !== tempId),
-        ]);
-
-        updateChat(realMessage.chat);
-      } catch (error: any) {
-        console.error("Image upload failed:", error);
-        ToastAndroid.show(
-          error.message || "Image upload failed",
-          ToastAndroid.SHORT
-        );
-
-        // mark as failed
-        setMessages(
-          chatId,
-          currentMessages.map((msg) =>
-            msg._id === tempId ? { ...msg, status: "failed" } : msg
-          )
-        );
-      }
+      setMessages(chatId, [
+        realMessage,
+        ...currentMessages.filter((msg) => msg._id !== tempId),
+      ]);
+      updateChat(realMessage.chat);
+    } catch (error: any) {
+      ToastAndroid.show(
+        error.message || "Media upload failed",
+        ToastAndroid.SHORT
+      );
+      setMessages(
+        chatId,
+        currentMessages.map((msg) =>
+          msg._id === tempId ? { ...msg, status: "failed" } : msg
+        )
+      );
+    } finally {
+      setPendingMediaPreview(null); // Always close preview after sending
     }
   };
 
@@ -438,243 +457,253 @@ export default function ChatMessage() {
   const isOnline =
     otherUser && onlineUserIds.includes(otherUser?._id) ? true : false;
 
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: color.background }}>
-      <KeyboardAvoidingView
-        style={[styles.container, { backgroundColor: color.background }]}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
-      >
-        {/* Header */}
-        <ThemedView
-          style={[styles.header, { borderBottomColor: color.border }]}
-        >
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons
-              name="chevron-back-outline"
-              size={22}
-              color={color.icon}
-            />
-          </TouchableOpacity>
-
-          {/* Profile avatar */}
-          <TouchableOpacity onPress={() => console.log("Profile")}>
-            <ThemedView style={styles.profilePhotoContainer}>
-              <Image source={{ uri: chatPhoto }} style={styles.profilePhoto} />
-              {!currentChat.isGroupChat && isOnline ? (
-                <ThemedView
-                  style={[
-                    styles.onlineIndicator,
-                    {
-                      borderColor: color.secondary,
-                      backgroundColor: "limegreen",
-                    },
-                  ]}
-                />
-              ) : !currentChat.isGroupChat && otherUser ? (
-                <>
-                  {getLastTime(otherUser.lastOnlineAt) === "0m" ? (
-                    <ThemedView
-                      style={[
-                        styles.onlineIndicator,
-                        {
-                          borderColor: color.secondary,
-                          backgroundColor: "#A9A9A9",
-                        },
-                      ]}
-                    />
-                  ) : (
-                    <ThemedText
-                      style={[
-                        styles.lastOnlineText,
-                        {
-                          backgroundColor: color.secondary,
-                        },
-                      ]}
-                    >
-                      {getLastTime(otherUser.lastOnlineAt)}
-                    </ThemedText>
-                  )}
-                </>
-              ) : null}
-            </ThemedView>
-          </TouchableOpacity>
-          <ThemedText type="larger" style={styles.chatName} numberOfLines={1}>
-            {chatName}
-          </ThemedText>
-          {/* Header icons */}
-          {!isPendingChat ? (
-            <ThemedView style={styles.headerIcons}>
-              <TouchableOpacity onPress={() => console.log("Voice call")}>
-                <Ionicons
-                  name="call-outline"
-                  size={22}
-                  style={styles.icon}
-                  color={color.icon}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => console.log("Video call")}>
-                <Ionicons
-                  name="videocam-outline"
-                  size={22}
-                  style={styles.icon}
-                  color={color.icon}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() =>
-                  router.push({
-                    pathname: "/(chat)/detail",
-                    params: { chatId },
-                  })
-                }
-              >
-                <Ionicons
-                  name="ellipsis-vertical-outline"
-                  size={22}
-                  style={styles.icon}
-                  color={color.icon}
-                />
-              </TouchableOpacity>
-            </ThemedView>
-          ) : null}
-        </ThemedView>
-
-        {/* Messages */}
-        <FlatList
-          keyboardShouldPersistTaps="handled"
-          ref={flatListRef}
-          data={currentMessages}
-          style={styles.chatList}
-          contentContainerStyle={{ padding: 10 }}
-          showsVerticalScrollIndicator={false}
-          refreshing={isRefreshing}
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.1}
-          inverted={true}
-          keyExtractor={(item) => item._id}
-          renderItem={({ item, index }) => (
-            <MessageItem
-              item={item}
-              index={index}
-              messages={currentMessages}
-              user={user}
-            />
-          )}
-          ListFooterComponent={
-            hasMore && isPaging ? (
-              <ActivityIndicator size="small" color={color.icon} />
-            ) : null
-          }
+  if (pendingMediaPreview) {
+    if (pendingMediaPreview.type === "image") {
+      return (
+        <ImagePreview
+          photoUri={pendingMediaPreview.uri}
+          isFrontCamera={false}
+          onSend={() => {
+            sendPendingMedia();
+            setPendingMediaPreview(null);
+          }}
+          onClose={() => setPendingMediaPreview(null)}
         />
-        {isTyping && typingUser && (
-          <ThemedView style={styles.typingIndicatorContainer}>
-            <Image
-              source={{ uri: typingUser.profilePhoto }}
-              style={styles.typingAvatar}
-            />
-            <ThemedText type="small" style={{ fontStyle: "italic" }}>
-              Typing...
-            </ThemedText>
-          </ThemedView>
-        )}
+      );
+    } else {
+      return (
+        <VideoPreview
+          videoUri={pendingMediaPreview.uri}
+          onSend={() => {
+            sendPendingMedia();
+            setPendingMediaPreview(null);
+          }}
+          onClose={() => setPendingMediaPreview(null)}
+        />
+      );
+    }
+  }
 
-        {/* Input Area and requset icon*/}
-        {isPendingChat ? (
-          <ThemedView style={styles.pendingButtonContainer}>
-            <TouchableOpacity
-              disabled={isLoading}
-              style={[
-                styles.pendingButton,
-                { backgroundColor: color.secondary },
-              ]}
-              onPress={() => console.log("Block User")}
-            >
-              <ThemedText type="defaultBold" style={styles.blockText}>
-                Block
-              </ThemedText>
-            </TouchableOpacity>
-            <TouchableOpacity
-              disabled={isLoading}
-              style={[
-                styles.pendingButton,
-                { backgroundColor: color.secondary },
-              ]}
-              onPress={handleDelete}
-            >
-              <ThemedText type="defaultBold" style={styles.deleteText}>
-                Delete
-              </ThemedText>
-            </TouchableOpacity>
-            <TouchableOpacity
-              disabled={isLoading}
-              style={[
-                styles.pendingButton,
-                { backgroundColor: color.secondary },
-              ]}
-              onPress={handleAccept}
-            >
-              <ThemedText type="defaultBold" style={styles.acceptText}>
-                Accept
-              </ThemedText>
-            </TouchableOpacity>
-          </ThemedView>
-        ) : (
-          // Input container
-          <ThemedView style={[styles.inputContainer]}>
-            <ThemedView
-              style={[
-                styles.inputTextContainer,
-                { backgroundColor: color.secondary },
-              ]}
-            >
-              <TouchableOpacity style={styles.imageButton}>
-                <Ionicons
-                  name="add-circle-outline"
-                  size={22}
-                  color={color.icon}
-                />
-              </TouchableOpacity>
-              <TextInput
-                value={newMessage}
-                onChangeText={setNewMessage}
-                style={[styles.textInput, { color: color.text }]}
-                placeholder="Type a message"
-                placeholderTextColor="gray"
-                multiline
+  return (
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: color.background }]}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+    >
+      {/* Header */}
+      <ThemedView style={[styles.header, { borderBottomColor: color.border }]}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="chevron-back-outline" size={22} color={color.icon} />
+        </TouchableOpacity>
+
+        {/* Profile avatar */}
+        <TouchableOpacity onPress={() => console.log("Profile")}>
+          <ThemedView style={styles.profilePhotoContainer}>
+            <Image source={{ uri: chatPhoto }} style={styles.profilePhoto} />
+            {!currentChat.isGroupChat && isOnline ? (
+              <ThemedView
+                style={[
+                  styles.onlineIndicator,
+                  {
+                    borderColor: color.secondary,
+                    backgroundColor: "limegreen",
+                  },
+                ]}
               />
-              <TouchableOpacity
-                onPress={handlePressMedia}
-                style={styles.imageButton}
-              >
-                <Ionicons name="image-outline" size={22} color={color.icon} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setIsCameraVisible(true)}
-                style={styles.imageButton}
-              >
-                <Ionicons name="camera-outline" size={22} color={color.icon} />
-              </TouchableOpacity>
-            </ThemedView>
-            <TouchableOpacity
-              style={[
-                styles.sendButton,
-                { backgroundColor: color.messageBackground },
-              ]}
-              disabled={newMessage.length === 0}
-              onPress={handleSendMessage}
-            >
-              <Ionicons name="send-outline" size={22} color={color.icon} />
-            </TouchableOpacity>
-            <CameraModal
-              isVisible={isCameraVisible}
-              onClose={() => setIsCameraVisible(false)}
-              onMediaCaptured={handleMediaTaken}
-            />
+            ) : !currentChat.isGroupChat && otherUser ? (
+              <>
+                {getLastTime(otherUser.lastOnlineAt) === "0m" ? (
+                  <ThemedView
+                    style={[
+                      styles.onlineIndicator,
+                      {
+                        borderColor: color.secondary,
+                        backgroundColor: "#A9A9A9",
+                      },
+                    ]}
+                  />
+                ) : (
+                  <ThemedText
+                    style={[
+                      styles.lastOnlineText,
+                      {
+                        backgroundColor: color.secondary,
+                      },
+                    ]}
+                  >
+                    {getLastTime(otherUser.lastOnlineAt)}
+                  </ThemedText>
+                )}
+              </>
+            ) : null}
           </ThemedView>
+        </TouchableOpacity>
+        <ThemedText type="larger" style={styles.chatName} numberOfLines={1}>
+          {chatName}
+        </ThemedText>
+        {/* Header icons */}
+        {!isPendingChat ? (
+          <ThemedView style={styles.headerIcons}>
+            <TouchableOpacity onPress={() => console.log("Voice call")}>
+              <Ionicons
+                name="call-outline"
+                size={22}
+                style={styles.icon}
+                color={color.icon}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => console.log("Video call")}>
+              <Ionicons
+                name="videocam-outline"
+                size={22}
+                style={styles.icon}
+                color={color.icon}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: "/(chat)/detail",
+                  params: { chatId },
+                })
+              }
+            >
+              <Ionicons
+                name="ellipsis-vertical-outline"
+                size={22}
+                style={styles.icon}
+                color={color.icon}
+              />
+            </TouchableOpacity>
+          </ThemedView>
+        ) : null}
+      </ThemedView>
+
+      {/* Messages */}
+      <FlatList
+        keyboardShouldPersistTaps="handled"
+        ref={flatListRef}
+        data={currentMessages}
+        style={styles.chatList}
+        contentContainerStyle={{ padding: 10 }}
+        showsVerticalScrollIndicator={false}
+        refreshing={isRefreshing}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.1}
+        inverted={true}
+        keyExtractor={(item) => item._id}
+        renderItem={({ item, index }) => (
+          <MessageItem
+            item={item}
+            index={index}
+            messages={currentMessages}
+            user={user}
+          />
         )}
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        ListFooterComponent={
+          hasMore && isPaging ? (
+            <ActivityIndicator size="small" color={color.icon} />
+          ) : null
+        }
+      />
+      {isTyping && typingUser && (
+        <ThemedView style={styles.typingIndicatorContainer}>
+          <Image
+            source={{ uri: typingUser.profilePhoto }}
+            style={styles.typingAvatar}
+          />
+          <ThemedText type="small" style={{ fontStyle: "italic" }}>
+            Typing...
+          </ThemedText>
+        </ThemedView>
+      )}
+
+      {/* Input Area and requset icon*/}
+      {isPendingChat ? (
+        <ThemedView style={styles.pendingButtonContainer}>
+          <TouchableOpacity
+            disabled={isLoading}
+            style={[styles.pendingButton, { backgroundColor: color.secondary }]}
+            onPress={() => console.log("Block User")}
+          >
+            <ThemedText type="defaultBold" style={styles.blockText}>
+              Block
+            </ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            disabled={isLoading}
+            style={[styles.pendingButton, { backgroundColor: color.secondary }]}
+            onPress={handleDelete}
+          >
+            <ThemedText type="defaultBold" style={styles.deleteText}>
+              Delete
+            </ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            disabled={isLoading}
+            style={[styles.pendingButton, { backgroundColor: color.secondary }]}
+            onPress={handleAccept}
+          >
+            <ThemedText type="defaultBold" style={styles.acceptText}>
+              Accept
+            </ThemedText>
+          </TouchableOpacity>
+        </ThemedView>
+      ) : (
+        // Input container
+        <ThemedView style={[styles.inputContainer]}>
+          <ThemedView
+            style={[
+              styles.inputTextContainer,
+              { backgroundColor: color.secondary },
+            ]}
+          >
+            <TouchableOpacity style={styles.imageButton}>
+              <Ionicons
+                name="add-circle-outline"
+                size={22}
+                color={color.icon}
+              />
+            </TouchableOpacity>
+            <TextInput
+              value={newMessage}
+              onChangeText={setNewMessage}
+              style={[styles.textInput, { color: color.text }]}
+              placeholder="Type a message"
+              placeholderTextColor="gray"
+              multiline
+            />
+            <TouchableOpacity
+              onPress={handlePressMedia}
+              style={styles.imageButton}
+            >
+              <Ionicons name="image-outline" size={22} color={color.icon} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setIsCameraVisible(true)}
+              style={styles.imageButton}
+            >
+              <Ionicons name="camera-outline" size={22} color={color.icon} />
+            </TouchableOpacity>
+          </ThemedView>
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              { backgroundColor: color.messageBackground },
+            ]}
+            disabled={newMessage.length === 0}
+            onPress={handleSendMessage}
+          >
+            <Ionicons name="send-outline" size={22} color={color.icon} />
+          </TouchableOpacity>
+          <CameraModal
+            isVisible={isCameraVisible}
+            onClose={() => setIsCameraVisible(false)}
+            onMediaCaptured={handleMediaTaken}
+          />
+        </ThemedView>
+      )}
+    </KeyboardAvoidingView>
   );
 }
 
@@ -700,7 +729,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
 
-    // paddingBottom: 35,
+    paddingBottom: 35,
     paddingTop: 5,
   },
   inputTextContainer: {

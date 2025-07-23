@@ -24,7 +24,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useBottomSheetActions } from "@/hooks/useBottomSheetActions";
 import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
 import { useMessageStore } from "@/stores/messageStore";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function MessageRequest() {
   // Hard coded render
@@ -94,7 +93,7 @@ export default function MessageRequest() {
         }
       });
     }
-  }, [newRequestChats]);
+  }, [newRequestChats, getChatById, setChats]);
 
   if (!user) return null;
   // const allRequestChats = chats.filter(
@@ -175,95 +174,87 @@ export default function MessageRequest() {
   };
 
   return (
-    <SafeAreaView style={[{ flex: 1, backgroundColor: color.background }]}>
-      <ThemedView style={styles.container}>
-        {/* Header */}
-        <ThemedView
-          style={[styles.header, { borderBottomColor: color.border }]}
-        >
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons
-              name="chevron-back-outline"
-              size={22}
-              color={color.icon}
-            />
-          </TouchableOpacity>
-          <ThemedView style={styles.HeaderTitleContainer}>
-            <ThemedText type="headerTitle">Message Request</ThemedText>
-          </ThemedView>
-          <TouchableOpacity onPress={() => console.log("setting")}>
-            <Ionicons name="cog-outline" size={22} color={color.icon} />
-          </TouchableOpacity>
+    <ThemedView style={styles.container}>
+      {/* Header */}
+      <ThemedView style={[styles.header, { borderBottomColor: color.border }]}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="chevron-back-outline" size={22} color={color.icon} />
+        </TouchableOpacity>
+        <ThemedView style={styles.HeaderTitleContainer}>
+          <ThemedText type="headerTitle">Message Request</ThemedText>
         </ThemedView>
-
-        {/* Chats */}
-        <FlatList
-          data={allRequestChats}
-          keyExtractor={(item) => item._id}
-          showsVerticalScrollIndicator={false}
-          refreshing={isRefreshing}
-          ListEmptyComponent={<ChatEmpty />}
-          onRefresh={refresh}
-          onEndReached={loadMore}
-          onEndReachedThreshold={1}
-          contentContainerStyle={{ paddingBottom: 20 }}
-          renderItem={({ item }) => {
-            const targetUser = item.users.find(
-              (u) => u.user._id !== user._id
-            )?.user;
-
-            const isOnline = targetUser
-              ? onlineUserIds.includes(targetUser._id)
-              : false;
-
-            return (
-              <ChatItem
-                chat={item}
-                isOnline={isOnline}
-                targetUser={targetUser}
-                disabled={isLoading}
-                onPress={() => handleChatPress(item)}
-                onProfilePress={() => console.log(item.name)}
-                onLongPress={() => openSheet(item)}
-              />
-            );
-          }}
-          ListHeaderComponent={
-            <ThemedView style={styles.headerContainer}>
-              <ThemedText>
-                Open a chat for more info to see. Sender wil not know you have
-                seen the message until you reply or accept the request.
-              </ThemedText>
-              <TouchableOpacity>
-                <ThemedText type="link" style={{ fontSize: 14 }}>
-                  Click here to change message request settings.
-                </ThemedText>
-              </TouchableOpacity>
-            </ThemedView>
-          }
-          ListFooterComponent={
-            hasMore && chats.length > 0 && isPaging ? (
-              <ActivityIndicator size="small" color={color.icon} />
-            ) : null
-          }
-
-          // ItemSeparatorComponent={() => (
-          //   <ThemedView
-          //     style={[styles.separator, { backgroundColor: color.secondary }]}
-          //   />
-          // )}
-        />
-
-        {/* Custom Sheet */}
-        <BottomSheetAction
-          visible={isSheetVisible}
-          title={selectedChat?.name}
-          options={filteredOptions}
-          onSelect={handleOptionSelect}
-          onCancel={closeSheet}
-        />
+        <TouchableOpacity onPress={() => console.log("setting")}>
+          <Ionicons name="cog-outline" size={22} color={color.icon} />
+        </TouchableOpacity>
       </ThemedView>
-    </SafeAreaView>
+
+      {/* Chats */}
+      <FlatList
+        data={allRequestChats}
+        keyExtractor={(item) => item._id}
+        showsVerticalScrollIndicator={false}
+        refreshing={isRefreshing}
+        ListEmptyComponent={<ChatEmpty />}
+        onRefresh={refresh}
+        onEndReached={loadMore}
+        onEndReachedThreshold={1}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        renderItem={({ item }) => {
+          const targetUser = item.users.find(
+            (u) => u.user._id !== user._id
+          )?.user;
+
+          const isOnline = targetUser
+            ? onlineUserIds.includes(targetUser._id)
+            : false;
+
+          return (
+            <ChatItem
+              chat={item}
+              isOnline={isOnline}
+              targetUser={targetUser}
+              disabled={isLoading}
+              onPress={() => handleChatPress(item)}
+              onProfilePress={() => console.log(item.name)}
+              onLongPress={() => openSheet(item)}
+            />
+          );
+        }}
+        ListHeaderComponent={
+          <ThemedView style={styles.headerContainer}>
+            <ThemedText>
+              Open a chat for more info to see. Sender wil not know you have
+              seen the message until you reply or accept the request.
+            </ThemedText>
+            <TouchableOpacity>
+              <ThemedText type="link" style={{ fontSize: 14 }}>
+                Click here to change message request settings.
+              </ThemedText>
+            </TouchableOpacity>
+          </ThemedView>
+        }
+        ListFooterComponent={
+          hasMore && chats.length > 0 && isPaging ? (
+            <ActivityIndicator size="small" color={color.icon} />
+          ) : null
+        }
+
+        // ItemSeparatorComponent={() => (
+        //   <ThemedView
+        //     style={[styles.separator, { backgroundColor: color.secondary }]}
+        //   />
+        // )}
+      />
+
+      {/* Custom Sheet */}
+      <BottomSheetAction
+        visible={isSheetVisible}
+        title={selectedChat?.name}
+        options={filteredOptions}
+        onSelect={handleOptionSelect}
+        onCancel={closeSheet}
+      />
+    </ThemedView>
   );
 }
 

@@ -87,7 +87,10 @@ export default function VideoPreview({
     <ThemedView style={styles.container}>
       <VideoView
         player={player}
-        style={[styles.video, { width: width, height: height }]} // Make video fill the screen
+        style={[
+          styles.video,
+          { width: "100%", height: "100%" }, // Make video fill the screen
+        ]}
         allowsFullscreen // Allow fullscreen toggle
         allowsPictureInPicture // Allow picture-in-picture mode
         nativeControls={false} // Use custom controls

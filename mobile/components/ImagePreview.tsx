@@ -4,13 +4,16 @@ import {
   StyleSheet,
   TouchableOpacity,
   ToastAndroid,
-  Dimensions, // Import Dimensions for responsive image sizing
+  Dimensions,
+  Alert,
+  Linking, // Import Dimensions for responsive image sizing
 } from "react-native";
 import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemedView } from "./ThemedView"; // Assuming ThemedView is available
 import { ThemedText } from "./ThemedText";
+import { APP_NAME } from "@/constants";
 
 type ImagePreviewProps = {
   photoUri: string;
@@ -26,17 +29,37 @@ export default function ImagePreview({
   isFrontCamera,
 }: ImagePreviewProps) {
   const [saving, setSaving] = useState(false);
-  const { width, height } = Dimensions.get('window'); // Get screen dimensions
+  const { width, height } = Dimensions.get("window"); // Get screen dimensions
 
   // Function to save the image to the device's gallery
   const saveToGallery = async () => {
+    let permission = await MediaLibrary.getPermissionsAsync();
+
+    if (!permission.granted) {
+      // Try to request permission again
+      const request = await MediaLibrary.requestPermissionsAsync();
+      permission = request;
+    }
+
+    if (!permission.granted) {
+      // If still denied, show alert with option to go to settings
+      Alert.alert(
+        "Permission Required",
+        "To save images, please allow media access in your settings.",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Open Settings", onPress: () => Linking.openSettings() },
+        ]
+      );
+      return;
+    }
     try {
       setSaving(true);
       const asset = await MediaLibrary.createAssetAsync(photoUri); // Create an asset from the URI
       // Attempt to create an album or add to an existing one
-      const album = await MediaLibrary.getAlbumAsync("MyAppPhotos");
+      const album = await MediaLibrary.getAlbumAsync(APP_NAME);
       if (album == null) {
-        await MediaLibrary.createAlbumAsync("MyAppPhotos", asset, false);
+        await MediaLibrary.createAlbumAsync(APP_NAME, asset, false);
       } else {
         await MediaLibrary.addAssetsToAlbumAsync([asset], album.id, false);
       }
@@ -55,7 +78,10 @@ export default function ImagePreview({
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(photoUri);
       } else {
-        ToastAndroid.show("Sharing is not available on this device", ToastAndroid.SHORT);
+        ToastAndroid.show(
+          "Sharing is not available on this device",
+          ToastAndroid.SHORT
+        );
       }
     } catch (error: any) {
       console.error("Failed to share image:", error);
@@ -83,7 +109,11 @@ export default function ImagePreview({
       {/* Bottom Action Bar */}
       <ThemedView style={styles.bottomBar}>
         {/* Save Button */}
-        <TouchableOpacity onPress={saveToGallery} disabled={saving} style={styles.bottomAction}>
+        <TouchableOpacity
+          onPress={saveToGallery}
+          disabled={saving}
+          style={styles.bottomAction}
+        >
           <Ionicons name="download-outline" size={26} color="#fff" />
           <ThemedText style={styles.actionText}>Save</ThemedText>
         </TouchableOpacity>
@@ -109,8 +139,8 @@ const styles = StyleSheet.create({
     flex: 1,
     position: "relative",
     backgroundColor: "black", // Background for the preview
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   image: {
     // Flex 1 and width/height 100% will make it fill the parent container

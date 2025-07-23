@@ -6,31 +6,31 @@ import {
   Alert,
   ActivityIndicator,
   Linking,
+  Text,
 } from "react-native";
 import { useState } from "react";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
-import { useLocalSearchParams } from "expo-router";
 import * as MediaLibrary from "expo-media-library";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { APP_NAME } from "@/constants";
 
 export default function ImageViewer() {
   const { imageUrl } = useLocalSearchParams();
-
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const handleDownload = async () => {
     let permission = await MediaLibrary.getPermissionsAsync();
 
     if (!permission.granted) {
-      // Try to request permission again
       const request = await MediaLibrary.requestPermissionsAsync();
       permission = request;
     }
 
     if (!permission.granted) {
-      // If still denied, show alert with option to go to settings
       Alert.alert(
         "Permission Required",
         "To save images, please allow media access in your settings.",
@@ -49,7 +49,15 @@ export default function ImageViewer() {
         imageUrl as string,
         fileUri
       );
-      await MediaLibrary.saveToLibraryAsync(download.uri);
+
+      const asset = await MediaLibrary.createAssetAsync(download.uri);
+      const album = await MediaLibrary.getAlbumAsync(APP_NAME);
+      if (album == null) {
+        await MediaLibrary.createAlbumAsync(APP_NAME, asset, false);
+      } else {
+        await MediaLibrary.addAssetsToAlbumAsync([asset], album.id, false);
+      }
+
       Alert.alert("Success", "Image saved to gallery!");
     } catch (error) {
       console.error("Download failed:", error);
@@ -57,6 +65,10 @@ export default function ImageViewer() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleClose = () => {
+    router.back();
   };
 
   if (!imageUrl || typeof imageUrl !== "string") return null;
@@ -72,17 +84,28 @@ export default function ImageViewer() {
           cachePolicy="memory-disk"
         />
 
-        {/* Download button */}
-        <TouchableOpacity
-          style={styles.downloadButton}
-          onPress={handleDownload}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Ionicons name="download-outline" size={28} color="white" />
-          )}
+        {/* Close button */}
+        <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
+          <Ionicons name="close" size={28} color="#fff" />
         </TouchableOpacity>
+
+        {/* Save button at bottom */}
+        <View style={styles.bottomBar}>
+          <TouchableOpacity
+            style={styles.bottomAction}
+            onPress={handleDownload}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Ionicons name="download-outline" size={26} color="#fff" />
+                <Text style={styles.actionText}>Save</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
     </>
   );
@@ -101,12 +124,41 @@ const styles = StyleSheet.create({
     width,
     height,
   },
-  downloadButton: {
+  closeButton: {
     position: "absolute",
-    top: 20,
+    top: 40,
     right: 20,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     padding: 10,
     borderRadius: 25,
+    zIndex: 10,
+  },
+  bottomBar: {
+    position: "absolute",
+    bottom: 30,
+    width: "60%",
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    borderRadius: 30,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+  },
+  bottomAction: {
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 10,
+  },
+  actionText: {
+    color: "#fff",
+    fontSize: 12,
+    marginTop: 5,
   },
 });

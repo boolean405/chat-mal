@@ -1,7 +1,7 @@
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
 import { Alert, Platform, Linking } from "react-native";
-import videoCompressor from "./videoCompressor";
+import { imageCompressor, videoCompressor } from "./mediaCompressor";
 
 export async function pickMedia() {
   try {
@@ -32,7 +32,6 @@ export async function pickMedia() {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images", "videos"],
-      quality: 0.5,
       base64: true,
       // allowsMultipleSelection: true,
     });
@@ -47,9 +46,13 @@ export async function pickMedia() {
             base64: originalBase64,
           } = asset;
 
-          // Compress video
+          // Compress Media
           const uri =
-            type === "video" ? await videoCompressor(originalUri) : originalUri;
+            type === "video"
+              ? await videoCompressor(originalUri)
+              : type === "image"
+              ? await imageCompressor(originalUri)
+              : originalUri;
 
           const base64 =
             originalBase64 ??
