@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
+  Text,
   TextInput,
   ToastAndroid,
   TouchableOpacity,
@@ -36,6 +37,8 @@ import CameraModal from "@/components/Camera";
 import ImagePreview from "@/components/ImagePreview";
 import VideoPreview from "@/components/VideoPreview";
 import { chatMediaPicker } from "@/utils/chatMediaPicker";
+import useWebRTC from "@/hooks/useWebRTC";
+import { RTCView } from "react-native-webrtc";
 
 export default function ChatMessage() {
   useTimeTickWhenFocused();
@@ -86,6 +89,9 @@ export default function ChatMessage() {
     type: "image" | "video";
     isLoading: boolean;
   } | null>(null);
+
+  const { localStream, remoteStream, isCalling, startCall, endCall } =
+    useWebRTC(chatId);
 
   // Pagination handling
   const {
@@ -322,7 +328,10 @@ export default function ChatMessage() {
     });
 
     const media = await chatMediaPicker();
-    if (!media) return;
+    if (!media) {
+      setPendingMediaPreview(null);
+      return;
+    }
 
     setPendingMediaPreview({
       uri: media.uri,
@@ -447,6 +456,11 @@ export default function ChatMessage() {
     }
   };
 
+  // Handle video call
+  const handleVideoCall = () => {
+    startCall();
+  };
+
   const otherUser = currentChat.users?.find(
     (u) => u.user._id !== user._id
   )?.user;
@@ -482,6 +496,46 @@ export default function ChatMessage() {
       );
     }
   }
+
+  // if (isCalling) {
+  //   return (
+  //     <>
+  //       <RTCView
+  //         streamURL={localStream?.toURL() ?? ""}
+  //         style={{
+  //           width: 100,
+  //           height: 150,
+  //           position: "absolute",
+  //           top: 10,
+  //           right: 10,
+  //           zIndex: 100,
+  //         }}
+  //       />
+  //       <RTCView
+  //         streamURL={remoteStream?.toURL() ?? ""}
+  //         style={{ flex: 1, backgroundColor: "black" }}
+  //       />
+  //       <TouchableOpacity
+  //         onPress={endCall}
+  //         style={{
+  //           position: "absolute",
+  //           bottom: 30,
+  //           left: "50%",
+  //           marginLeft: -40,
+  //           width: 80,
+  //           height: 40,
+  //           backgroundColor: "red",
+  //           justifyContent: "center",
+  //           alignItems: "center",
+  //           borderRadius: 20,
+  //           zIndex: 100,
+  //         }}
+  //       >
+  //         <Text style={{ color: "white" }}>End Call</Text>
+  //       </TouchableOpacity>
+  //     </>
+  //   );
+  // }
 
   return (
     <KeyboardAvoidingView
@@ -551,7 +605,7 @@ export default function ChatMessage() {
                 color={color.icon}
               />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => console.log("Video call")}>
+            <TouchableOpacity onPress={handleVideoCall}>
               <Ionicons
                 name="videocam-outline"
                 size={22}

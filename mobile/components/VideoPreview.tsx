@@ -30,18 +30,17 @@ export default function VideoPreview({
   const [saving, setSaving] = useState(false);
 
   // Pause video when component unmounts or becomes invisible
- useEffect(() => {
-  const timeout = setTimeout(() => {
-    try {
-      player?.pause?.();
-    } catch (e) {
-      console.warn("Failed to pause player on timeout cleanup", e);
-    }
-  }, 50); // give native module time to stabilize
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      try {
+        player?.pause?.();
+      } catch (e) {
+        console.warn("Failed to pause player on timeout cleanup", e);
+      }
+    }, 50); // give native module time to stabilize
 
-  return () => clearTimeout(timeout);
-}, []);
-
+    return () => clearTimeout(timeout);
+  }, []);
 
   // Initialize video player
   const player = useVideoPlayer(videoUri, (playerInstance) => {
@@ -97,7 +96,7 @@ export default function VideoPreview({
       <ThemedView style={styles.container}>
         <ActivityIndicator size="large" color="#00ffff" />
         <ThemedText style={{ color: "white", marginTop: 10 }}>
-          Loading video...
+          Loading media...
         </ThemedText>
       </ThemedView>
     );

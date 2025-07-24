@@ -23,3 +23,16 @@ export const getUserActiveChat = async (userId) =>
 
 export const clearUserActiveChat = async (userId) =>
   Redis.hDel(REDIS_USER_ACTIVE_CHATS_KEY, userId);
+
+// Get socket IDs for multiple user IDs
+export const getSocketIdsByUserIds = async (userIds) => {
+  const multi = Redis.multi();
+
+  userIds.forEach((userId) => {
+    multi.hGet(REDIS_ONLINE_USERS_KEY, userId);
+  });
+
+  const socketIds = await multi.exec();
+
+  return socketIds.filter(Boolean);
+};

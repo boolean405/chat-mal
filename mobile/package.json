@@ -10,6 +10,7 @@
     "lint": "expo lint"
   },
   "dependencies": {
+    "@config-plugins/react-native-webrtc": "^12.0.0",
     "@expo/vector-icons": "^14.1.0",
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-native-community/datetimepicker": "8.4.1",
@@ -59,6 +60,7 @@
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
     "react-native-web": "~0.20.0",
+    "react-native-webrtc": "^124.0.5",
     "react-native-webview": "13.13.5",
     "socket.io-client": "^4.8.1",
     "zustand": "^5.0.5"
@@ -76,7 +78,9 @@
       "reactNativeDirectoryCheck": {
         "exclude": [
           "jwt-decode",
-          "socket.io-client"
+          "socket.io-client",
+          "react-native-webrtc",
+          "@config-plugins/react-native-webrtc"
         ]
       }
     }

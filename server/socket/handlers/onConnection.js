@@ -6,7 +6,8 @@ import onLeaveChat from "./onLeaveChat.js";
 import onSendMessage from "./onSendMessage.js";
 import onTyping from "./onTyping.js";
 import onDisconnect from "./onDisconnect.js";
-import syncUserChats from "./syncUserChats.js"; // ✅ import new file
+import syncUserChats from "./syncUserChats.js";
+import registerCallHandlers from "./onCall.js";
 
 export default async function onConnection(socket, io) {
   const user = socket.user;
@@ -18,6 +19,9 @@ export default async function onConnection(socket, io) {
 
   // ✅ Sync chats/messages on connect
   await syncUserChats(socket, io);
+
+  // ✅ Register audio/video calling handlers
+  registerCallHandlers(socket, io);
 
   socket.on("join-chat", (chatId) => onJoinChat(socket, io, chatId));
   socket.on("leave-chat", (chatId) => onLeaveChat(socket, chatId));

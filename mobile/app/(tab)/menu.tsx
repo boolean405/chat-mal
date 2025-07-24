@@ -96,12 +96,12 @@ export default function Menu() {
           profilePhoto={user?.profilePhoto}
           onPress={() => router.push("/(setting)/edit-profile")}
         />
-
+{/* 
         <WalletTab
           balance={walletBalance}
           tint={color.tint}
           backgroundColor={color.secondary}
-        />
+        /> */}
 
         <ListSection
           title="Menus"

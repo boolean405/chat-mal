@@ -71,7 +71,7 @@ export default function TabLayout() {
       />
 
       {/* Discover tab */}
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="discover"
         options={{
           title: "Discover",
@@ -80,10 +80,10 @@ export default function TabLayout() {
           ),
           tabBarLabel: tabBarLabel("Discover"),
         }}
-      />
+      /> */}
 
       {/* Wallet tab */}
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="wallet"
         options={{
           title: "Wallet",
@@ -92,7 +92,7 @@ export default function TabLayout() {
           ),
           tabBarLabel: tabBarLabel("Wallet"),
         }}
-      />
+      /> */}
 
       {/* Notification tab */}
       <Tabs.Screen
