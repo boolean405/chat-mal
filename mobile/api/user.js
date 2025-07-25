@@ -205,14 +205,18 @@ export async function refresh() {
   try {
     const accessToken = useAuthStore.getState().accessToken;
     const setUser = useAuthStore.getState().setUser;
+    console.log("old accessToken", accessToken, "old");
+
     if (accessToken) {
       const decoded = jwtDecode(accessToken);
 
       if (decoded.exp < Date.now() / 1000) {
+        console.log("token exp");
         const response = await api.post("/api/user/refresh");
         const data = response.data;
         if (data.status) {
           setUser(data.result.user, data.result.accessToken);
+          console.log("new accessToken", data.result.accessToken, "new");
           return data.result.accessToken;
         } else throw new Error(data.message || "Failed to refresh token!");
       }

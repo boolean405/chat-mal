@@ -99,19 +99,37 @@ export default function ChatMessage() {
   } = usePaginatedData<Message>({
     fetchData: async (page: number) => {
       if (!chatId) return { items: [], totalPage: 0 };
+      const alreadyLoaded = storedMessages[chatId]?.length > 0;
+
+      // ⛔ Skip page 1 fetch if messages are already in store
+      if (page === 1 && alreadyLoaded) {
+        return {
+          items: storedMessages[chatId]!,
+          totalPage: 1,
+        };
+      }
+
+      // ✅ Otherwise fetch from API
       const data = await getPaginateMessages(chatId, page);
-      // Store the messages in Zustand
       if (page === 1) {
         setMessages(chatId, data.result.messages);
       } else {
         prependMessages(chatId, data.result.messages);
       }
+
       return {
         items: data.result.messages,
         totalPage: data.result.totalPage,
       };
     },
   });
+
+  // useEffect(() => {
+  //   if (!isFetching && newChats.length > 0) {
+  //     clearChats();
+  //     setChats(newChats);
+  //   }
+  // }, [newChats, clearChats, setChats, isFetching]);
 
   useEffect(() => {
     setActiveChatId(chatId); // when entering

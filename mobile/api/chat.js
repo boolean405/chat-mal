@@ -7,7 +7,7 @@ export async function getPaginateChats(pageNum) {
     const response = await api.get(`/api/chat/paginate/${pageNum}`);
     return response.data;
   } catch (error) {
-    const message = error.response?.data?.message || "Something went wrong";
+    const message = error.response?.data?.message || "Failed to fetch chats!";
     const customError = new Error(message);
     customError.status = error.response?.status;
     throw customError;
