@@ -68,7 +68,6 @@ export default function ImagePreview({
       }
       ToastAndroid.show("Saved to gallery!", ToastAndroid.SHORT);
     } catch (error: any) {
-      console.error("Failed to save image:", error);
       ToastAndroid.show("Failed to save image", ToastAndroid.SHORT);
     } finally {
       setSaving(false);
@@ -87,7 +86,6 @@ export default function ImagePreview({
         );
       }
     } catch (error: any) {
-      console.error("Failed to share image:", error);
       ToastAndroid.show("Failed to share image", ToastAndroid.SHORT);
     }
   };

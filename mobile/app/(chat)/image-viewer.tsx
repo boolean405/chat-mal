@@ -60,7 +60,6 @@ export default function ImageViewer() {
 
       Alert.alert("Success", "Image saved to gallery!");
     } catch (error) {
-      console.error("Download failed:", error);
       Alert.alert("Error", "Failed to save the image.");
     } finally {
       setLoading(false);

@@ -47,7 +47,7 @@ export default function usePaginatedData<T>({
       //   );
       // });
     } catch (error: any) {
-      console.error("Pagination Error:", error.message);
+      console.log("Pagination Error:", error.message);
     } finally {
       setIsLoading(false);
       setIsPaging(false);

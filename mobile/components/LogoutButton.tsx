@@ -4,13 +4,11 @@ import { useAuthStore } from "@/stores/authStore";
 import { useChatStore } from "@/stores/chatStore";
 import { useMessageStore } from "@/stores/messageStore";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import { Alert, StyleSheet, TouchableOpacity } from "react-native";
 
 export const LogoutButton: React.FC = () => {
-  const router = useRouter();
-  const { clearUser } = useAuthStore();
-  const { clearChats } = useChatStore();
+  const { logout } = useAuthStore();
+  const { clearAllChats } = useChatStore();
   const { clearAllMessages } = useMessageStore();
   const handleLogout = () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
@@ -31,11 +29,10 @@ export const LogoutButton: React.FC = () => {
             //   return;
             // }
 
-            clearUser();
-            clearChats();
+            // clearUser();
+            clearAllChats();
             clearAllMessages();
-
-            router.replace("/(auth)");
+            logout(); // include routing to auth
           } catch (error: any) {
             Alert.alert("Error", error.message || "Failed to logout!");
             return;

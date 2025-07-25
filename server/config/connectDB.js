@@ -4,7 +4,7 @@ const connectDB = async () => {
   const uri = process.env.DB_URI;
 
   if (!uri) {
-    console.error("=> ❌ MongoDB connection string (DB_URI) is missing!");
+    console.log("=> ❌ MongoDB connection string (DB_URI) is missing!");
     process.exit(1);
   }
 
@@ -12,7 +12,7 @@ const connectDB = async () => {
     await mongoose.connect(uri);
     console.log(`=> ✅ Successfully connected to MongoDB.`);
   } catch (error) {
-    console.error("=> ❌ MongoDB connection error:", error.message);
+    console.log("=> ❌ MongoDB connection error:", error.message);
     process.exit(1);
   }
 };

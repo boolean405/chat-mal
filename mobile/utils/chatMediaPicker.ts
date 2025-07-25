@@ -65,7 +65,7 @@ export async function chatMediaPicker() {
 
     return null;
   } catch (error) {
-    console.error("Media picker error:", error);
+    console.log("Media picker error:", error);
     return null;
   }
 }

@@ -262,7 +262,6 @@ export default function CameraModal({
         isLoading: false,
       });
     } catch (error) {
-      console.error("Media pick failed", error);
       ToastAndroid.show("Failed to pick media", ToastAndroid.SHORT);
       setPreviewMedia(null);
     }

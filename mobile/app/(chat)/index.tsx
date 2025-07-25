@@ -126,10 +126,10 @@ export default function ChatMessage() {
 
   // useEffect(() => {
   //   if (!isFetching && newChats.length > 0) {
-  //     clearChats();
+  //     clearAllChats();
   //     setChats(newChats);
   //   }
-  // }, [newChats, clearChats, setChats, isFetching]);
+  // }, [newChats, clearAllChats, setChats, isFetching]);
 
   useEffect(() => {
     setActiveChatId(chatId); // when entering
@@ -454,7 +454,6 @@ export default function ChatMessage() {
 
       updateChat(message.chat);
     } catch (error: any) {
-      console.error("Image upload failed:", error);
       ToastAndroid.show(
         error.message || "Image upload failed",
         ToastAndroid.SHORT

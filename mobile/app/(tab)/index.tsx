@@ -61,7 +61,7 @@ export default function Home() {
     updateChat,
     clearChat,
     clearGroup,
-    clearChats,
+    clearAllChats,
     setOnlineUserIds,
     getChatById,
   } = useChatStore();
@@ -218,10 +218,10 @@ export default function Home() {
   // Update store when new chats are fetched
   useEffect(() => {
     if (!isFetching && newChats.length > 0) {
-      clearChats();
+      clearAllChats();
       setChats(newChats);
     }
-  }, [newChats, clearChats, setChats, isFetching]);
+  }, [newChats, clearAllChats, setChats, isFetching]);
 
   if (!user) return null;
 

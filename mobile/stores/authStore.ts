@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { User } from "@/types";
+import { router } from "expo-router";
 
 interface AuthState {
   user: User | null;
@@ -10,6 +11,7 @@ interface AuthState {
   setUserOnly: (user: User) => void;
   clearUser: () => void;
   checkAuth: () => boolean;
+  logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -32,6 +34,11 @@ export const useAuthStore = create<AuthState>()(
       checkAuth: () => {
         const { user, accessToken } = get();
         return !!user && !!accessToken;
+      },
+
+      logout: () => {
+        set({ user: null, accessToken: null });
+        router.replace("/(auth)");
       },
     }),
     {

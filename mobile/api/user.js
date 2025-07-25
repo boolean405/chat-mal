@@ -2,6 +2,8 @@ import api from "../config/axios";
 import { jwtDecode } from "jwt-decode";
 
 import { useAuthStore } from "@/stores/authStore";
+import { useChatStore } from "@/stores/chatStore";
+import { useMessageStore } from "@/stores/messageStore";
 
 // Check user exist or not
 export async function existEmail(email) {
@@ -205,8 +207,6 @@ export async function refresh() {
   try {
     const accessToken = useAuthStore.getState().accessToken;
     const setUser = useAuthStore.getState().setUser;
-    console.log("old accessToken", accessToken, "old");
-
     if (accessToken) {
       const decoded = jwtDecode(accessToken);
 
@@ -223,7 +223,17 @@ export async function refresh() {
     }
     return accessToken;
   } catch (error) {
-    const message = error.response?.data?.message || "Something went wrong";
+    const message = error.response?.data?.message || "Failed to refresh token!";
+
+    if (
+      error.response?.data?.status === false &&
+      error.response?.status === 401
+    ) {
+      alert("Your session has expired. Please log in again!");
+      useChatStore.getState().clearAllChats();
+      useMessageStore.getState().clearAllMessages();
+      useAuthStore.getState().logout(); // clears state and navigates to auth screen
+    }
     const customError = new Error(message);
     customError.status = error.response?.status;
     throw customError;

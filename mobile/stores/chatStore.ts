@@ -2,7 +2,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Chat, Message } from "@/types";
+import { Chat } from "@/types";
 import { useAuthStore } from "./authStore";
 
 interface ChatStore {
@@ -19,7 +19,7 @@ interface ChatStore {
   updateChat: (updatedChat: Chat) => void;
   clearChat: (chatId: string) => void;
   clearGroup: (groupId: string) => void;
-  clearChats: () => void;
+  clearAllChats: () => void;
   // New methods
   getChatById: (chatId: string) => Chat | undefined;
   setCurrentChat: (chat: Chat | null) => void;
@@ -264,7 +264,7 @@ export const useChatStore = create<ChatStore>()(
             };
           }),
 
-        clearChats: () => set({ chats: [], currentChat: null }),
+        clearAllChats: () => set({ chats: [], currentChat: null }),
 
         getChatById: (chatId) => {
           return get().chats.find((chat) => chat._id === chatId);

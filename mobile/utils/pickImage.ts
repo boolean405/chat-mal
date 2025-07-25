@@ -52,8 +52,6 @@ export default async function pickImage(
     }
   } catch (error: any) {
     const message = error?.message || "Image picker error";
-    console.error("Image Picker Error:", error);
-
     setIsError?.(true);
     setErrorMessage?.(message);
     Alert.alert("Image Picker Error", message);

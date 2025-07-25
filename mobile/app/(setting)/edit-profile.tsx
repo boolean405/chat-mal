@@ -65,7 +65,7 @@ export default function EditProfile() {
           setCoverPhoto(user.coverPhoto || null);
         }
       } catch (error) {
-        console.error("Failed to load user data:", error);
+        console.log("Failed to load user data:", error);
       }
     };
 
@@ -191,7 +191,7 @@ export default function EditProfile() {
                 );
               }
             } catch (error: any) {
-              console.error("Delete profile photo error:", error);
+              console.log("Delete profile photo error:", error);
               ToastAndroid.show(
                 error?.message || "Something went wrong",
                 ToastAndroid.SHORT

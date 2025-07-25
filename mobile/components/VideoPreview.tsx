@@ -67,7 +67,6 @@ export default function VideoPreview({
       }
       ToastAndroid.show("Saved to gallery!", ToastAndroid.SHORT);
     } catch (error: any) {
-      console.error("Failed to save video:", error);
       ToastAndroid.show("Failed to save video", ToastAndroid.SHORT);
     } finally {
       setSaving(false);
@@ -86,7 +85,6 @@ export default function VideoPreview({
         );
       }
     } catch (error: any) {
-      console.error("Failed to share video:", error);
       ToastAndroid.show("Failed to share video", ToastAndroid.SHORT);
     }
   };

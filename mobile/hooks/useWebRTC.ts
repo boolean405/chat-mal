@@ -129,7 +129,7 @@
 //         try {
 //           await pc.current.addIceCandidate(new RTCIceCandidate(candidate));
 //         } catch (e) {
-//           console.error("Error adding received ice candidate", e);
+//           console.log("Error adding received ice candidate", e);
 //         }
 //       }
 //     };
