@@ -4,7 +4,7 @@ import { setUserActiveChat } from "../utils/redisHelpers.js";
 export default async function onJoinChat(socket, io, chatId) {
   const user = socket.user;
   socket.join(chatId);
-  socket.emit("join-chat");
+  socket.emit("joined-chat", chatId);
 
   await setUserActiveChat(user._id.toString(), chatId);
 

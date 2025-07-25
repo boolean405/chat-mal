@@ -7,8 +7,8 @@ export default function SafeScreen({ children }: React.PropsWithChildren) {
   const insets = useSafeAreaInsets();
   const segments = useSegments();
 
-  const NoBottomPaddingList = ["(tab)", "image-viewer"];
-  const NoTopPaddingList = ["image-viewer"];
+  const NoBottomPaddingList = ["(tab)", "image-viewer", "call"];
+  const NoTopPaddingList = ["image-viewer", "call"];
 
   const isNoBottomPaddingLayout = segments.some((segment) =>
     NoBottomPaddingList.includes(segment)

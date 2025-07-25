@@ -37,8 +37,6 @@ import CameraModal from "@/components/Camera";
 import ImagePreview from "@/components/ImagePreview";
 import VideoPreview from "@/components/VideoPreview";
 import { chatMediaPicker } from "@/utils/chatMediaPicker";
-import useWebRTC from "@/hooks/useWebRTC";
-import { RTCView } from "react-native-webrtc";
 
 export default function ChatMessage() {
   useTimeTickWhenFocused();
@@ -89,9 +87,6 @@ export default function ChatMessage() {
     type: "image" | "video";
     isLoading: boolean;
   } | null>(null);
-
-  const { localStream, remoteStream, isCalling, startCall, endCall } =
-    useWebRTC(chatId);
 
   // Pagination handling
   const {
@@ -458,7 +453,11 @@ export default function ChatMessage() {
 
   // Handle video call
   const handleVideoCall = () => {
-    startCall();
+    // Example when user taps "Call":
+    router.push({
+      pathname: "/(chat)/call",
+      params: { chatId, callMode: "video" },
+    });
   };
 
   const otherUser = currentChat.users?.find(

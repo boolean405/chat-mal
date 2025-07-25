@@ -17,6 +17,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useNotifications } from "@/hooks/useNotifications";
 import SafeScreen from "@/components/SafeScreen";
+import { FloatingCall } from "@/components/FloatingCall";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -62,6 +63,7 @@ export default function RootLayout() {
                 <Stack.Screen name="+not-found" />
               </Stack>
             </SafeScreen>
+            <FloatingCall />
             <StatusBar style="auto" />
           </SafeAreaProvider>
         </KeyboardProvider>
