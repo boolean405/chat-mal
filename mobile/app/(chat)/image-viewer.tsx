@@ -59,8 +59,8 @@ export default function ImageViewer() {
       }
 
       Alert.alert("Success", "Image saved to gallery!");
-    } catch (error) {
-      Alert.alert("Error", "Failed to save the image.");
+    } catch (error: any) {
+      Alert.alert(error.message);
     } finally {
       setLoading(false);
     }

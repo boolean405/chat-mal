@@ -1,6 +1,7 @@
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
 import { Alert, Platform } from "react-native";
+import { imageCompressor } from "./mediaCompressor";
 
 export default async function pickImage(
   setImage: React.Dispatch<React.SetStateAction<string | null>>,
@@ -25,29 +26,20 @@ export default async function pickImage(
       mediaTypes: "images",
       allowsEditing: true,
       aspect,
-      quality: 0.5,
-      base64: true,
     });
 
     // if (result.canceled) return false;
     if (!result.canceled && result.assets?.length) {
-      const uri = result.assets[0].uri;
-      setImage(uri);
+      const originalUri = result.assets[0].uri;
 
-      if (result.assets[0].base64) {
-        const base64 = result.assets[0].base64;
-        setImageBase64(base64);
-        if (onUpload) await onUpload(uri, base64);
-      } else {
-        const base64 = await FileSystem.readAsStringAsync(
-          result.assets[0].uri,
-          {
-            encoding: FileSystem.EncodingType.Base64,
-          }
-        );
-        setImageBase64(base64);
-        if (onUpload) await onUpload(uri, base64);
-      }
+      const uri = await imageCompressor(originalUri);
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      setImage(uri);
+      setImageBase64(base64);
+      if (onUpload) await onUpload(uri, base64);
       // return true;
     }
   } catch (error: any) {

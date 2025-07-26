@@ -94,6 +94,33 @@ export default async function onCallHandlers(socket, io) {
     }
   });
 
+  // Video on and off when calling
+  socket.on("toggle-video", async ({ chatId, userId, isVideo }) => {
+    try {
+      // Get chat participants
+      const chat = await ChatDB.findById(chatId).lean();
+      if (!chat || !Array.isArray(chat.users)) return;
+
+      const participantIds = chat.users.map((u) => u.user.toString());
+
+      // Broadcast to everyone *except* the one who toggled
+      for (const participantId of participantIds) {
+        if (participantId === userId.toString()) continue;
+
+        const socketId = await getSocketId(participantId);
+        if (socketId) {
+          io.to(socketId).emit("user-toggled-video", {
+            userId,
+            chatId,
+            isVideo,
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Error in toggle-video:", err.message);
+    }
+  });
+
   socket.on("webrtc-offer", ({ to, offer }) => {
     io.to(to).emit("webrtc-offer", { from: socket.user._id, offer });
   });

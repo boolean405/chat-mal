@@ -7,9 +7,9 @@ import {
   RefreshControl,
   ToastAndroid,
 } from "react-native";
-import { useRouter, useSegments } from "expo-router";
+import { useRouter } from "expo-router";
 import { Image } from "expo-image";
-import { Chat, Story } from "@/types";
+import { Chat, Story, User } from "@/types";
 
 import { Colors } from "@/constants/colors";
 import { ThemedText } from "@/components/ThemedText";
@@ -46,7 +46,6 @@ export default function Home() {
   useTimeTickWhenFocused();
 
   const router = useRouter();
-  const segments = useSegments();
   const isNavigatingRef = useRef(false);
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
@@ -55,7 +54,7 @@ export default function Home() {
 
   const { user, accessToken } = useAuthStore();
   const { addMessage, clearMessages } = useMessageStore();
-  const { setIncomingCall, endCall } = useCallStore();
+  const { setIncomingCall, endCall, setAcceptedCall } = useCallStore();
 
   const {
     chats,
@@ -193,28 +192,57 @@ export default function Home() {
     });
 
     // WebRTC incoming call
-    socket.on("incoming-call", ({ from, chatId, callMode }) => {
+    const handleEndedCall = ({ chatId }: { chatId: string }) => {
+      endCall();
+    };
+
+    const handleAcceptedCall = ({
+      chatId,
+      from,
+    }: {
+      chatId: string;
+      from: User;
+    }) => {
+      setAcceptedCall();
+      router.replace({
+        pathname: "/(chat)/call",
+        params: { chatId },
+      });
+    };
+
+    const handleIncomingCall = ({
+      from: caller,
+      chatId,
+      callMode,
+    }: {
+      chatId: string;
+      from: User;
+      callMode: "video" | "voice";
+    }) => {
       const chat = getChatById(chatId);
       if (!chat) return;
-
-      // showIncomingCallModal({ from, chatId, callMode });
-      setIncomingCall({ chat, caller: from, callMode });
+      setIncomingCall({ chat, caller, callMode });
       router.push({
         pathname: "/(chat)/call",
         params: { chatId },
       });
-    });
-
-    const handleEndedCall = ({ chatId }: { chatId: string }) => {
-      endCall();
-      console.log("from home screen");
     };
 
-    // Call end
-    socket.on("ended-call", handleEndedCall);
+    const handleUserToggledVideo = ({
+      userId,
+      isVideo,
+    }: {
+      userId: string;
+      isVideo: boolean;
+    }) => {
+      // Save the new video state of other user in your callStore
+      useCallStore.getState().updateRemoteVideoStatus(userId, isVideo);
+    };
 
-    // Accept call
-    socket.on("accepted-call", ({ chatId }) => {});
+    socket.on("ended-call", handleEndedCall);
+    socket.on("incoming-call", handleIncomingCall);
+    socket.on("accepted-call", handleAcceptedCall);
+    socket.on("user-toggled-video", handleUserToggledVideo);
 
     // 🧼 Clean up all listeners on unmount
     return () => {
@@ -228,9 +256,10 @@ export default function Home() {
       socket.off("fetch-all");
       socket.off("error");
       socket.off("remove-chat");
-      socket.off("incoming-call");
       socket.off("ended-call", handleEndedCall);
-      socket.off("accepted-call");
+      socket.off("incoming-call", handleIncomingCall);
+      socket.off("accepted-call", handleAcceptedCall);
+      socket.off("user-toggled-video", handleUserToggledVideo);
     };
   }, [
     user,
@@ -241,6 +270,7 @@ export default function Home() {
     clearMessages,
     endCall,
     getChatById,
+    setAcceptedCall,
     setChats,
     setIncomingCall,
     setOnlineUserIds,

@@ -70,7 +70,7 @@ export default function ChatMessage() {
     markMessagesAsSeen,
   } = useMessageStore();
 
-  const { setRequestCall } = useCallStore();
+  const { setRequestCall, isCallActive } = useCallStore();
 
   // Get messages for current chat from store
   const currentMessagesRaw = chatId ? storedMessages[chatId] || [] : [];
@@ -161,8 +161,6 @@ export default function ChatMessage() {
       chatId: string;
       user: User;
     }) => {
-      console.log("here");
-
       if (typingChatId === chatId && typingUserData._id !== user._id) {
         setIsTyping(true);
         setTypingUser(typingUserData);
@@ -591,6 +589,7 @@ export default function ChatMessage() {
         {!isPendingChat ? (
           <ThemedView style={styles.headerIcons}>
             <TouchableOpacity
+              disabled={isCallActive}
               onPress={() => handlePressCall({ callMode: "voice" })}
             >
               <Ionicons
@@ -601,6 +600,7 @@ export default function ChatMessage() {
               />
             </TouchableOpacity>
             <TouchableOpacity
+              disabled={isCallActive}
               onPress={() => handlePressCall({ callMode: "video" })}
             >
               <Ionicons

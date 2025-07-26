@@ -5,8 +5,5 @@ export async function videoCompressor(uri: string) {
 }
 
 export async function imageCompressor(uri: string) {
-  return await Image.compress(uri, {
-    compressionMethod: "manual",
-    quality: 1,
-  });
+  return await Image.compress(uri);
 }

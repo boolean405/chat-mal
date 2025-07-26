@@ -46,7 +46,7 @@ export function useNotifications() {
           alert("Notification permissions not granted!");
         }
       } else {
-        alert("Must use a physical device for push notifications");
+        // alert("Must use a physical device for push notifications");
       }
     };
 

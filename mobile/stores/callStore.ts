@@ -15,9 +15,10 @@ interface CallStore {
   isVideo: boolean;
   isRequestCall: boolean;
   isIncomingCall: boolean;
-  isAcceptCall: boolean;
+  isAcceptedCall: boolean;
   facing: "front" | "back";
   callData: CallData | null;
+  remoteVideoStatus: Record<string, boolean>;
 
   setIsCallActive: (active: boolean) => void;
   setIsMinimized: (isMinimized: boolean) => void;
@@ -27,8 +28,9 @@ interface CallStore {
   setIsVideo: (isVideo: boolean) => void;
   setRequestCall: (callData: CallData) => void;
   setIncomingCall: (callData: CallData) => void;
-  setAcceptCall: () => void;
+  setAcceptedCall: () => void;
   endCall: () => void;
+  updateRemoteVideoStatus: (userId: string, isVideo: boolean) => void;
 }
 
 export const useCallStore = create<CallStore>((set) => ({
@@ -40,7 +42,16 @@ export const useCallStore = create<CallStore>((set) => ({
   callData: null,
   isRequestCall: false,
   isIncomingCall: false,
-  isAcceptCall: false,
+  isAcceptedCall: false,
+  remoteVideoStatus: {},
+
+  updateRemoteVideoStatus: (userId, isVideo) =>
+    set((state) => ({
+      remoteVideoStatus: {
+        ...state.remoteVideoStatus,
+        [userId]: isVideo,
+      },
+    })),
 
   setIsCallActive: (active) => set({ isCallActive: active }),
   setIsMuted: (isMuted) => set({ isMuted }),
@@ -49,11 +60,12 @@ export const useCallStore = create<CallStore>((set) => ({
   setIsMinimized: (isMinimized) => set({ isMinimized }),
   setCallData: (callData) => set({ callData: callData }),
 
-  setAcceptCall: () =>
+  setAcceptedCall: () =>
     set({
       isCallActive: true,
-      isAcceptCall: true,
+      isAcceptedCall: true,
       isIncomingCall: false,
+      isRequestCall: false,
       isMinimized: false,
     }),
 
@@ -61,6 +73,9 @@ export const useCallStore = create<CallStore>((set) => ({
     set({
       isCallActive: true,
       isRequestCall: true,
+      isIncomingCall: false,
+      isAcceptedCall: false,
+      isMinimized: false,
       callData,
       isVideo: callData.callMode === "video",
     }),
@@ -69,6 +84,8 @@ export const useCallStore = create<CallStore>((set) => ({
     set({
       isCallActive: true,
       isIncomingCall: true,
+      isAcceptedCall: false,
+      isMinimized: false,
       callData,
       isVideo: callData.callMode === "video",
     }),
@@ -79,6 +96,11 @@ export const useCallStore = create<CallStore>((set) => ({
       isCallActive: false,
       isMinimized: false,
       isIncomingCall: false,
-      isAcceptCall: false,
+      isAcceptedCall: false,
+      isRequestCall: false,
+      isMuted: false,
+      isVideo: false,
+      facing: "front",
+      remoteVideoStatus: {},
     }),
 }));

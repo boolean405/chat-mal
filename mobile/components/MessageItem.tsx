@@ -68,6 +68,8 @@ export default function MessageItem({
           isMe
             ? [styles.myMessage, { backgroundColor: color.main }]
             : [styles.otherMessage, { backgroundColor: color.secondary }],
+          (item.type === "image" || item.type === "video") &&
+            styles.mediaMessage, // remove padding for media
         ]}
       >
         {item.type === "image" ? (
@@ -82,7 +84,12 @@ export default function MessageItem({
           >
             <Image
               source={{ uri: item.content }}
-              style={{ width: 200, height: 300, borderRadius: 10 }}
+              style={{
+                width: 200,
+                height: 300,
+                borderTopLeftRadius: 10,
+                borderTopRightRadius: 10,
+              }}
               contentFit="cover"
             />
           </TouchableOpacity>
@@ -91,7 +98,12 @@ export default function MessageItem({
         ) : item.type === "video" ? (
           <VideoView
             player={videoPlayer}
-            style={{ width: 200, height: 300, borderRadius: 10 }}
+            style={{
+              width: 200,
+              height: 300,
+              borderTopRightRadius: 10,
+              borderTopLeftRadius: 10,
+            }}
             allowsFullscreen
             allowsPictureInPicture
             contentFit="cover"
@@ -108,22 +120,29 @@ export default function MessageItem({
             {formatDate(item.createdAt)}
           </ThemedText>
           {isMe && (
-            <Ionicons
-              name={
-                item.status === "seen"
-                  ? "checkmark-done"
-                  : item.status === "delivered"
-                  ? "checkmark-done-outline"
-                  : item.status === "sent"
-                  ? "checkmark-outline"
-                  : item.status === "pending"
-                  ? "time-outline"
-                  : "alert-outline"
-              }
-              size={14}
-              color={item.status === "seen" ? "#34B7F1" : "#888"}
-              style={{ marginLeft: 5 }}
-            />
+            <View
+              style={{
+                paddingRight:
+                  item.type === "image" || item.type === "video" ? 8 : 0,
+                paddingLeft: 5,
+              }}
+            >
+              <Ionicons
+                name={
+                  item.status === "seen"
+                    ? "checkmark-done"
+                    : item.status === "delivered"
+                    ? "checkmark-done-outline"
+                    : item.status === "sent"
+                    ? "checkmark-outline"
+                    : item.status === "pending"
+                    ? "time-outline"
+                    : "alert-outline"
+                }
+                size={14}
+                color={item.status === "seen" ? "#34B7F1" : "#888"}
+              />
+            </View>
           )}
         </View>
       </ThemedView>
@@ -136,6 +155,7 @@ const styles = StyleSheet.create({
     maxWidth: "75%",
     paddingVertical: 5,
     paddingHorizontal: 10,
+    // paddingLeft: 10,
     marginVertical: 5,
     borderRadius: 10,
   },
@@ -172,5 +192,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginTop: 4,
+  },
+  mediaMessage: {
+    paddingHorizontal: 2,
+    paddingTop: 2,
   },
 });
