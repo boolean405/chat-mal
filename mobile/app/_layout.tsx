@@ -15,7 +15,6 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { useNotifications } from "@/hooks/useNotifications";
 import SafeScreen from "@/components/SafeScreen";
 import { FloatingCall } from "@/components/FloatingCall";
 
@@ -27,9 +26,6 @@ export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
-
-  // Call notification setup hook
-  useNotifications();
 
   // Hide splash screen when fonts are loaded
   useEffect(() => {

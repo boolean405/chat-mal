@@ -1,6 +1,6 @@
 // import ChatDB from "../models/chat.js";
 // import MessageDB from "../models/message.js";
-// import Redis from "../config/redisClient.js"; // make sure Redis is imported
+// import {Redis} from "../config/redisClient.js"; // make sure Redis is imported
 // import {
 //   REDIS_ONLINE_USERS_KEY,
 //   REDIS_USER_ACTIVE_CHATS_KEY,

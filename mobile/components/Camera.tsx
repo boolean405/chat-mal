@@ -261,8 +261,8 @@ export default function CameraModal({
         type: media.type === "video" ? "video" : "image",
         isLoading: false,
       });
-    } catch (error) {
-      ToastAndroid.show("Failed to pick media", ToastAndroid.SHORT);
+    } catch (error: any) {
+      ToastAndroid.show(error.message, ToastAndroid.SHORT);
       setPreviewMedia(null);
     }
   };

@@ -7,7 +7,7 @@ import {
   RefreshControl,
   ToastAndroid,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useSegments } from "expo-router";
 import { Image } from "expo-image";
 import { Chat, Story } from "@/types";
 
@@ -28,6 +28,7 @@ import { socket } from "@/config/socket";
 import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
 import { useMessageStore } from "@/stores/messageStore";
 import { showNotification } from "@/utils/showNotifications";
+import { useCallStore } from "@/stores/callStore";
 
 // Stories data - consider moving to a separate file or API call
 const stories: Story[] = [
@@ -45,6 +46,7 @@ export default function Home() {
   useTimeTickWhenFocused();
 
   const router = useRouter();
+  const segments = useSegments();
   const isNavigatingRef = useRef(false);
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
@@ -53,6 +55,7 @@ export default function Home() {
 
   const { user, accessToken } = useAuthStore();
   const { addMessage, clearMessages } = useMessageStore();
+  const { setIncomingCall, endCall } = useCallStore();
 
   const {
     chats,
@@ -189,6 +192,30 @@ export default function Home() {
       console.log("❌ Socket error:", message);
     });
 
+    // WebRTC incoming call
+    socket.on("incoming-call", ({ from, chatId, callMode }) => {
+      const chat = getChatById(chatId);
+      if (!chat) return;
+
+      // showIncomingCallModal({ from, chatId, callMode });
+      setIncomingCall({ chat, caller: from, callMode });
+      router.push({
+        pathname: "/(chat)/call",
+        params: { chatId },
+      });
+    });
+
+    const handleEndedCall = ({ chatId }: { chatId: string }) => {
+      endCall();
+      console.log("from home screen");
+    };
+
+    // Call end
+    socket.on("ended-call", handleEndedCall);
+
+    // Accept call
+    socket.on("accepted-call", ({ chatId }) => {});
+
     // 🧼 Clean up all listeners on unmount
     return () => {
       socket.disconnect();
@@ -201,18 +228,23 @@ export default function Home() {
       socket.off("fetch-all");
       socket.off("error");
       socket.off("remove-chat");
+      socket.off("incoming-call");
+      socket.off("ended-call", handleEndedCall);
+      socket.off("accepted-call");
     };
   }, [
+    user,
+    router,
     accessToken,
     addMessage,
     clearChat,
+    clearMessages,
+    endCall,
+    getChatById,
     setChats,
+    setIncomingCall,
     setOnlineUserIds,
     updateChat,
-    clearMessages,
-    getChatById,
-    router,
-    user,
   ]);
 
   // Update store when new chats are fetched

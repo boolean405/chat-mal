@@ -7,6 +7,7 @@ import { APP_NAME, APP_TAGLINE } from "@/constants";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useAuthStore } from "@/stores/authStore";
+import { useNotifications } from "@/hooks/useNotifications";
 
 const { width } = Dimensions.get("window");
 
@@ -14,6 +15,9 @@ export default function FlashScreen() {
   const router = useRouter();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const checkAuth = useAuthStore((state) => state.checkAuth);
+
+  // Call notification setup hook
+  useNotifications();
 
   useEffect(() => {
     // Pulsing animation on logo

@@ -66,12 +66,12 @@ export function FloatingCall() {
     router.push({
       pathname: "/(chat)/call",
       params: {
-        chatId: callData.chatId,
+        chatId: callData.chat._id,
       },
     });
   };
 
-  const chatPhoto = getChatPhoto(callData.currentChat, callData.user._id);
+  const chatPhoto = getChatPhoto(callData.chat, callData.caller._id);
 
   return (
     <GestureDetector gesture={dragGesture}>

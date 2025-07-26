@@ -37,6 +37,7 @@ import CameraModal from "@/components/Camera";
 import ImagePreview from "@/components/ImagePreview";
 import VideoPreview from "@/components/VideoPreview";
 import { chatMediaPicker } from "@/utils/chatMediaPicker";
+import { useCallStore } from "@/stores/callStore";
 
 export default function ChatMessage() {
   useTimeTickWhenFocused();
@@ -69,6 +70,8 @@ export default function ChatMessage() {
     markMessagesAsSeen,
   } = useMessageStore();
 
+  const { setRequestCall } = useCallStore();
+
   // Get messages for current chat from store
   const currentMessagesRaw = chatId ? storedMessages[chatId] || [] : [];
   const currentMessages = Array.from(
@@ -76,6 +79,7 @@ export default function ChatMessage() {
   );
 
   const [newMessage, setNewMessage] = useState("");
+  const [hasEmittedTyping, setHasEmittedTyping] = useState(false);
   const [isSentMessage, setIsSentMessage] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
@@ -157,6 +161,8 @@ export default function ChatMessage() {
       chatId: string;
       user: User;
     }) => {
+      console.log("here");
+
       if (typingChatId === chatId && typingUserData._id !== user._id) {
         setIsTyping(true);
         setTypingUser(typingUserData);
@@ -196,18 +202,22 @@ export default function ChatMessage() {
       socket.off("received-message", handleReceiveMessage);
       socket.emit("leave-chat", chatId);
     };
-  }, [chatId, user, addMessage, markMessagesAsSeen, updateChat]);
+  }, [addMessage, chatId, markMessagesAsSeen, updateChat, user]);
 
   // Emiting socket
   useEffect(() => {
     if (!socket || !chatId || !user) return;
 
     if (newMessage.trim().length > 0) {
-      socket.emit("typing", { chatId, user });
+      if (!hasEmittedTyping) {
+        setHasEmittedTyping(true);
+        socket.emit("typing", { chatId, user });
+      }
     } else {
+      setHasEmittedTyping(false);
       socket.emit("stop-typing", { chatId, user });
     }
-  }, [newMessage, chatId, user]);
+  }, [chatId, hasEmittedTyping, newMessage, user]);
 
   // Set current chat when screen mounts
   useEffect(() => {
@@ -468,18 +478,25 @@ export default function ChatMessage() {
     }
   };
 
-  // Handle video call
-  const handleVideoCall = () => {
-    // Example when user taps "Call":
-    router.push({
-      pathname: "/(chat)/call",
-      params: { chatId, callMode: "video" },
-    });
-  };
-
   const otherUser = currentChat.users?.find(
     (u) => u.user._id !== user._id
   )?.user;
+  const targetUserId = otherUser?._id;
+
+  // Handle video call
+  const handlePressCall = ({ callMode }: { callMode: "voice" | "video" }) => {
+    setRequestCall({ chat: currentChat, caller: user, callMode });
+
+    router.push({
+      pathname: "/(chat)/call",
+      params: { chatId },
+    });
+
+    socket.emit("request-call", {
+      chatId,
+      callMode,
+    });
+  };
 
   const isOnline =
     otherUser && onlineUserIds.includes(otherUser?._id) ? true : false;
@@ -512,46 +529,6 @@ export default function ChatMessage() {
       );
     }
   }
-
-  // if (isCalling) {
-  //   return (
-  //     <>
-  //       <RTCView
-  //         streamURL={localStream?.toURL() ?? ""}
-  //         style={{
-  //           width: 100,
-  //           height: 150,
-  //           position: "absolute",
-  //           top: 10,
-  //           right: 10,
-  //           zIndex: 100,
-  //         }}
-  //       />
-  //       <RTCView
-  //         streamURL={remoteStream?.toURL() ?? ""}
-  //         style={{ flex: 1, backgroundColor: "black" }}
-  //       />
-  //       <TouchableOpacity
-  //         onPress={endCall}
-  //         style={{
-  //           position: "absolute",
-  //           bottom: 30,
-  //           left: "50%",
-  //           marginLeft: -40,
-  //           width: 80,
-  //           height: 40,
-  //           backgroundColor: "red",
-  //           justifyContent: "center",
-  //           alignItems: "center",
-  //           borderRadius: 20,
-  //           zIndex: 100,
-  //         }}
-  //       >
-  //         <Text style={{ color: "white" }}>End Call</Text>
-  //       </TouchableOpacity>
-  //     </>
-  //   );
-  // }
 
   return (
     <KeyboardAvoidingView
@@ -613,7 +590,9 @@ export default function ChatMessage() {
         {/* Header icons */}
         {!isPendingChat ? (
           <ThemedView style={styles.headerIcons}>
-            <TouchableOpacity onPress={() => console.log("Voice call")}>
+            <TouchableOpacity
+              onPress={() => handlePressCall({ callMode: "voice" })}
+            >
               <Ionicons
                 name="call-outline"
                 size={22}
@@ -621,7 +600,9 @@ export default function ChatMessage() {
                 color={color.icon}
               />
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleVideoCall}>
+            <TouchableOpacity
+              onPress={() => handlePressCall({ callMode: "video" })}
+            >
               <Ionicons
                 name="videocam-outline"
                 size={22}

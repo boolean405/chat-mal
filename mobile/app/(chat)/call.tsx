@@ -31,24 +31,23 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { ThemedView } from "@/components/ThemedView";
 import { StatusBar } from "expo-status-bar";
 import { Image } from "expo-image";
-import { useChatStore } from "@/stores/chatStore";
 import { getChatName } from "@/utils/getChatName";
 import { useAuthStore } from "@/stores/authStore";
 import { getChatPhoto } from "@/utils/getChatPhoto";
 import { ThemedText } from "@/components/ThemedText";
 import { useCallStore } from "@/stores/callStore";
 import { Colors } from "@/constants/colors";
+import { socket } from "@/config/socket";
 
 export default function CallScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
 
-  const { chatId: rawChatId, callMode } = useLocalSearchParams();
+  const { chatId: rawChatId } = useLocalSearchParams();
   const chatId = Array.isArray(rawChatId) ? rawChatId[0] : rawChatId;
 
   const { user } = useAuthStore();
-  const { getChatById, currentChat, setCurrentChat } = useChatStore();
 
   const {
     facing,
@@ -57,12 +56,17 @@ export default function CallScreen() {
     callData,
     isMinimized,
     isCallActive,
+    isRequestCall,
+    isIncomingCall,
+    isAcceptCall,
+    endCall,
     setCallData,
     setIsMinimized,
     setIsCallActive,
     setIsMuted,
     setIsVideo,
     setFacing,
+    setAcceptCall,
   } = useCallStore();
 
   // Permissions hooks
@@ -70,33 +74,33 @@ export default function CallScreen() {
   const [micPermission, requestMicPermission] = useMicrophonePermissions();
 
   // State
-  const [callAccepted, setCallAccepted] = useState(false);
-  const [isCalling, setIsCalling] = useState(true);
-  const [incomingCall, setIncomingCall] = useState(false);
+  // const [isCalling, setIsCalling] = useState(true);
   const [callTime, setCallTime] = useState(0);
 
   const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } =
     Dimensions.get("window");
 
-  useEffect(() => {
-    if (chatId) {
-      const chat = getChatById(chatId);
-      if (chat) {
-        setCurrentChat(chat);
-      } else {
-        setCurrentChat(null);
-      }
-    }
-  }, [chatId, getChatById, setCurrentChat]);
+  // useEffect(() => {
+  //   if (chatId) {
+  //     const chat = getChatById(chatId);
+  //     if (chat) {
+  //       setCurrentChat(chat);
+  //     } else {
+  //       setCurrentChat(null);
+  //     }
+  //   }
+  // }, [chatId, getChatById, setCurrentChat]);
 
+  // For calling duration
   useEffect(() => {
     let timer: NodeJS.Timeout | number;
-    if (callAccepted) {
+    if (isAcceptCall) {
       timer = setInterval(() => setCallTime((t) => t + 1), 1000);
     }
     return () => clearInterval(timer);
-  }, [callAccepted]);
+  }, [isAcceptCall]);
 
+  // If press back floating
   useFocusEffect(() => {
     const onBackPress = () => {
       console.log("back pressed");
@@ -124,29 +128,44 @@ export default function CallScreen() {
   }, []);
 
   useEffect(() => {
-    // Fist calling
-    if (!isCallActive) {
-      setCallData({ chatId, user, currentChat } as any);
-      setIsVideo(callMode === "video");
-      setIsCallActive(true);
-      setIsMinimized(false);
-    } else if (isCallActive && chatId === callData?.chatId) {
-      setIsMinimized(false);
-      setIsCallActive(true);
-    } else if (isCallActive && chatId !== callData?.chatId) {
-      router.back();
-      Alert.alert("You are already calling in another chat!");
-      return;
-    }
+    // // Fist calling
+    // if (!isCallActive) {
+    //   // setCallData({ chatId, user, callData.chat } as any);
+    //   setIsVideo(callMode === "video");
+    //   // setIsCallActive(true);
+    //   setIsMinimized(false);
+    // } else if (isCallActive && chatId === callData?.chatId) {
+    //   setIsMinimized(false);
+    //   setIsCallActive(true);
+    // } else if (isCallActive && chatId !== callData?.chatId) {
+    //   router.back();
+    //   Alert.alert("You are already calling in another chat!");
+    //   return;
+    // }
   }, []);
+
+  // Socket
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleEndedCall = ({ chatId }: { chatId: string }) => {
+      endCall();
+      router.back();
+      console.log("from call screen");
+    };
+
+    socket.on("ended-call", handleEndedCall);
+
+    return () => {
+      socket.off("ended-call", handleEndedCall); // Cleanup
+    };
+  }, [endCall, router]);
 
   // Shared values for drag offset & start position
   const initialX = SCREEN_WIDTH - 130 - 20; // 20px margin from right edge
   const initialY = 50;
-
   const offset = useSharedValue({ x: initialX, y: initialY });
   const start = useSharedValue({ x: initialX, y: initialY });
-
   const clamp = (value: number, min: number, max: number) => {
     "worklet";
     return Math.min(Math.max(value, min), max);
@@ -156,7 +175,6 @@ export default function CallScreen() {
     .onUpdate((e) => {
       const newX = start.value.x + e.translationX;
       const newY = start.value.y + e.translationY;
-
       // clamp within screen bounds minus container size
       offset.value = {
         x: clamp(newX, 0, SCREEN_WIDTH - 130), // 130 = width of localVideoContainer
@@ -202,7 +220,7 @@ export default function CallScreen() {
     );
   }
 
-  if (!currentChat || !user) return null;
+  if (!user || !callData) return null;
 
   // Handlers
   const toggleFacing = () =>
@@ -212,43 +230,40 @@ export default function CallScreen() {
 
   const toggleVideo = () => (isVideo ? setIsVideo(false) : setIsVideo(true));
 
-  const startCall = () => {
-    setIsCalling(true);
-    setIsCallActive(true);
-    setIsMinimized(false);
-    setCallData({ chatId, user, currentChat });
+  // const startCall = () => {
+  //   setIsCalling(true);
+  //   setIsCallActive(true);
+  //   setIsMinimized(false);
+  //   setCallData({ chatId, user, callData.chat });
+  // };
+
+  const handlePressAcceptCall = () => {
+    setAcceptCall();
+    socket.emit("accept-call", { chatId });
   };
 
-  const acceptCall = () => {
-    setIncomingCall(false);
-    setCallAccepted(true);
-    setIsCallActive(true);
-    setIsMinimized(false);
-    setCallData({ chatId, user, currentChat });
-  };
+  const otherUsers = callData.chat.users?.filter(
+    (u) => u.user._id !== user._id
+  );
 
-  const endCall = () => {
-    setIsCallActive(false);
-    setCallData(null);
-    setIsMinimized(false);
-    router.back(); // optional if you're on a separate screen
-  };
-
-  const otherUsers = currentChat.users?.filter((u) => u.user._id !== user._id);
-
-  const otherUser = currentChat.users?.find(
+  const otherUser = callData.chat.users?.find(
     (u) => u.user._id !== user._id
   )?.user;
+
+  const handlePressEndCall = () => {
+    endCall();
+    socket.emit("end-call", { chatId });
+    router.back(); // optional if you're on a separate screen
+  };
 
   const otherUserVideoEnabled = false;
   const otherUserIsMuted = false;
 
-  const chatName = currentChat.name || getChatName(currentChat, user._id);
-  const chatPhoto = getChatPhoto(currentChat, user._id);
+  const chatName = callData.chat.name || getChatName(callData.chat, user._id);
+  const chatPhoto = getChatPhoto(callData.chat, user._id);
 
   // start calling
-  if (false) {
-    // if (isCalling && !callAccepted) {
+  if (isRequestCall) {
     return (
       <>
         <StatusBar hidden />
@@ -326,7 +341,7 @@ export default function CallScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={endCall}
+              onPress={handlePressEndCall}
               style={[styles.controlBtn, { backgroundColor: "red" }]}
             >
               <MaterialIcons name="call-end" size={30} color="white" />
@@ -337,9 +352,8 @@ export default function CallScreen() {
     );
   }
 
-  // if (true) {
-  // test only true
-  if (incomingCall && !callAccepted) {
+  // Incoming call
+  if (isIncomingCall) {
     return (
       <>
         <StatusBar hidden />
@@ -360,7 +374,7 @@ export default function CallScreen() {
             </ThemedText>
             {/* Calling status */}
             <ThemedText style={[{ textAlign: "center" }]}>
-              Incoming Call
+              {`Incoming ${callData.callMode} call`}
             </ThemedText>
           </ThemedView>
 
@@ -368,13 +382,13 @@ export default function CallScreen() {
           <ThemedView style={styles.incomingCallActions}>
             <TouchableOpacity
               style={[styles.callBtn, { backgroundColor: "green" }]}
-              onPress={acceptCall}
+              onPress={handlePressAcceptCall}
             >
               <Ionicons name="call-outline" size={30} color="white" />
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.callBtn, { backgroundColor: "red" }]}
-              onPress={endCall}
+              onPress={handlePressEndCall}
             >
               <MaterialIcons name="call-end" size={30} color="white" />
             </TouchableOpacity>
@@ -385,93 +399,94 @@ export default function CallScreen() {
   }
 
   // Accepted call
-  // if (callAccepted) {
-  return (
-    <>
-      <StatusBar hidden />
-      {/* Remote video container */}
-      {otherUserVideoEnabled ? (
-        <ThemedView style={[styles.headerContainer]}>
-          {/* Profile photo container */}
-          <ThemedView style={styles.profileImageContainer}>
-            <Image source={{ uri: chatPhoto }} style={styles.profilePhoto} />
+  if (isAcceptCall) {
+    return (
+      <>
+        <StatusBar hidden />
+        {/* Remote video container */}
+        {otherUserVideoEnabled ? (
+          <ThemedView style={[styles.headerContainer]}>
+            {/* Profile photo container */}
+            <ThemedView style={styles.profileImageContainer}>
+              <Image source={{ uri: chatPhoto }} style={styles.profilePhoto} />
+            </ThemedView>
+            {/* Chat name and call status */}
+            <ThemedText
+              type="headerTitle"
+              style={[{ textAlign: "center" }]}
+              numberOfLines={1}
+            >
+              {chatName}
+            </ThemedText>
+            <ThemedText style={{ textAlign: "center" }}>
+              {new Date(callTime * 1000).toISOString().substr(14, 5)}
+            </ThemedText>
           </ThemedView>
-          {/* Chat name and call status */}
-          <ThemedText
-            type="headerTitle"
-            style={[{ textAlign: "center" }]}
-            numberOfLines={1}
+        ) : (
+          // hardcoded video
+          <Image source={{ uri: chatPhoto }} style={styles.profilePhoto} />
+        )}
+        {/* Local camera preview */}
+        {isVideo ? (
+          <GestureDetector gesture={dragGesture}>
+            <Animated.View style={[styles.localVideoContainer, animatedStyle]}>
+              <CameraView style={styles.localVideo} facing={facing} />
+            </Animated.View>
+          </GestureDetector>
+        ) : null}
+
+        {/* Controls */}
+        <View style={styles.controls}>
+          <TouchableOpacity
+            onPress={toggleMute}
+            style={[styles.controlBtn, { backgroundColor: color.secondary }]}
           >
-            {chatName}
-          </ThemedText>
-          <ThemedText style={{ textAlign: "center" }}>
-            {new Date(callTime * 1000).toISOString().substr(14, 5)}
-          </ThemedText>
-        </ThemedView>
-      ) : (
-        // hardcoded video
-        <Image source={{ uri: chatPhoto }} style={styles.profilePhoto} />
-      )}
-      {/* Local camera preview */}
-      {isVideo ? (
-        <GestureDetector gesture={dragGesture}>
-          <Animated.View style={[styles.localVideoContainer, animatedStyle]}>
-            <CameraView style={styles.localVideo} facing={facing} />
-          </Animated.View>
-        </GestureDetector>
-      ) : null}
+            {isMuted ? (
+              <Ionicons name="mic-off-outline" size={30} color={color.icon} />
+            ) : (
+              <Ionicons name="mic-outline" size={30} color={color.icon} />
+            )}
+          </TouchableOpacity>
 
-      {/* Controls */}
-      <View style={styles.controls}>
-        <TouchableOpacity
-          onPress={toggleMute}
-          style={[styles.controlBtn, { backgroundColor: color.secondary }]}
-        >
-          {isMuted ? (
-            <Ionicons name="mic-off-outline" size={30} color={color.icon} />
-          ) : (
-            <Ionicons name="mic-outline" size={30} color={color.icon} />
-          )}
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={toggleVideo}
+            style={[styles.controlBtn, { backgroundColor: color.secondary }]}
+          >
+            {isVideo ? (
+              <Ionicons name="videocam-outline" size={30} color={color.icon} />
+            ) : (
+              <Ionicons
+                name="videocam-off-outline"
+                size={30}
+                color={color.icon}
+              />
+            )}
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={toggleVideo}
-          style={[styles.controlBtn, { backgroundColor: color.secondary }]}
-        >
-          {isVideo ? (
-            <Ionicons name="videocam-outline" size={30} color={color.icon} />
-          ) : (
+          <TouchableOpacity
+            onPress={toggleFacing}
+            style={[styles.controlBtn, { backgroundColor: color.secondary }]}
+            disabled={!isVideo}
+          >
             <Ionicons
-              name="videocam-off-outline"
+              name="camera-reverse-outline"
               size={30}
               color={color.icon}
             />
-          )}
-        </TouchableOpacity>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={toggleFacing}
-          style={[styles.controlBtn, { backgroundColor: color.secondary }]}
-          disabled={!isVideo}
-        >
-          <Ionicons
-            name="camera-reverse-outline"
-            size={30}
-            color={color.icon}
-          />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={endCall}
-          style={[styles.controlBtn, { backgroundColor: "red" }]}
-        >
-          <MaterialIcons name="call-end" size={30} color="white" />
-        </TouchableOpacity>
-      </View>
-    </>
-  );
+          <TouchableOpacity
+            onPress={handlePressEndCall}
+            style={[styles.controlBtn, { backgroundColor: "red" }]}
+          >
+            <MaterialIcons name="call-end" size={30} color="white" />
+          </TouchableOpacity>
+        </View>
+      </>
+    );
+  }
 }
-// }
+
 // Styles
 const styles = StyleSheet.create({
   container: {

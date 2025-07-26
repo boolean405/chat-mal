@@ -1,7 +1,7 @@
 import ChatDB from "../../models/chat.js";
 import resJson from "../../utils/resJson.js";
 import resError from "../../utils/resError.js";
-import Redis from "../../config/redisClient.js";
+import {Redis} from "../../config/redisClient.js";
 
 export default async function removeUserFromGroup(req, res, next) {
   try {

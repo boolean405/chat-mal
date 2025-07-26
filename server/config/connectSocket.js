@@ -2,7 +2,7 @@
 // import ChatDB from "../models/chat.js";
 // import MessageDB from "../models/message.js";
 // import Token from "../utils/token.js";
-// import Redis from "./redisClient.js";
+// import {Redis} from "./redisClient.js";
 // import {
 //   REDIS_ONLINE_USERS_KEY,
 //   REDIS_USER_ACTIVE_CHATS_KEY,
