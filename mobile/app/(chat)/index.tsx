@@ -145,6 +145,7 @@ export default function ChatMessage() {
     if (!socket || !chatId || !user) return;
 
     socket.emit("join-chat", chatId);
+    socket.emit("read-chat", chatId);
 
     const handleReceiveMessage = async ({ message }: { message: Message }) => {
       if (message.chat._id === chatId) {

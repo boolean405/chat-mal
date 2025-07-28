@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -261,38 +261,33 @@ export default function CallScreen() {
   // start calling
   if (isRequestCall) {
     return (
-      <>
+      <View style={styles.container}>
         <StatusBar hidden />
-        <ThemedView style={styles.container}>
-          {/* Remote video container */}
-          <ThemedView style={[styles.headerContainer]}>
-            {/* Profile photo container */}
-            <ThemedView style={styles.profileImageContainer}>
+
+        {/* ✅ Local camera preview as full background if video is on */}
+        {isVideo && (
+          <CameraView style={StyleSheet.absoluteFill} facing={facing} />
+        )}
+
+        {/* ✅ UI over the video */}
+        <View style={StyleSheet.absoluteFill}>
+          <View style={styles.headerContainer}>
+            <View style={styles.profileImageContainer}>
               <Image source={{ uri: chatPhoto }} style={styles.profilePhoto} />
-            </ThemedView>
-            {/* Chat name and call status */}
+            </View>
+
             <ThemedText
               type="headerTitle"
-              style={[styles.headerTitle]}
+              style={styles.headerTitle}
               numberOfLines={1}
             >
               {chatName}
             </ThemedText>
-            <ThemedText style={[{ textAlign: "center" }]}>Calling</ThemedText>
-          </ThemedView>
 
-          {/* Local camera preview */}
-          {isVideo ? (
-            <GestureDetector gesture={dragGesture}>
-              <Animated.View
-                style={[styles.localVideoContainer, animatedStyle]}
-              >
-                <CameraView style={styles.localVideo} facing={facing} />
-              </Animated.View>
-            </GestureDetector>
-          ) : null}
+            <ThemedText style={{ textAlign: "center" }}>Calling...</ThemedText>
+          </View>
 
-          {/* Controls */}
+          {/* ✅ Controls */}
           <View style={styles.controls}>
             <TouchableOpacity
               onPress={toggleMute}
@@ -343,8 +338,8 @@ export default function CallScreen() {
               <MaterialIcons name="call-end" size={30} color="white" />
             </TouchableOpacity>
           </View>
-        </ThemedView>
-      </>
+        </View>
+      </View>
     );
   }
 

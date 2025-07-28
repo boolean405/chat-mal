@@ -36,8 +36,6 @@ export async function sendPushNotifications(
     });
   }
 
-  console.log(notifications);
-
   // Chunk and send notifications (Expo limits batch size to 100)
   const chunks = expo.chunkPushNotifications(notifications);
   for (const chunk of chunks) {

@@ -5,9 +5,11 @@ export function showNotification({
   title,
   body,
   data,
+  type,
 }: {
   title: string;
   body: string;
+  type: "message" | "call";
   data?: {
     chatId?: string;
     messageId?: string;
@@ -20,6 +22,9 @@ export function showNotification({
       body,
       data,
       sound: "default",
+      categoryIdentifier: type,
+      sticky: type === "call" ? true : false,
+      priority: Notifications.AndroidNotificationPriority.MAX,
     },
     trigger: null,
   });

@@ -120,16 +120,4 @@ export default async function onCallHandlers(socket, io) {
       console.error("Error in toggle-video:", err.message);
     }
   });
-
-  socket.on("webrtc-offer", ({ to, offer }) => {
-    io.to(to).emit("webrtc-offer", { from: socket.user._id, offer });
-  });
-
-  socket.on("webrtc-answer", ({ to, answer }) => {
-    io.to(to).emit("webrtc-answer", { from: socket.user._id, answer });
-  });
-
-  socket.on("ice-candidate", ({ to, candidate }) => {
-    io.to(to).emit("ice-candidate", { from: socket.user._id, candidate });
-  });
 }

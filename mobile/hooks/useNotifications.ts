@@ -5,6 +5,8 @@ import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
 import { updatePushToken } from "@/api/user";
 import { Platform } from "react-native";
+import { readChat } from "@/api/chat";
+import { socket } from "@/config/socket";
 
 export function useNotifications() {
   const router = useRouter();
@@ -27,6 +29,9 @@ export function useNotifications() {
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
         sound: "default",
+        enableVibrate: true,
+        lockscreenVisibility:
+          Notifications.AndroidNotificationVisibility.PRIVATE,
       });
     }
 
@@ -64,17 +69,82 @@ export function useNotifications() {
 
     // Handle notification taps
     const subscription = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
+      async (response) => {
         const chatId = response.notification.request.content?.data?.chatId;
+        const action = response.actionIdentifier;
+        console.log(action);
 
-        if (chatId) {
+        if (action === Notifications.DEFAULT_ACTION_IDENTIFIER) {
+          if (chatId) {
+            router.push({
+              pathname: "/(chat)",
+              params: { chatId },
+            } as any);
+          }
+          return;
+        }
+
+        if (action === "ACCEPT") {
+          Notifications.dismissNotificationAsync(
+            response.notification.request.identifier
+          );
+          // socket.emit("accept-call", { chatId });
+          router.push(`/(chat)/call`);
+        }
+
+        if (action === "DECLINE") {
+          Notifications.dismissNotificationAsync(
+            response.notification.request.identifier
+          );
+          // socket.emit("end-call", { chatId });
+        }
+
+        if (action === "REPLY") {
+          Notifications.dismissNotificationAsync(
+            response.notification.request.identifier
+          );
           router.push({
             pathname: "/(chat)",
             params: { chatId },
           } as any);
         }
+
+        if (action === "READ") {
+          Notifications.dismissNotificationAsync(
+            response.notification.request.identifier
+          );
+          socket.emit("read-chat", chatId);
+          // await readChat(chatId);
+        }
       }
     );
+
+    // Actions buttons in notifications
+    Notifications.setNotificationCategoryAsync("message", [
+      {
+        identifier: "REPLY",
+        buttonTitle: "Reply",
+        options: { opensAppToForeground: true },
+      },
+      {
+        identifier: "READ",
+        buttonTitle: "Mark as read",
+        options: {},
+      },
+    ]);
+
+    Notifications.setNotificationCategoryAsync("call", [
+      {
+        identifier: "ACCEPT",
+        buttonTitle: "Accept",
+        options: { opensAppToForeground: true },
+      },
+      {
+        identifier: "DECLINE",
+        buttonTitle: "Decline",
+        options: { isDestructive: true },
+      },
+    ]);
 
     requestPermissions();
     registerForPushNotifications();

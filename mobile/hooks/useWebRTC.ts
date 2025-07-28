@@ -1,75 +1,97 @@
-import { useRef } from "react";
-import { RTCPeerConnection, mediaDevices } from "react-native-webrtc";
-import { Socket } from "socket.io-client";
+// import { useRef } from "react";
+// import {
+//   RTCPeerConnection,
+//   RTCSessionDescription,
+//   RTCIceCandidate,
+//   mediaDevices,
+// } from "react-native-webrtc";
 
-export function useWebRTC(
-  socket: Socket,
-  localUserId: string,
-  remoteUserId: string
-) {
-  const pc = useRef<RTCPeerConnection | null>(null);
+// export default function useWebRTCCall(socket, chatId, isInitiator) {
+//   const pc = useRef(null);
 
-  const setupPeerConnection = async () => {
-    const stream = await mediaDevices.getUserMedia({
-      audio: true,
-      video: true,
-    });
-    const configuration = {
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-    };
-    pc.current = new RTCPeerConnection(configuration);
-    stream.getTracks().forEach((track) => pc.current?.addTrack(track, stream));
+//   // Start local stream
+//   const startLocalStream = async () => {
+//     try {
+//       const stream = await mediaDevices.getUserMedia({
+//         audio: true,
+//         video: true,
+//       });
+//       console.log("✅ Got user media", stream.toURL());
+//       return stream;
+//     } catch (err) {
+//       console.error("❌ Failed to get user media", err);
+//     }
+//   };
 
-    pc.current.onicecandidate = (event) => {
-      if (event.candidate) {
-        socket.emit("ice-candidate", {
-          to: remoteUserId,
-          candidate: event.candidate,
-        });
-      }
-    };
+//   // Initialize PeerConnection
+//   const createPeerConnection = (onTrack, onIceCandidate) => {
+//     const peer = new RTCPeerConnection({
+//       iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+//     });
+//     peer.onicecandidate = (event) => {
+//       if (event.candidate) {
+//         socket.emit("webrtc-ice-candidate", {
+//           chatId,
+//           candidate: event.candidate,
+//         });
+//         if (onIceCandidate) onIceCandidate(event.candidate);
+//       }
+//     };
+//     peer.ontrack = onTrack;
+//     pc.current = peer;
+//     return peer;
+//   };
 
-    pc.current.ontrack = (event) => {
-      // Remote stream is in event.streams[0]
-    };
+//   // Initiator: create offer and send
+//   const makeOffer = async (stream) => {
+//     if (!pc.current) return;
+//     stream.getTracks().forEach((track) => pc.current.addTrack(track, stream));
+//     const offer = await pc.current.createOffer();
+//     await pc.current.setLocalDescription(offer);
+//     socket.emit("webrtc-offer", { chatId, offer });
+//   };
 
-    return stream;
-  };
+//   // Callee: receive offer, create answer
+//   const handleOffer = async (offer, stream) => {
+//     if (!pc.current) return;
+//     stream.getTracks().forEach((track) => pc.current.addTrack(track, stream));
+//     await pc.current.setRemoteDescription(new RTCSessionDescription(offer));
+//     const answer = await pc.current.createAnswer();
+//     await pc.current.setLocalDescription(answer);
+//     socket.emit("webrtc-answer", { chatId, answer });
+//   };
 
-  const createOffer = async () => {
-    const offer = await pc.current?.createOffer();
-    if (offer) {
-      await pc.current.setLocalDescription(offer);
-      socket.emit("webrtc-offer", { to: remoteUserId, offer });
-    }
-  };
+//   // Both: handle answer
+//   const handleAnswer = async (answer) => {
+//     if (!pc.current) return;
+//     await pc.current.setRemoteDescription(new RTCSessionDescription(answer));
+//   };
 
-  const handleOffer = async (offer) => {
-    await pc.current?.setRemoteDescription(offer);
-    const answer = await pc.current?.createAnswer();
-    await pc.current?.setLocalDescription(answer);
-    socket.emit("webrtc-answer", { to: remoteUserId, answer });
-  };
+//   // Both: handle ICE
+//   const handleICECandidate = async (candidate) => {
+//     if (candidate && pc.current) {
+//       try {
+//         await pc.current.addIceCandidate(new RTCIceCandidate(candidate));
+//       } catch (err) {}
+//     }
+//   };
 
-  const handleAnswer = async (answer) => {
-    await pc.current?.setRemoteDescription(answer);
-  };
+//   // Optional: cleanup
+//   const close = () => {
+//     if (pc.current) {
+//       pc.current.getSenders().forEach((s) => s.track && s.track.stop());
+//       pc.current.close();
+//       pc.current = null;
+//     }
+//   };
 
-  const handleCandidate = async (candidate) => {
-    await pc.current?.addIceCandidate(candidate);
-  };
-
-  const endCall = () => {
-    pc.current?.close();
-    pc.current = null;
-  };
-
-  return {
-    setupPeerConnection,
-    createOffer,
-    handleOffer,
-    handleAnswer,
-    handleCandidate,
-    endCall,
-  };
-}
+//   return {
+//     startLocalStream,
+//     createPeerConnection,
+//     makeOffer,
+//     handleOffer,
+//     handleAnswer,
+//     handleICECandidate,
+//     close,
+//   };
+// }

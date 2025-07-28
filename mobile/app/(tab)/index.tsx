@@ -53,7 +53,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
 
   const { user, accessToken } = useAuthStore();
-  const { addMessage, clearMessages } = useMessageStore();
+  const { addMessage, clearMessages, markMessagesAsSeen } = useMessageStore();
   const { setIncomingCall, endCall, setAcceptedCall } = useCallStore();
 
   const {
@@ -159,6 +159,7 @@ export default function Home() {
         showNotification({
           title: message.chat.name || message.sender.name,
           body: content,
+          type: "message",
           data: { chatId, messageId: message._id },
         });
       }

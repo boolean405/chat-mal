@@ -17,10 +17,12 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import SafeScreen from "@/components/SafeScreen";
 import { FloatingCall } from "@/components/FloatingCall";
+import { useNotifications } from "@/hooks/useNotifications";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  useNotifications();
   const colorScheme = useColorScheme();
 
   const [fontsLoaded] = useFonts({

@@ -8,6 +8,7 @@ import onTyping from "./onTyping.js";
 import onDisconnect from "./onDisconnect.js";
 import syncUserChats from "./syncUserChats.js";
 import onCallHandlers from "./onCall.js";
+import onReadChat from "./onReadChat.js";
 
 export default async function onConnection(socket, io) {
   const user = socket.user;
@@ -23,6 +24,7 @@ export default async function onConnection(socket, io) {
   await onCallHandlers(socket, io);
 
   socket.on("join-chat", (chatId) => onJoinChat(socket, io, chatId));
+  socket.on("read-chat", (chatId) => onReadChat(socket, io, chatId));
   socket.on("leave-chat", (chatId) => onLeaveChat(socket, chatId));
   socket.on("send-message", (data) => onSendMessage(socket, io, data));
   socket.on("typing", (data) => onTyping(socket, io, data, true));
