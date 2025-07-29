@@ -22,7 +22,6 @@ import {
   CameraView,
   useCameraPermissions,
   useMicrophonePermissions,
-  CameraType,
 } from "expo-camera";
 
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
@@ -38,6 +37,8 @@ import { ThemedText } from "@/components/ThemedText";
 import { useCallStore } from "@/stores/callStore";
 import { Colors } from "@/constants/colors";
 import { socket } from "@/config/socket";
+import { webrtcClient } from "@/config/webrtcClient";
+import { RTCView } from "react-native-webrtc";
 
 export default function CallScreen() {
   const router = useRouter();
@@ -75,6 +76,14 @@ export default function CallScreen() {
     (s) => s.remoteVideoStatus[otherUser?._id ?? "unknown"]
   );
 
+  const isOtherUserMuted = useCallStore(
+    (s) => s.remoteAudioStatus[otherUser?._id ?? "unknown"]
+  );
+
+  const isOtherUserFaced = useCallStore(
+    (s) => s.remoteFacingStatus[otherUser?._id ?? "unknown"]
+  );
+
   // Permissions hooks
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [micPermission, requestMicPermission] = useMicrophonePermissions();
@@ -82,6 +91,8 @@ export default function CallScreen() {
   // State
   // const [isCalling, setIsCalling] = useState(true);
   const [callTime, setCallTime] = useState(0);
+  const [localStreamUrl, setLocalStreamUrl] = useState<string | null>(null);
+  const [remoteStreamUrl, setRemoteStreamUrl] = useState<string | null>(null);
 
   const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } =
     Dimensions.get("window");
@@ -136,11 +147,35 @@ export default function CallScreen() {
     }
   }, [chatId, endCall, isRequestCall, router]);
 
+  useEffect(() => {
+    if (isRequestCall) {
+      webrtcClient.init({
+        chatId,
+        isVideo,
+        isAudio: !isMuted,
+        facingMode: facing === "front" ? "user" : "environment",
+        onLocalStream: (s) => setLocalStreamUrl(s ? s.toURL() : null),
+        onRemoteStream: (s) => setRemoteStreamUrl(s ? s.toURL() : null),
+      });
+    }
+  }, [chatId, facing, isMuted, isRequestCall, isVideo]);
+
+  useEffect(() => {
+    if (isRequestCall) {
+      socket.emit("request-call", {
+        chatId,
+        callMode: callData?.callMode,
+      });
+    }
+  }, [callData?.callMode, chatId, isRequestCall]);
+
   // Socket
   useEffect(() => {
     if (!socket) return;
 
-    const handleEndedCall = ({ chatId }: { chatId: string }) => {
+    const handleEndedCall = ({ chatId: endedChatId }: { chatId: string }) => {
+      if (endedChatId !== callData?.chat._id) return;
+      webrtcClient.destroy();
       endCall();
       router.back();
     };
@@ -149,17 +184,27 @@ export default function CallScreen() {
     return () => {
       socket.off("ended-call", handleEndedCall);
     };
-  }, [endCall, router]);
+  }, [callData?.chat._id, endCall, router]);
 
   useEffect(() => {
     if (isAcceptedCall && chatId && user) {
+      socket.emit("toggle-face", {
+        chatId,
+        userId: user._id,
+        isFaced: facing === "front" ? true : false,
+      });
       socket.emit("toggle-video", {
         chatId,
         userId: user._id,
         isVideo,
       });
+      socket.emit("toggle-mute", {
+        chatId,
+        userId: user._id,
+        isMuted,
+      });
     }
-  }, [isAcceptedCall, chatId, user, isVideo]);
+  }, [chatId, facing, isAcceptedCall, isMuted, isVideo, user]);
 
   // Shared values for drag offset & start position
   const initialX = SCREEN_WIDTH - 130 - 20; // 20px margin from right edge
@@ -223,36 +268,76 @@ export default function CallScreen() {
   if (!user || !callData) return null;
 
   // Handlers
-  const toggleFacing = () =>
-    facing === "front" ? setFacing("back") : setFacing("front");
+  const toggleFacing = async () => {
+    const newFacing = facing === "front" ? "back" : "front";
+    setFacing(newFacing);
+    if (isAcceptedCall) {
+      await webrtcClient.switchCamera();
+      // Emit socket event
+      // socket.emit("toggle-face", {
+      //   chatId,
+      //   userId: user._id,
+      //   isFaced: newFacing === "front" ? true : false,
+      // });
+    }
+  };
 
-  const toggleMute = () => (isMuted ? setIsMuted(false) : setIsMuted(true));
+  const toggleMute = async () => {
+    const newIsMuted = !isMuted;
+    setIsMuted(newIsMuted);
+    if (isAcceptedCall) {
+      await webrtcClient.toggleAudio(newIsMuted);
+      // Emit socket event
+      // socket.emit("toggle-mute", {
+      //   chatId,
+      //   userId: user._id,
+      //   isMuted: newIsMuted,
+      // });
+    }
+  };
 
-  const toggleVideo = () => {
+  const toggleVideo = async () => {
     const newIsVideo = !isVideo;
     setIsVideo(newIsVideo);
+    if (isAcceptedCall) {
+      await webrtcClient.toggleVideo(newIsVideo);
 
-    // Emit socket event
-    socket.emit("toggle-video", {
-      chatId,
-      userId: user._id,
-      isVideo: newIsVideo,
-    });
+      // Emit socket event
+      socket.emit("toggle-video", {
+        chatId,
+        userId: user._id,
+        isVideo: newIsVideo,
+      });
+
+      // Emit socket event
+      // socket.emit("toggle-face", {
+      //   chatId,
+      //   userId: user._id,
+      //   isFaced: facing === "front" ? true : false,
+      // });
+    }
   };
 
   const handlePressAcceptCall = () => {
+    webrtcClient.init({
+      chatId,
+      isVideo,
+      isAudio: !isMuted,
+      facingMode: facing === "front" ? "user" : "environment",
+      onLocalStream: (s) => setLocalStreamUrl(s ? s.toURL() : null),
+      onRemoteStream: (s) => setRemoteStreamUrl(s ? s.toURL() : null),
+    });
+    webrtcClient.startAsCallee();
     setAcceptedCall();
+
     socket.emit("accept-call", { chatId });
   };
 
-  const otherUsers = callData.chat.users?.filter(
-    (u) => u.user._id !== user._id
-  );
-
   const handlePressEndCall = () => {
-    router.back(); // optional if you're on a separate screen
-    endCall();
+    webrtcClient.destroy();
     socket.emit("end-call", { chatId });
+    endCall();
+    router.back();
   };
 
   const chatName = callData.chat.name || getChatName(callData.chat, user._id);
@@ -284,7 +369,7 @@ export default function CallScreen() {
               {chatName}
             </ThemedText>
 
-            <ThemedText style={{ textAlign: "center" }}>Calling...</ThemedText>
+            <ThemedText style={{ textAlign: "center" }}>Calling</ThemedText>
           </View>
 
           {/* ✅ Controls */}
@@ -358,7 +443,7 @@ export default function CallScreen() {
             {/* Chat name and call status */}
             <ThemedText
               type="headerTitle"
-              style={[{ textAlign: "center" }]}
+              style={styles.headerTitle}
               numberOfLines={1}
             >
               {chatName}
@@ -412,28 +497,60 @@ export default function CallScreen() {
             >
               {chatName}
             </ThemedText>
-            <ThemedText style={{ textAlign: "center" }}>
-              {new Date(callTime * 1000).toISOString().substring(14, 19)}
-            </ThemedText>
+            <ThemedView
+              style={{
+                alignItems: "center",
+                flexDirection: "row",
+                alignContent: "center",
+                justifyContent: "center",
+              }}
+            >
+              <ThemedText style={{ textAlign: "center" }}>
+                {new Date(callTime * 1000).toISOString().substring(14, 19)}
+              </ThemedText>
+
+              {isOtherUserMuted && (
+                <Ionicons
+                  name="mic-off-outline"
+                  size={16}
+                  color={"red"}
+                  style={{ position: "absolute", right: -20 }}
+                />
+              )}
+            </ThemedView>
           </ThemedView>
         ) : (
-          // hardcoded video
           <>
-            <Image source={{ uri: chatPhoto }} style={styles.profilePhoto} />
+            {remoteStreamUrl && (
+              <RTCView
+                streamURL={remoteStreamUrl}
+                style={StyleSheet.absoluteFill}
+                objectFit="cover"
+                mirror={isOtherUserFaced ? true : undefined}
+              />
+            )}
             {showControls && (
-              <View style={styles.timerContainer}>
+              <View style={styles.topStatusContainer}>
                 <Text style={styles.callTimerText}>
                   {new Date(callTime * 1000).toISOString().substring(14, 19)}
                 </Text>
+                {isOtherUserMuted && (
+                  <Ionicons name="mic-off-outline" size={16} color={"red"} />
+                )}
               </View>
             )}
           </>
         )}
-        {/* Local camera preview */}
-        {isVideo ? (
+        {/* Local stream preview */}
+        {isVideo && localStreamUrl ? (
           <GestureDetector gesture={dragGesture}>
             <Animated.View style={[styles.localVideoContainer, animatedStyle]}>
-              <CameraView style={styles.localVideo} facing={facing} />
+              <RTCView
+                streamURL={localStreamUrl}
+                style={styles.localVideo}
+                objectFit="cover"
+                mirror={facing === "front"}
+              />
             </Animated.View>
           </GestureDetector>
         ) : null}
@@ -584,7 +701,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
   },
   controlBtn: {
-    padding: 16,
+    padding: 15,
     borderRadius: 50,
   },
   profileImageContainer: {
@@ -602,8 +719,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingHorizontal: 30,
   },
-  timerContainer: {
+  topStatusContainer: {
     position: "absolute",
+    alignItems: "center",
     top: 50,
     alignSelf: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",

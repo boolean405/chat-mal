@@ -29,6 +29,7 @@ import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
 import { useMessageStore } from "@/stores/messageStore";
 import { showNotification } from "@/utils/showNotifications";
 import { useCallStore } from "@/stores/callStore";
+import { webrtcClient } from "@/config/webrtcClient";
 
 // Stories data - consider moving to a separate file or API call
 const stories: Story[] = [
@@ -53,7 +54,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
 
   const { user, accessToken } = useAuthStore();
-  const { addMessage, clearMessages, markMessagesAsSeen } = useMessageStore();
+  const { addMessage, clearMessages } = useMessageStore();
   const { setIncomingCall, endCall, setAcceptedCall } = useCallStore();
 
   const {
@@ -90,7 +91,7 @@ export default function Home() {
   const {
     selectedChat,
     isSheetVisible,
-    isLoadingAction,
+    // isLoadingAction,
     filteredOptions,
     openSheet,
     closeSheet,
@@ -144,7 +145,7 @@ export default function Home() {
           : message.type === "video"
           ? "Recieved a new video"
           : message.type === "audio"
-          ? "Recieved a new voice message"
+          ? "Recieved a new audio message"
           : message.type === "file"
           ? "Recieved a new file"
           : "Recieved a new message";
@@ -197,35 +198,34 @@ export default function Home() {
       endCall();
     };
 
-    const handleAcceptedCall = ({
+    const handleAcceptedCall = async ({
       chatId,
-      from,
+      acceptor,
     }: {
       chatId: string;
-      from: User;
+      acceptor: User;
     }) => {
       setAcceptedCall();
-      router.replace({
-        pathname: "/(chat)/call",
-        params: { chatId },
-      });
+      await webrtcClient.startAsCaller();
+      // router.replace({
+      //   pathname: "/(chat)/call",
+      //   params: { chatId },
+      // });
     };
 
     const handleIncomingCall = ({
-      from: caller,
-      chatId,
+      caller,
+      chat,
       callMode,
     }: {
-      chatId: string;
-      from: User;
-      callMode: "video" | "voice";
+      chat: Chat;
+      caller: User;
+      callMode: "video" | "audio";
     }) => {
-      const chat = getChatById(chatId);
-      if (!chat) return;
       setIncomingCall({ chat, caller, callMode });
       router.push({
         pathname: "/(chat)/call",
-        params: { chatId },
+        params: { chatId: chat._id },
       });
     };
 
@@ -240,10 +240,36 @@ export default function Home() {
       useCallStore.getState().updateRemoteVideoStatus(userId, isVideo);
     };
 
+    const handleUserToggledMute = ({
+      userId,
+      isMuted,
+    }: {
+      userId: string;
+      isMuted: boolean;
+    }) => {
+      // Save the new video state of other user in your callStore
+      useCallStore.getState().updateRemoteAudioStatus(userId, isMuted);
+    };
+
+    const handleUserToggledFace = ({
+      userId,
+      isFaced,
+    }: {
+      userId: string;
+      isFaced: boolean;
+    }) => {
+      console.log("handleUserToggledFace called", isFaced);
+
+      // Save the new video state of other user in your callStore
+      useCallStore.getState().updateRemoteFacingStatus(userId, isFaced);
+    };
+
     socket.on("ended-call", handleEndedCall);
     socket.on("incoming-call", handleIncomingCall);
     socket.on("accepted-call", handleAcceptedCall);
     socket.on("user-toggled-video", handleUserToggledVideo);
+    socket.on("user-toggled-mute", handleUserToggledMute);
+    socket.on("user-toggled-face", handleUserToggledFace);
 
     // 🧼 Clean up all listeners on unmount
     return () => {
@@ -261,6 +287,8 @@ export default function Home() {
       socket.off("incoming-call", handleIncomingCall);
       socket.off("accepted-call", handleAcceptedCall);
       socket.off("user-toggled-video", handleUserToggledVideo);
+      socket.off("user-toggled-mute", handleUserToggledMute);
+      socket.off("user-toggled-face", handleUserToggledFace);
     };
   }, [
     user,

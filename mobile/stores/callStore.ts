@@ -4,7 +4,7 @@ import { create } from "zustand";
 interface CallData {
   chat: Chat;
   caller: User;
-  callMode: "video" | "voice"; // Replace with your actual `User` type if available
+  callMode: "video" | "audio"; // Replace with your actual `User` type if available
   // currentChat: Chat; // Replace with your actual `Chat` type
 }
 
@@ -19,6 +19,8 @@ interface CallStore {
   facing: "front" | "back";
   callData: CallData | null;
   remoteVideoStatus: Record<string, boolean>;
+  remoteAudioStatus: Record<string, boolean>;
+  remoteFacingStatus: Record<string, boolean>;
 
   setIsCallActive: (active: boolean) => void;
   setIsMinimized: (isMinimized: boolean) => void;
@@ -31,6 +33,8 @@ interface CallStore {
   setAcceptedCall: () => void;
   endCall: () => void;
   updateRemoteVideoStatus: (userId: string, isVideo: boolean) => void;
+  updateRemoteAudioStatus: (userId: string, isMuted: boolean) => void;
+  updateRemoteFacingStatus: (userId: string, isFaced: boolean) => void;
 }
 
 export const useCallStore = create<CallStore>((set) => ({
@@ -44,12 +48,30 @@ export const useCallStore = create<CallStore>((set) => ({
   isIncomingCall: false,
   isAcceptedCall: false,
   remoteVideoStatus: {},
+  remoteAudioStatus: {},
+  remoteFacingStatus: {},
 
   updateRemoteVideoStatus: (userId, isVideo) =>
     set((state) => ({
       remoteVideoStatus: {
         ...state.remoteVideoStatus,
         [userId]: isVideo,
+      },
+    })),
+
+  updateRemoteAudioStatus: (userId, isMuted) =>
+    set((state) => ({
+      remoteAudioStatus: {
+        ...state.remoteAudioStatus,
+        [userId]: isMuted,
+      },
+    })),
+
+  updateRemoteFacingStatus: (userId, isFaced) =>
+    set((state) => ({
+      remoteFacingStatus: {
+        ...state.remoteFacingStatus,
+        [userId]: isFaced,
       },
     })),
 
@@ -102,5 +124,7 @@ export const useCallStore = create<CallStore>((set) => ({
       isVideo: false,
       facing: "front",
       remoteVideoStatus: {},
+      remoteAudioStatus: {},
+      remoteFacingStatus: {},
     }),
 }));

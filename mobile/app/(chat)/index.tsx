@@ -70,7 +70,7 @@ export default function ChatMessage() {
     markMessagesAsSeen,
   } = useMessageStore();
 
-  const { setRequestCall, isCallActive } = useCallStore();
+  const { setRequestCall, isCallActive, callData } = useCallStore();
 
   // Get messages for current chat from store
   const currentMessagesRaw = chatId ? storedMessages[chatId] || [] : [];
@@ -94,11 +94,11 @@ export default function ChatMessage() {
 
   // Pagination handling
   const {
-    isLoading: loading,
+    // isLoading: loading,
     isRefreshing,
     isPaging,
     hasMore,
-    refresh,
+    // refresh,
     loadMore,
   } = usePaginatedData<Message>({
     fetchData: async (page: number) => {
@@ -480,21 +480,24 @@ export default function ChatMessage() {
   const otherUser = currentChat.users?.find(
     (u) => u.user._id !== user._id
   )?.user;
-  const targetUserId = otherUser?._id;
+  // const targetUserId = otherUser?._id;
 
   // Handle video call
-  const handlePressCall = ({ callMode }: { callMode: "voice" | "video" }) => {
-    setRequestCall({ chat: currentChat, caller: user, callMode });
-
+  const handlePressCall = ({ callMode }: { callMode: "audio" | "video" }) => {
+    if (!isCallActive) {
+      setRequestCall({ chat: currentChat, caller: user, callMode });
+    } else if (callData?.chat._id !== chatId) {
+      return;
+    }
     router.push({
       pathname: "/(chat)/call",
       params: { chatId },
     });
 
-    socket.emit("request-call", {
-      chatId,
-      callMode,
-    });
+    // socket.emit("request-call", {
+    //   chatId,
+    //   callMode,
+    // });
   };
 
   const isOnline =
@@ -590,8 +593,7 @@ export default function ChatMessage() {
         {!isPendingChat ? (
           <ThemedView style={styles.headerIcons}>
             <TouchableOpacity
-              disabled={isCallActive}
-              onPress={() => handlePressCall({ callMode: "voice" })}
+              onPress={() => handlePressCall({ callMode: "audio" })}
             >
               <Ionicons
                 name="call-outline"
@@ -601,7 +603,6 @@ export default function ChatMessage() {
               />
             </TouchableOpacity>
             <TouchableOpacity
-              disabled={isCallActive}
               onPress={() => handlePressCall({ callMode: "video" })}
             >
               <Ionicons

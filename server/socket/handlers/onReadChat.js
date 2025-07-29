@@ -5,8 +5,6 @@ export default async function onReadChat(socket, io, chatId) {
   const user = socket.user;
   try {
     await readChatService(user._id, chatId);
-    console.log("here");
-
     socket.to(chatId).emit("chat-read", {
       chatId,
       userId: user._id,
