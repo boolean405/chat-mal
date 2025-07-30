@@ -151,7 +151,7 @@ export default function CallScreen() {
     if (isRequestCall) {
       webrtcClient.init({
         chatId,
-        isVideo,
+        isVideo: true,
         isAudio: !isMuted,
         facingMode: facing === "front" ? "user" : "environment",
         onLocalStream: (s) => setLocalStreamUrl(s ? s.toURL() : null),
@@ -273,12 +273,6 @@ export default function CallScreen() {
     setFacing(newFacing);
     if (isAcceptedCall) {
       await webrtcClient.switchCamera();
-      // Emit socket event
-      // socket.emit("toggle-face", {
-      //   chatId,
-      //   userId: user._id,
-      //   isFaced: newFacing === "front" ? true : false,
-      // });
     }
   };
 
@@ -286,13 +280,7 @@ export default function CallScreen() {
     const newIsMuted = !isMuted;
     setIsMuted(newIsMuted);
     if (isAcceptedCall) {
-      await webrtcClient.toggleAudio(newIsMuted);
-      // Emit socket event
-      // socket.emit("toggle-mute", {
-      //   chatId,
-      //   userId: user._id,
-      //   isMuted: newIsMuted,
-      // });
+      await webrtcClient.toggleAudio(!newIsMuted);
     }
   };
 
@@ -301,20 +289,6 @@ export default function CallScreen() {
     setIsVideo(newIsVideo);
     if (isAcceptedCall) {
       await webrtcClient.toggleVideo(newIsVideo);
-
-      // Emit socket event
-      socket.emit("toggle-video", {
-        chatId,
-        userId: user._id,
-        isVideo: newIsVideo,
-      });
-
-      // Emit socket event
-      // socket.emit("toggle-face", {
-      //   chatId,
-      //   userId: user._id,
-      //   isFaced: facing === "front" ? true : false,
-      // });
     }
   };
 
@@ -492,7 +466,7 @@ export default function CallScreen() {
             {/* Chat name and call status */}
             <ThemedText
               type="headerTitle"
-              style={[{ textAlign: "center" }]}
+              style={styles.headerTitle}
               numberOfLines={1}
             >
               {chatName}

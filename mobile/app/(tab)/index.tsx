@@ -54,7 +54,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
 
   const { user, accessToken } = useAuthStore();
-  const { addMessage, clearMessages } = useMessageStore();
+  const { addMessage, clearMessages, markMessagesAsSeen } = useMessageStore();
   const { setIncomingCall, endCall, setAcceptedCall } = useCallStore();
 
   const {
@@ -258,10 +258,38 @@ export default function Home() {
       userId: string;
       isFaced: boolean;
     }) => {
-      console.log("handleUserToggledFace called", isFaced);
-
       // Save the new video state of other user in your callStore
       useCallStore.getState().updateRemoteFacingStatus(userId, isFaced);
+    };
+
+    // Read chat
+    const handleChatRead = ({
+      chatId,
+      userId,
+    }: {
+      chatId: string;
+      userId: string;
+    }) => {
+      const chat = getChatById(chatId);
+      if (!chat) return;
+
+      if (chat.unreadInfos?.length > 0) {
+        const myUnread = chat.unreadInfos.find(
+          (uc) => uc.user._id === user?._id && uc.count > 0
+        );
+
+        if (myUnread) {
+          // Optimistically mark as read in Zustand
+          updateChat({
+            ...chat,
+            unreadInfos: chat.unreadInfos.map((uc) => {
+              const userId =
+                typeof uc.user === "object" ? uc.user._id : uc.user;
+              return userId === user._id ? { ...uc, count: 0 } : uc;
+            }),
+          });
+        }
+      }
     };
 
     socket.on("ended-call", handleEndedCall);
@@ -270,6 +298,7 @@ export default function Home() {
     socket.on("user-toggled-video", handleUserToggledVideo);
     socket.on("user-toggled-mute", handleUserToggledMute);
     socket.on("user-toggled-face", handleUserToggledFace);
+    socket.on("chat-read", handleChatRead);
 
     // 🧼 Clean up all listeners on unmount
     return () => {
@@ -289,6 +318,7 @@ export default function Home() {
       socket.off("user-toggled-video", handleUserToggledVideo);
       socket.off("user-toggled-mute", handleUserToggledMute);
       socket.off("user-toggled-face", handleUserToggledFace);
+      socket.on("chat-read", handleChatRead);
     };
   }, [
     user,
@@ -304,6 +334,7 @@ export default function Home() {
     setIncomingCall,
     setOnlineUserIds,
     updateChat,
+    markMessagesAsSeen,
   ]);
 
   // Update store when new chats are fetched

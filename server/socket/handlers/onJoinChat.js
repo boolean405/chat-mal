@@ -8,13 +8,13 @@ export default async function onJoinChat(socket, io, chatId) {
 
   await setUserActiveChat(user._id.toString(), chatId);
 
-  // try {
-  //   await readChatService(user._id, chatId);
-  //   socket.to(chatId).emit("chat-read", {
-  //     chatId,
-  //     userId: user._id,
-  //   });
-  // } catch (err) {
-  //   console.error("Error in readChatService:", err.message);
-  // }
+  try {
+    await readChatService(user._id, chatId);
+    socket.to(chatId).emit("chat-read", {
+      chatId,
+      userId: user._id,
+    });
+  } catch (err) {
+    console.error("Error in readChatService:", err.message);
+  }
 }

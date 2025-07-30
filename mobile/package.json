@@ -62,14 +62,12 @@
     "react-native-web": "~0.20.0",
     "react-native-webrtc": "^124.0.5",
     "react-native-webview": "13.13.5",
-    "simple-peer": "^9.11.1",
     "socket.io-client": "^4.8.1",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~19.0.10",
-    "@types/simple-peer": "^9.11.8",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~9.2.0",
     "typescript": "~5.8.3"
@@ -82,8 +80,7 @@
           "jwt-decode",
           "socket.io-client",
           "react-native-webrtc",
-          "@config-plugins/react-native-webrtc",
-          "simple-peer"
+          "@config-plugins/react-native-webrtc"
         ]
       }
     }

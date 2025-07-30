@@ -114,7 +114,6 @@ export function useNotifications() {
             response.notification.request.identifier
           );
           socket.emit("read-chat", chatId);
-          // await readChat(chatId);
         }
       }
     );
