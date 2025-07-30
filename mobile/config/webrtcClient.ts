@@ -153,7 +153,7 @@ export class WebRTCClient {
             facingMode,
             width: { ideal: 640 },
             height: { ideal: 480 },
-            frameRate: { ideal: 60, max: 120 },
+            frameRate: { ideal: 30, max: 120 },
           }
         : false,
     };
@@ -218,20 +218,59 @@ export class WebRTCClient {
     this.localStream.getAudioTracks().forEach((t) => (t.enabled = enabled));
   }
 
-  /** Switch front/back camera */
+  /** Switch front/back camera without recreating the stream */
+  /** Switch front/back camera by recreating video and reattaching tracks */
+  private async _recreateTracksForNewFacing() {
+    const oldStream = this.localStream;
+
+    // 1) Create a NEW stream first (so we don't go silent in between)
+    const newStream = await mediaDevices.getUserMedia({
+      audio: this.opts.isAudio, // keep audio in the new stream
+      video: {
+        facingMode: this.opts.facingMode, // already toggled by caller
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+        frameRate: { ideal: 30, max: 30 },
+      },
+    });
+
+    // 2) Replace senders
+    const newVideo = newStream.getVideoTracks()[0];
+    const newAudio = newStream.getAudioTracks()[0];
+
+    const videoSender = this.pc
+      ?.getSenders()
+      .find((s) => s.track?.kind === "video");
+    const audioSender = this.pc
+      ?.getSenders()
+      .find((s) => s.track?.kind === "audio");
+
+    if (videoSender && newVideo) await videoSender.replaceTrack(newVideo);
+    if (audioSender && newAudio) await audioSender.replaceTrack(newAudio);
+
+    // 3) Update localStream reference and callback
+    this.localStream = newStream;
+    this.opts.onLocalStream?.(newStream);
+
+    // 4) Stop old tracks LAST
+    oldStream?.getTracks().forEach((t) => t.stop());
+  }
+
+  /** Public API */
   async switchCamera() {
+    // Toggle desired facing for next capture
     this.opts.facingMode =
       this.opts.facingMode === "user" ? "environment" : "user";
+
     if (!this.opts.isVideo) return;
-    // Recreate stream with opposite facingMode and replace track
-    await this.createOrUpdateLocalStream(
-      true,
-      this.opts.isAudio,
-      this.opts.facingMode
-    );
-    const newTrack = this.localStream?.getVideoTracks()[0];
-    const sender = this.pc?.getSenders().find((s) => s.track?.kind === "video");
-    if (sender && newTrack) await sender.replaceTrack(newTrack);
+
+    // Prefer A if available:
+    const t: any = this.localStream?.getVideoTracks()[0];
+    if (t && typeof t._switchCamera === "function") {
+      t._switchCamera();
+    } else {
+      await this._recreateTracksForNewFacing(); // Fallback B
+    }
   }
 
   getLocalStream() {

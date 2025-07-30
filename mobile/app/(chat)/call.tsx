@@ -39,11 +39,13 @@ import { Colors } from "@/constants/colors";
 import { socket } from "@/config/socket";
 import { webrtcClient } from "@/config/webrtcClient";
 import { RTCView } from "react-native-webrtc";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function CallScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
+  const insets = useSafeAreaInsets();
 
   const { chatId: rawChatId } = useLocalSearchParams();
   const chatId = Array.isArray(rawChatId) ? rawChatId[0] : rawChatId;
@@ -292,7 +294,7 @@ export default function CallScreen() {
     }
   };
 
-  const handlePressAcceptCall = () => {
+  const handlePressAcceptCall = async () => {
     webrtcClient.init({
       chatId,
       isVideo,
@@ -301,7 +303,7 @@ export default function CallScreen() {
       onLocalStream: (s) => setLocalStreamUrl(s ? s.toURL() : null),
       onRemoteStream: (s) => setRemoteStreamUrl(s ? s.toURL() : null),
     });
-    webrtcClient.startAsCallee();
+    await webrtcClient.startAsCallee();
     setAcceptedCall();
 
     socket.emit("accept-call", { chatId });
@@ -347,7 +349,7 @@ export default function CallScreen() {
           </View>
 
           {/* ✅ Controls */}
-          <View style={styles.controls}>
+          <View style={[styles.controls, { paddingBottom: insets.bottom }]}>
             <TouchableOpacity
               onPress={toggleMute}
               style={[styles.controlBtn, { backgroundColor: color.secondary }]}
@@ -429,15 +431,26 @@ export default function CallScreen() {
           </ThemedView>
 
           {/* Call actions */}
-          <ThemedView style={styles.incomingCallActions}>
+          <ThemedView
+            style={[
+              styles.incomingCallControls,
+              { paddingBottom: insets.bottom },
+            ]}
+          >
             <TouchableOpacity
-              style={[styles.callBtn, { backgroundColor: "green" }]}
+              style={[
+                styles.incomingCallActionsBtn,
+                { backgroundColor: "green" },
+              ]}
               onPress={handlePressAcceptCall}
             >
               <Ionicons name="call-outline" size={30} color="white" />
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.callBtn, { backgroundColor: "red" }]}
+              style={[
+                styles.incomingCallActionsBtn,
+                { backgroundColor: "red" },
+              ]}
               onPress={handlePressEndCall}
             >
               <MaterialIcons name="call-end" size={30} color="white" />
@@ -531,7 +544,7 @@ export default function CallScreen() {
 
         {/* Controls */}
         {showControls && (
-          <View style={styles.controls}>
+          <View style={[styles.controls, { paddingBottom: insets.bottom }]}>
             <TouchableOpacity
               onPress={toggleMute}
               style={[styles.controlBtn, { backgroundColor: color.secondary }]}
@@ -621,18 +634,17 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "white",
   },
-  incomingCallActions: {
+  incomingCallControls: {
+    position: "absolute",
     flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    bottom: 50,
+    justifyContent: "space-around", // centers buttons horizontally
+    alignItems: "center", // centers vertically within the container
+    bottom: 10,
+    width: "100%", // ensure it spans full width
   },
-  callBtn: {
-    marginHorizontal: 40,
-    padding: 20,
+  incomingCallActionsBtn: {
+    padding: 14,
     borderRadius: 50,
-    justifyContent: "center",
-    alignItems: "center",
   },
   remoteVideo: {
     flex: 1,
@@ -668,7 +680,7 @@ const styles = StyleSheet.create({
 
   controls: {
     position: "absolute",
-    bottom: 50,
+    bottom: 10,
     width: "100%",
     flexDirection: "row",
     justifyContent: "space-around",

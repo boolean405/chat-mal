@@ -205,12 +205,8 @@ export default function Home() {
       chatId: string;
       acceptor: User;
     }) => {
-      setAcceptedCall();
       await webrtcClient.startAsCaller();
-      // router.replace({
-      //   pathname: "/(chat)/call",
-      //   params: { chatId },
-      // });
+      setAcceptedCall();
     };
 
     const handleIncomingCall = ({
