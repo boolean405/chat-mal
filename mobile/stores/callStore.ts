@@ -18,6 +18,8 @@ interface CallStore {
   isAcceptedCall: boolean;
   facing: "front" | "back";
   callData: CallData | null;
+  remoteStreamUrl: string | null;
+  localStreamUrl: string | null;
   remoteVideoStatus: Record<string, boolean>;
   remoteAudioStatus: Record<string, boolean>;
   remoteFacingStatus: Record<string, boolean>;
@@ -32,6 +34,8 @@ interface CallStore {
   setIncomingCall: (callData: CallData) => void;
   setAcceptedCall: () => void;
   endCall: () => void;
+  setRemoteStreamUrl: (url: string | null) => void;
+  setLocalStreamUrl: (url: string | null) => void;
   updateRemoteVideoStatus: (userId: string, isVideo: boolean) => void;
   updateRemoteAudioStatus: (userId: string, isMuted: boolean) => void;
   updateRemoteFacingStatus: (userId: string, isFaced: boolean) => void;
@@ -47,9 +51,14 @@ export const useCallStore = create<CallStore>((set) => ({
   isRequestCall: false,
   isIncomingCall: false,
   isAcceptedCall: false,
+  remoteStreamUrl: null,
+  localStreamUrl: null,
   remoteVideoStatus: {},
   remoteAudioStatus: {},
   remoteFacingStatus: {},
+
+  setRemoteStreamUrl: (url) => set({ remoteStreamUrl: url }),
+  setLocalStreamUrl: (url) => set({ localStreamUrl: url }),
 
   updateRemoteVideoStatus: (userId, isVideo) =>
     set((state) => ({
@@ -123,6 +132,8 @@ export const useCallStore = create<CallStore>((set) => ({
       isMuted: false,
       isVideo: false,
       facing: "front",
+      remoteStreamUrl: null,
+      localStreamUrl: null,
       remoteVideoStatus: {},
       remoteAudioStatus: {},
       remoteFacingStatus: {},

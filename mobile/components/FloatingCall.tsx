@@ -2,21 +2,40 @@ import { useCallStore } from "@/stores/callStore";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { getChatPhoto } from "@/utils/getChatPhoto";
-import { Dimensions, StyleSheet } from "react-native";
+import { Dimensions, Pressable, StyleSheet } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
 } from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { RTCView } from "react-native-webrtc";
+import { useAuthStore } from "@/stores/authStore";
 
-// ✅ Declare shared values unconditionally at top-level
 const initialX = 250;
 const initialY = 100;
 
 export function FloatingCall() {
   const router = useRouter();
-  const { isMinimized, callData, setIsMinimized, isCallActive } =
-    useCallStore();
+  const { user } = useAuthStore();
+  const {
+    remoteStreamUrl,
+    isCallActive,
+    isMinimized,
+    callData,
+    setIsMinimized,
+  } = useCallStore();
+
+  const otherUser = callData?.chat?.users?.find(
+    (u) => u.user._id !== user?._id
+  )?.user;
+
+  const isOtherUserVideoOn = useCallStore(
+    (s) => s.remoteVideoStatus[otherUser?._id ?? "unknown"]
+  );
+
+  const isOtherUserFaced = useCallStore(
+    (s) => s.remoteFacingStatus[otherUser?._id ?? "unknown"]
+  );
 
   const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } =
     Dimensions.get("window");
@@ -59,7 +78,7 @@ export function FloatingCall() {
     });
 
   // Call all hooks BEFORE early return
-  if (!isCallActive || !isMinimized || !callData) return null;
+  if (!isCallActive || !isMinimized || !callData || !user) return null;
 
   const handleExpand = () => {
     setIsMinimized(false);
@@ -71,16 +90,23 @@ export function FloatingCall() {
     });
   };
 
-  const chatPhoto = getChatPhoto(callData.chat, callData.caller._id);
+  const chatPhoto = getChatPhoto(callData.chat, user._id);
 
   return (
     <GestureDetector gesture={dragGesture}>
       <Animated.View style={[styles.container, animatedStyle]}>
-        <Image
-          source={{ uri: chatPhoto }}
-          style={styles.thumbnail}
-          onTouchEnd={handleExpand}
-        />
+        <Pressable onPress={handleExpand}>
+          {remoteStreamUrl && isOtherUserVideoOn ? (
+            <RTCView
+              streamURL={remoteStreamUrl}
+              style={styles.thumbnail}
+              objectFit="cover"
+              mirror={isOtherUserFaced ? true : undefined}
+            />
+          ) : (
+            <Image source={{ uri: chatPhoto }} style={styles.thumbnail} />
+          )}
+        </Pressable>
       </Animated.View>
     </GestureDetector>
   );
@@ -90,10 +116,10 @@ const styles = StyleSheet.create({
   container: {
     position: "absolute",
     width: 130,
-    height: 200,
+    height: 175,
     borderRadius: 15,
     overflow: "hidden",
-    backgroundColor: "#000",
+    // backgroundColor: "#000",
     zIndex: 9999,
   },
   thumbnail: {

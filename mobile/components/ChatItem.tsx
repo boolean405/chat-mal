@@ -135,7 +135,7 @@ export default function ChatItem({
                 >
                   <Image
                     source={{ uri: chat.latestMessage.content }}
-                    style={{ width: 20, height: 20, borderRadius: 4 }}
+                    style={[styles.unreadImage, { borderColor: color.border }]}
                     contentFit="cover"
                   />
                   <ThemedText
@@ -248,5 +248,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     textAlignVertical: "center",
     // borderWidth: 1,
+  },
+  unreadImage: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 0.2,
   },
 });

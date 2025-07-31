@@ -5,7 +5,6 @@ import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
 import { updatePushToken } from "@/api/user";
 import { Platform } from "react-native";
-import { readChat } from "@/api/chat";
 import { socket } from "@/config/socket";
 
 export function useNotifications() {
@@ -80,6 +79,7 @@ export function useNotifications() {
               pathname: "/(chat)",
               params: { chatId },
             } as any);
+            socket.emit("read-chat", chatId);
           }
           return;
         }

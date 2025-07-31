@@ -209,13 +209,79 @@ export class WebRTCClient {
 
   async toggleAudio(enabled: boolean) {
     this.opts.isAudio = enabled;
-    if (!this.localStream)
-      return this.createOrUpdateLocalStream(
+    console.log("toggleAudio", { enabled, isAudio: this.opts.isAudio });
+
+    if (!this.localStream) {
+      // If no stream exists, create a new one with the updated audio state
+      await this.createOrUpdateLocalStream(
         this.opts.isVideo,
         enabled,
         this.opts.facingMode
       );
-    this.localStream.getAudioTracks().forEach((t) => (t.enabled = enabled));
+      // Add new tracks to the peer connection
+
+      if (this.localStream && this.pc) {
+        this.localStream.getTracks().forEach((track: any) => {
+          if (track.kind === "audio") {
+            const sender = this.pc
+              ?.getSenders()
+              .find((s) => s.track?.kind === "audio");
+            if (sender) {
+              sender.replaceTrack(track);
+            } else {
+              this.pc.addTrack(track, this.localStream);
+            }
+          }
+        });
+      }
+      return;
+    }
+
+    // If stream exists, toggle the audio track
+    const audioTrack = this.localStream.getAudioTracks()[0];
+    if (audioTrack) {
+      if (!enabled) {
+        // Mute: disable or stop the audio track
+        audioTrack.enabled = false;
+        // Optionally stop the track to ensure no audio is sent
+        // audioTrack.stop();
+      } else {
+        // Unmute: ensure the track is enabled or replace it with a new one
+        if (!audioTrack.enabled) {
+          audioTrack.enabled = true;
+        } else {
+          // If the track was stopped, recreate the stream
+          await this.createOrUpdateLocalStream(
+            this.opts.isVideo,
+            enabled,
+            this.opts.facingMode
+          );
+          const newAudioTrack = this.localStream.getAudioTracks()[0];
+          const sender = this.pc
+            ?.getSenders()
+            .find((s) => s.track?.kind === "audio");
+          if (sender && newAudioTrack) {
+            await sender.replaceTrack(newAudioTrack);
+          }
+        }
+      }
+    } else if (enabled) {
+      // No audio track but audio is requested, recreate the stream
+      await this.createOrUpdateLocalStream(
+        this.opts.isVideo,
+        enabled,
+        this.opts.facingMode
+      );
+      const newAudioTrack = this.localStream.getAudioTracks()[0];
+      const sender = this.pc
+        ?.getSenders()
+        .find((s) => s.track?.kind === "audio");
+      if (sender && newAudioTrack) {
+        await sender.replaceTrack(newAudioTrack);
+      } else if (newAudioTrack) {
+        this.pc?.addTrack(newAudioTrack, this.localStream);
+      }
+    }
   }
 
   /** Switch front/back camera without recreating the stream */

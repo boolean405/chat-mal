@@ -47,6 +47,13 @@ export default function CallScreen() {
   const color = Colors[colorScheme ?? "light"];
   const insets = useSafeAreaInsets();
 
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [micPermission, requestMicPermission] = useMicrophonePermissions();
+  const [callTime, setCallTime] = useState(0);
+
+  const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } =
+    Dimensions.get("window");
+
   const { chatId: rawChatId } = useLocalSearchParams();
   const chatId = Array.isArray(rawChatId) ? rawChatId[0] : rawChatId;
 
@@ -62,6 +69,10 @@ export default function CallScreen() {
     isRequestCall,
     isIncomingCall,
     isAcceptedCall,
+    remoteStreamUrl,
+    localStreamUrl,
+    setLocalStreamUrl,
+    setRemoteStreamUrl,
     endCall,
     setIsMinimized,
     setIsMuted,
@@ -87,17 +98,6 @@ export default function CallScreen() {
   );
 
   // Permissions hooks
-  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
-  const [micPermission, requestMicPermission] = useMicrophonePermissions();
-
-  // State
-  // const [isCalling, setIsCalling] = useState(true);
-  const [callTime, setCallTime] = useState(0);
-  const [localStreamUrl, setLocalStreamUrl] = useState<string | null>(null);
-  const [remoteStreamUrl, setRemoteStreamUrl] = useState<string | null>(null);
-
-  const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } =
-    Dimensions.get("window");
 
   // For calling duration
   useEffect(() => {
@@ -112,17 +112,14 @@ export default function CallScreen() {
   useFocusEffect(() => {
     const onBackPress = () => {
       console.log("back pressed");
-
-      setIsMinimized(true); // 👈 minimize instead of navigating back
-      return false; // 👈 prevent default back behavior
+      setIsMinimized(true);
+      return false; // Prevent default back behavior
     };
-
     const subscription = BackHandler.addEventListener(
       "hardwareBackPress",
       onBackPress
     );
-
-    return () => subscription.remove(); // Correct cleanup
+    return () => subscription.remove();
   });
 
   useEffect(() => {
@@ -160,7 +157,14 @@ export default function CallScreen() {
         onRemoteStream: (s) => setRemoteStreamUrl(s ? s.toURL() : null),
       });
     }
-  }, [chatId, facing, isMuted, isRequestCall, isVideo]);
+  }, [
+    chatId,
+    facing,
+    isMuted,
+    isRequestCall,
+    setLocalStreamUrl,
+    setRemoteStreamUrl,
+  ]);
 
   useEffect(() => {
     if (isRequestCall) {
@@ -510,6 +514,7 @@ export default function CallScreen() {
           <>
             {remoteStreamUrl && (
               <RTCView
+                key={remoteStreamUrl}
                 streamURL={remoteStreamUrl}
                 style={StyleSheet.absoluteFill}
                 objectFit="cover"
@@ -533,6 +538,7 @@ export default function CallScreen() {
           <GestureDetector gesture={dragGesture}>
             <Animated.View style={[styles.localVideoContainer, animatedStyle]}>
               <RTCView
+                key={localStreamUrl}
                 streamURL={localStreamUrl}
                 style={styles.localVideo}
                 objectFit="cover"
@@ -621,19 +627,6 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
   },
-  startCallBtn: {
-    marginTop: 40,
-    alignSelf: "center",
-    backgroundColor: "green",
-    paddingVertical: 18,
-    paddingHorizontal: 40,
-    borderRadius: 30,
-  },
-  startCallText: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "white",
-  },
   incomingCallControls: {
     position: "absolute",
     flexDirection: "row",
@@ -646,12 +639,6 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 50,
   },
-  remoteVideo: {
-    flex: 1,
-    // backgroundColor: "#222",
-    justifyContent: "center",
-    alignItems: "center",
-  },
   headerContainer: {
     flex: 1,
     alignItems: "center",
@@ -662,7 +649,7 @@ const styles = StyleSheet.create({
   localVideoContainer: {
     position: "absolute",
     width: 130,
-    height: 200,
+    height: 175,
     borderRadius: 20,
     overflow: "hidden",
     // bottom: 300,
@@ -673,11 +660,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
-  videoOff: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
   controls: {
     position: "absolute",
     bottom: 10,

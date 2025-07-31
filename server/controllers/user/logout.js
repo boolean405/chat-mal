@@ -9,6 +9,7 @@ export default async function logout(req, res, next) {
     const user = await UserDB.findByIdAndUpdate(
       userId,
       { $unset: { refreshToken: "" } },
+      { $unset: { pushToken: "" } },
       { new: true }
     );
     clearCookie(req, res, "refreshToken");
