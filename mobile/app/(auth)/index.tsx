@@ -60,7 +60,7 @@ export default function FlashScreen() {
           <ThemedText type="title" style={styles.title}>
             {APP_NAME}
           </ThemedText>
-          <ThemedText type="subtitle">{APP_TAGLINE}</ThemedText>
+          {/* <ThemedText type="subtitle">{APP_TAGLINE}</ThemedText> */}
         </ThemedView>
       </Animated.View>
     </ThemedView>
@@ -79,8 +79,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   illustrationImage: {
-    width: width * 0.5,
-    height: width * 0.5,
+    width: width * 0.4,
+    height: width * 0.4,
   },
   header: {
     alignItems: "center",

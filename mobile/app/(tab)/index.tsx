@@ -520,8 +520,8 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   logo: {
-    width: 50,
-    height: 50,
+    width: 40,
+    height: 40,
   },
   listContent: {
     paddingBottom: 20,

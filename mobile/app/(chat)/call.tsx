@@ -97,7 +97,7 @@ export default function CallScreen() {
     (s) => s.remoteFacingStatus[otherUser?._id ?? "unknown"]
   );
 
-  // Permissions hooks
+  // audio hooks
 
   // For calling duration
   useEffect(() => {

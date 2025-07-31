@@ -75,6 +75,9 @@ export function useNotifications() {
 
         if (action === Notifications.DEFAULT_ACTION_IDENTIFIER) {
           if (chatId) {
+            console.log(chatId, "read");
+            console.log("here read here");
+
             router.push({
               pathname: "/(chat)",
               params: { chatId },
