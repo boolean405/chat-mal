@@ -6,19 +6,26 @@ import * as Notifications from "expo-notifications";
 import { updatePushToken } from "@/api/user";
 import { Platform } from "react-native";
 import { socket } from "@/config/socket";
+import { createMessage } from "@/api/message";
+import { useMessageStore } from "@/stores/messageStore";
+import { useChatStore } from "@/stores/chatStore";
 
 export function useNotifications() {
   const router = useRouter();
+  const addMessage = useMessageStore((state) => state.addMessage);
+  const updateChat = useChatStore((state) => state.updateChat);
 
   useEffect(() => {
     // Set up notification handler
     Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldPlaySound: true,
-        shouldSetBadge: true,
-        shouldShowBanner: true,
-        shouldShowList: true,
-      }),
+      handleNotification: async () => {
+        return {
+          shouldPlaySound: true,
+          shouldSetBadge: true,
+          shouldShowBanner: true,
+          shouldShowList: true,
+        };
+      },
     });
 
     // Set Android notification channel for heads-up & sound
@@ -75,9 +82,6 @@ export function useNotifications() {
 
         if (action === Notifications.DEFAULT_ACTION_IDENTIFIER) {
           if (chatId) {
-            console.log(chatId, "read");
-            console.log("here read here");
-
             router.push({
               pathname: "/(chat)",
               params: { chatId },
@@ -88,7 +92,7 @@ export function useNotifications() {
         }
 
         if (action === "ACCEPT") {
-          Notifications.dismissNotificationAsync(
+          await Notifications.dismissNotificationAsync(
             response.notification.request.identifier
           );
           // socket.emit("accept-call", { chatId });
@@ -96,24 +100,36 @@ export function useNotifications() {
         }
 
         if (action === "DECLINE") {
-          Notifications.dismissNotificationAsync(
+          await Notifications.dismissNotificationAsync(
             response.notification.request.identifier
           );
           // socket.emit("end-call", { chatId });
         }
 
+        // Reply message
         if (action === "REPLY") {
-          Notifications.dismissNotificationAsync(
+          await Notifications.dismissNotificationAsync(
             response.notification.request.identifier
           );
-          router.push({
-            pathname: "/(chat)",
-            params: { chatId },
-          } as any);
+          const userText = response.userText;
+          if (!userText) return;
+
+          try {
+            const data = await createMessage(chatId, userText.trim());
+            const message = data.result;
+            addMessage(message.chat._id || chatId, message);
+            updateChat(message.chat);
+
+            socket.emit("send-message", { chatId, message });
+            socket.emit("read-chat", chatId);
+          } catch (error: any) {
+            console.log(error.message);
+          }
         }
 
+        // Read chat
         if (action === "READ") {
-          Notifications.dismissNotificationAsync(
+          await Notifications.dismissNotificationAsync(
             response.notification.request.identifier
           );
           socket.emit("read-chat", chatId);
@@ -126,7 +142,11 @@ export function useNotifications() {
       {
         identifier: "REPLY",
         buttonTitle: "Reply",
-        options: { opensAppToForeground: true },
+        options: { opensAppToForeground: false },
+        textInput: {
+          placeholder: "Type your message...",
+          submitButtonTitle: "Send",
+        },
       },
       {
         identifier: "READ",
@@ -154,5 +174,5 @@ export function useNotifications() {
     return () => {
       subscription.remove();
     };
-  }, [router]);
+  }, [addMessage, router, updateChat]);
 }

@@ -106,12 +106,12 @@ export default function ChatMessage() {
       const alreadyLoaded = storedMessages[chatId]?.length > 0;
 
       // ⛔ Skip page 1 fetch if messages are already in store
-      if (page === 1 && alreadyLoaded) {
-        return {
-          items: storedMessages[chatId]!,
-          totalPage: 1,
-        };
-      }
+      // if (page === 1 && alreadyLoaded) {
+      //   return {
+      //     items: storedMessages[chatId]!,
+      //     totalPage: 1,
+      //   };
+      // }
 
       // ✅ Otherwise fetch from API
       const data = await getPaginateMessages(chatId, page);

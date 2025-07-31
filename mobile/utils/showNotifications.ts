@@ -1,7 +1,7 @@
 import * as Notifications from "expo-notifications";
 
 // Show a local notification
-export function showNotification({
+export async function showNotification({
   title,
   body,
   data,
@@ -15,7 +15,7 @@ export function showNotification({
     messageId?: string;
   };
 }) {
-  Notifications.scheduleNotificationAsync({
+  await Notifications.scheduleNotificationAsync({
     identifier: data?.chatId || "default",
     content: {
       title,

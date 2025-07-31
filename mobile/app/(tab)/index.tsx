@@ -133,7 +133,7 @@ export default function Home() {
     });
 
     // Listen for latestMessage updates
-    socket.on("new-message", ({ chatId, message }) => {
+    socket.on("new-message", async ({ chatId, message }) => {
       const currentChatId = useChatStore.getState().activeChatId;
       const isInCurrentChat = currentChatId === chatId;
       const isSameUser = message.sender._id === user._id;
@@ -157,7 +157,7 @@ export default function Home() {
       // Show local notification if not in the same chat
       if (!isInCurrentChat && !isSameUser && !message.isNotify) {
         // Show local notification
-        showNotification({
+        await showNotification({
           title: message.chat.name || message.sender.name,
           body: content,
           type: "message",
