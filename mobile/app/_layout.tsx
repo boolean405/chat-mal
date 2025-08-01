@@ -21,7 +21,6 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import SafeScreen from "@/components/SafeScreen";
 import { FloatingCall } from "@/components/FloatingCall";
 import { useNotifications } from "@/hooks/useNotifications";
-import { setupCallKeep } from "@/config/callkeep";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -37,10 +36,6 @@ export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
-
-  useEffect(() => {
-    setupCallKeep();
-  }, []);
 
   // Hide splash screen when fonts are loaded
   useEffect(() => {

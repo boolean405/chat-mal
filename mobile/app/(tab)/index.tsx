@@ -305,7 +305,7 @@ export default function Home() {
       socket.off("new-message");
       socket.off("user-went-offline");
       socket.off("new-chat");
-      socket.off("fetch-all");
+      // socket.off("fetch-all");
       socket.off("error");
       socket.off("remove-chat");
       socket.off("ended-call", handleEndedCall);

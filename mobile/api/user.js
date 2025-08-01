@@ -143,6 +143,22 @@ export async function login(email, password) {
   }
 }
 
+// Login google
+export async function loginGoogle(idToken) {
+  try {
+    const response = await api.post("/api/user/login-google", {
+      idToken,
+    });
+
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Google login failed!";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}
+
 // Upload photo
 export async function uploadPhoto(profilePhoto, coverPhoto) {
   try {

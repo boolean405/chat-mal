@@ -128,19 +128,19 @@ export const SETTINGS: SettingItem[] = [
 ];
 
 export const MENUS: MenuItem[] = [
-  { id: "1", label: "Friends", iconName: "people-outline", path: "/friends" },
-  {
-    id: "2",
-    label: "Groups",
-    iconName: "people-circle-outline",
-    path: "/groups",
-  },
+  // { id: "1", label: "Friends", iconName: "people-outline", path: "/friends" },
+  // {
+  //   id: "2",
+  //   label: "Groups",
+  //   iconName: "people-circle-outline",
+  //   path: "/groups",
+  // },
   {
     id: "3",
     label: "Message Request",
     iconName: "chatbubble-ellipses-outline",
     path: "/message-request",
   },
-  { id: "4", label: "Events", iconName: "calendar-outline", path: "/events" },
-  { id: "5", label: "Memories", iconName: "time-outline", path: "/memories" },
+  // { id: "4", label: "Events", iconName: "calendar-outline", path: "/events" },
+  // { id: "5", label: "Memories", iconName: "time-outline", path: "/memories" },
 ];

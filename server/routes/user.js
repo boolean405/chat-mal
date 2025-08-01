@@ -30,6 +30,7 @@ import {
   validateQuery,
 } from "../utils/validator.js";
 import updatePushToken from "../controllers/user/updaetPushToken.js";
+import loginGoogle from "../controllers/user/loginGoogle.js";
 
 router.get("/exist-email", validateQuery(UserSchema.existEmail), existEmail);
 router.get(
@@ -130,5 +131,7 @@ router.post(
   validateBody(UserSchema.updatePushToken),
   updatePushToken
 );
+
+router.post("/login-google", loginGoogle);
 
 export default router;

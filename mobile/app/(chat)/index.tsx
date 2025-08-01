@@ -1,6 +1,8 @@
 import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import NetInfo from "@react-native-community/netinfo";
+
 import {
   ActivityIndicator,
   Alert,
@@ -91,6 +93,7 @@ export default function ChatMessage() {
     type: "image" | "video";
     isLoading: boolean;
   } | null>(null);
+  const [isConnected, setIsConnected] = useState(true);
 
   // Pagination handling
   const {
@@ -134,6 +137,15 @@ export default function ChatMessage() {
   //     setChats(newChats);
   //   }
   // }, [newChats, clearAllChats, setChats, isFetching]);
+
+  // Netinfo
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      setIsConnected(state.isConnected ?? false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     setActiveChatId(chatId); // when entering
@@ -250,19 +262,20 @@ export default function ChatMessage() {
 
   // Handle send message
   const handleSendMessage = async () => {
+    if (!newMessage.trim() || !chatId || !currentChat) return;
+
     setIsSentMessage(true);
+    socket.emit("stop-typing", { chatId });
 
     // Create tmp message
-    if (!newMessage.trim() || !chatId || !currentChat) return;
     const tempId = `temp-${Date.now()}`;
-
     const tempMessage: Message = {
       _id: tempId,
       content: newMessage.trim(),
       sender: user,
       chat: currentChat,
       type: "text",
-      status: "pending",
+      status: isConnected ? "pending" : "failed",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -270,7 +283,8 @@ export default function ChatMessage() {
     addMessage(chatId, tempMessage);
     setNewMessage("");
 
-    socket.emit("stop-typing", { chatId });
+    // If offline, don't send to server
+    if (!isConnected) return;
 
     // Call api message
     try {
@@ -382,12 +396,17 @@ export default function ChatMessage() {
       sender: user,
       chat: currentChat,
       type: pendingMediaPreview.type,
-      status: "pending",
+      status: isConnected ? "pending" : "failed",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
     addMessage(chatId, tempMessage);
+
+    if (!isConnected) {
+      setPendingMediaPreview(null);
+      return;
+    }
 
     try {
       const mimeType =
@@ -440,12 +459,17 @@ export default function ChatMessage() {
       sender: user,
       chat: currentChat,
       type: media.type === "image" ? "image" : "video",
-      status: "pending",
+      status: isConnected ? "pending" : "failed",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
     addMessage(chatId, tempMessage);
+
+    if (!isConnected) {
+      setPendingMediaPreview(null);
+      return;
+    }
 
     try {
       const mimeType = media.type === "image" ? "image/jpeg" : "video/mp4";

@@ -36,9 +36,8 @@ export default function LoginPassword() {
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    password.length < 8
-      ? setIsInvalidPassword(true)
-      : setIsInvalidPassword(false);
+    if (password.length < 8) setIsInvalidPassword(true);
+    else setIsInvalidPassword(false);
   }, [password]);
 
   const handleForgotPassword = async () => {

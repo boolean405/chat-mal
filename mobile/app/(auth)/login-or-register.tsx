@@ -17,14 +17,17 @@ import { ThemedButton } from "@/components/ThemedButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { APP_NAME, APP_TAGLINE } from "@/constants";
+import { useGoogleAuth } from "@/config/googleAuth";
 
 export default function LoginOrRegister() {
   const colorScheme = useColorScheme();
   const color = colorScheme === "dark" ? "white" : "black";
+  const { request, promptAsync } = useGoogleAuth();
 
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [isInvalidEmail, setIsInvalidEmail] = useState(false);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -35,7 +38,8 @@ export default function LoginOrRegister() {
       return emailRegex.test(email);
     };
 
-    validateEmail(email) ? setIsInvalidEmail(false) : setIsInvalidEmail(true);
+    if (validateEmail(email)) setIsInvalidEmail(false);
+    else setIsInvalidEmail(true);
   }, [email]);
 
   const handleContinue = async () => {
@@ -127,7 +131,30 @@ export default function LoginOrRegister() {
             onPress={handleContinue}
             isLoading={isLoading}
           />
-          <ThemedText style={{ fontWeight: "200" }}>
+          <ThemedText type="small" style={{ fontWeight: "200" }}>
+            OR
+          </ThemedText>
+
+          <ThemedView style={styles.authLoginContainer}>
+            <ThemedButton
+              style={[styles.authButton]}
+              title={!loading && <Ionicons name="logo-google" size={20} />}
+              disabled={loading}
+              onPress={() => {
+                Keyboard.dismiss();
+                promptAsync().finally(() => setLoading(false));
+              }}
+              isLoading={loading}
+            />
+            <ThemedButton
+              style={[styles.authButton]}
+              title={!isLoading && <Ionicons name="logo-facebook" size={20} />}
+              disabled={loading}
+              // onPress={handleContinue}
+              isLoading={loading}
+            />
+          </ThemedView>
+          <ThemedText style={{ fontWeight: "200", marginTop: 10 }}>
             By clicking continue, you agree to our
           </ThemedText>
           <ThemedText style={{ fontWeight: "400" }}>
@@ -173,6 +200,18 @@ const styles = StyleSheet.create({
   },
   button: {
     width: "80%",
+    marginVertical: 10,
+  },
+  authButton: {
+    width: "48%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  authLoginContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "80%", // was 50%
+    alignItems: "center",
     marginVertical: 10,
   },
 });

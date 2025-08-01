@@ -95,7 +95,7 @@ export default function TabLayout() {
       /> */}
 
       {/* Notification tab */}
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="notification"
         options={{
           title: "Notification",
@@ -104,7 +104,7 @@ export default function TabLayout() {
           ),
           tabBarLabel: tabBarLabel("Notification"),
         }}
-      />
+      /> */}
 
       {/* Menu tab */}
       <Tabs.Screen
