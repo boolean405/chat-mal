@@ -11,15 +11,24 @@ import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { KeyboardProvider } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import {
+  KeyboardProvider,
+  KeyboardController,
+} from "react-native-keyboard-controller";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import SafeScreen from "@/components/SafeScreen";
 import { FloatingCall } from "@/components/FloatingCall";
 import { useNotifications } from "@/hooks/useNotifications";
+import { setupCallKeep } from "@/config/callkeep";
 
 SplashScreen.preventAutoHideAsync();
+
+if (!KeyboardController.preload) {
+  // Patch missing preload to a no-op to avoid crash
+  KeyboardController.preload = () => {};
+}
 
 export default function RootLayout() {
   useNotifications();
@@ -28,6 +37,10 @@ export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
+
+  useEffect(() => {
+    setupCallKeep();
+  }, []);
 
   // Hide splash screen when fonts are loaded
   useEffect(() => {

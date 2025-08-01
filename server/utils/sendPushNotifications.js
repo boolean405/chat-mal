@@ -46,39 +46,3 @@ export async function sendPushNotifications(
     }
   }
 }
-
-// // Push notifications token to expo
-// import axios from "axios";
-
-// export async function sendPushNotification(pushToken, title, body, data) {
-//   try {
-//     const response = await axios.post(
-//       process.env.EXPO_PUSH_TOKEN_URL,
-//       {
-//         to: pushToken,
-//         title,
-//         body,
-//         data,
-//         sound: "default",
-//       },
-//       {
-//         headers: {
-//           Accept: "application/json",
-//           "Accept-Encoding": "gzip, deflate",
-//           "Content-Type": "application/json",
-//         },
-//       }
-//     );
-
-//     if (response.data?.data?.status === "ok")
-//       console.log("✅ Push notification sent successfully.");
-//     else console.warn("⚠️ Expo push error:", response.data);
-
-//     return response.data;
-//   } catch (error) {
-//     console.error(
-//       "❌ Failed to send push notification:",
-//       error?.message || error
-//     );
-//   }
-// }

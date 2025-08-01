@@ -79,8 +79,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   illustrationImage: {
-    width: width * 0.4,
-    height: width * 0.4,
+    width: width * 0.5,
+    height: width * 0.5,
   },
   header: {
     alignItems: "center",

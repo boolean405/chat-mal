@@ -23,7 +23,7 @@ export async function showNotification({
       data,
       sound: "default",
       categoryIdentifier: type,
-      sticky: type === "call" ? true : false,
+      sticky: type === "call",
       priority: Notifications.AndroidNotificationPriority.MAX,
     },
     trigger: null,
