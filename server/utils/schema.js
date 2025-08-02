@@ -107,6 +107,10 @@ export const UserSchema = {
     pushToken: Joi.string().required(),
   }),
 
+  loginGoogle: Joi.object({
+    idToken: Joi.string().required(),
+  }),
+
   params: {
     userId: Joi.object({
       userId: Joi.string()

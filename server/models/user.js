@@ -20,7 +20,6 @@ const userSchema = new Schema(
     },
     password: {
       type: String,
-      required: true,
     },
     profilePhoto: {
       type: String,
@@ -55,6 +54,20 @@ const userSchema = new Schema(
     pushToken: {
       type: String,
     },
+    authProviders: [
+      {
+        _id: false,
+        provider: {
+          type: String,
+          enum: ["google", "facebook"],
+          required: true,
+        },
+        providerId: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
   },
   {
     timestamps: true,
@@ -71,5 +84,9 @@ userSchema.index({ isOnline: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ verified: 1 });
 userSchema.index({ refreshToken: 1 });
+userSchema.index(
+  { "authProviders.provider": 1, "authProviders.providerId": 1 },
+  { unique: true }
+);
 
 export default mongoose.model("user", userSchema);

@@ -1,6 +1,14 @@
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
+
+import {
+  GoogleSignin,
+  isSuccessResponse,
+  isErrorWithCode,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
+
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -11,26 +19,29 @@ import {
   useColorScheme,
 } from "react-native";
 
-import { existEmail } from "@/api/user";
+import { existEmail, loginGoogle } from "@/api/user";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemedButton } from "@/components/ThemedButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { APP_NAME, APP_TAGLINE } from "@/constants";
-import { useGoogleAuth } from "@/config/googleAuth";
+import { useGoogleAuth } from "@/config/useOAuth";
+import { useAuthStore } from "@/stores/authStore";
 
 export default function LoginOrRegister() {
+  useGoogleAuth();
   const colorScheme = useColorScheme();
   const color = colorScheme === "dark" ? "white" : "black";
-  const { request, promptAsync } = useGoogleAuth();
+  const { setUser } = useAuthStore();
 
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [isInvalidEmail, setIsInvalidEmail] = useState(false);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isGoogleLoginLoading, setIsGoogleLoginLoading] = useState(false);
+  const [isFacebookLoginLoading, setIsFacebookLoginLoading] = useState(false);
 
   useEffect(() => {
     const validateEmail = (email: string) => {
@@ -66,6 +77,50 @@ export default function LoginOrRegister() {
       setErrorMessage(error.message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Handle google login
+  const handleGoogleLogin = async () => {
+    Keyboard.dismiss();
+    setIsGoogleLoginLoading(true);
+
+    try {
+      await GoogleSignin.hasPlayServices();
+      // Force account picker by signing out first
+      await GoogleSignin.signOut();
+      const res = await GoogleSignin.signIn();
+      if (isSuccessResponse(res)) {
+        const response = await loginGoogle(res.data.idToken);
+        console.log(response.status);
+        
+        if (response.status === 200) {
+          router.push({
+            pathname: "/(auth)/login-password",
+          });
+        } else if (response.status === 201) {
+          const user = response.data.result.user;
+          const accessToken = response.data.result.accessToken;
+          setUser(user, accessToken);
+          router.replace("/(tab)");
+        }
+      } else {
+      }
+    } catch (error: any) {
+      if (isErrorWithCode(error)) {
+        switch (error.code) {
+          case statusCodes.SIGN_IN_CANCELLED:
+            break;
+          case statusCodes.IN_PROGRESS:
+            break;
+          case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+            break;
+          default:
+            break;
+        }
+      }
+    } finally {
+      setIsGoogleLoginLoading(false);
     }
   };
 
@@ -138,21 +193,25 @@ export default function LoginOrRegister() {
           <ThemedView style={styles.authLoginContainer}>
             <ThemedButton
               style={[styles.authButton]}
-              title={!loading && <Ionicons name="logo-google" size={20} />}
-              disabled={loading || !request}
-              onPress={() => {
-                Keyboard.dismiss();
-                promptAsync();
-                console.log("Redirect URI:", request?.redirectUri);
-              }}
-              isLoading={loading}
+              title={
+                !isGoogleLoginLoading && (
+                  <Ionicons name="logo-google" size={22} />
+                )
+              }
+              disabled={isGoogleLoginLoading || isFacebookLoginLoading}
+              onPress={handleGoogleLogin}
+              isLoading={isGoogleLoginLoading}
             />
             <ThemedButton
               style={[styles.authButton]}
-              title={!isLoading && <Ionicons name="logo-facebook" size={20} />}
-              disabled={loading}
+              title={
+                !isFacebookLoginLoading && (
+                  <Ionicons name="logo-facebook" size={22} />
+                )
+              }
+              disabled={isFacebookLoginLoading || isGoogleLoginLoading}
               // onPress={handleContinue}
-              isLoading={loading}
+              isLoading={isFacebookLoginLoading}
             />
           </ThemedView>
           <ThemedText style={{ fontWeight: "200", marginTop: 10 }}>

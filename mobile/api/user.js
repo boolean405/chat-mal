@@ -150,7 +150,7 @@ export async function loginGoogle(idToken) {
       idToken,
     });
 
-    return response.data;
+    return response;
   } catch (error) {
     const message = error.response?.data?.message || "Google login failed!";
     const customError = new Error(message);

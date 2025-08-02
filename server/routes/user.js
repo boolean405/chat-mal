@@ -132,6 +132,6 @@ router.post(
   updatePushToken
 );
 
-router.post("/login-google", loginGoogle);
+router.post("/login-google", validateBody(UserSchema.loginGoogle), loginGoogle);
 
 export default router;
