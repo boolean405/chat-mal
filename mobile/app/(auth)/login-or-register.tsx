@@ -139,10 +139,11 @@ export default function LoginOrRegister() {
             <ThemedButton
               style={[styles.authButton]}
               title={!loading && <Ionicons name="logo-google" size={20} />}
-              disabled={loading}
+              disabled={loading || !request}
               onPress={() => {
                 Keyboard.dismiss();
-                promptAsync().finally(() => setLoading(false));
+                promptAsync();
+                console.log("Redirect URI:", request?.redirectUri);
               }}
               isLoading={loading}
             />

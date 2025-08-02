@@ -1,32 +1,44 @@
 import { useEffect } from "react";
-import { makeRedirectUri } from "expo-auth-session";
-import * as Google from "expo-auth-session/providers/google";
 import { useAuthStore } from "@/stores/authStore";
 import { loginGoogle } from "@/api/user";
+import * as WebBrowser from "expo-web-browser";
+import { makeRedirectUri, useAuthRequest } from "expo-auth-session";
+
+WebBrowser.maybeCompleteAuthSession();
 
 export function useGoogleAuth() {
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID!,
-    scopes: ["profile", "email"],
+  const GOOGLE_REDIRECT_URI =
+    "http://127.0.0.1:3000/api/user/login-google-callback";
 
-    redirectUri: makeRedirectUri({
-      native: "chatmal:/oauth2redirect/google",
-    }),
-  });
+  const discovery = {
+    authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
+    tokenEndpoint: "https://oauth2.googleapis.com/token",
+    revocationEndpoint: "https://oauth2.googleapis.com/revoke",
+  };
 
-  const setUser = useAuthStore((state) => state.setUser);
+  const [request, response, promptAsync] = useAuthRequest(
+    {
+      clientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!,
+      redirectUri: makeRedirectUri({
+        native: "chatmal://redirect",
+      }),
+      scopes: ["profile", "email", "openid"],
+      responseType: "id_token",
+    },
+    discovery
+  );
 
   useEffect(() => {
-    if (response?.type === "success") {
-      const idToken = response.authentication?.idToken;
-      if (!idToken) return;
+    console.log("response", response);
 
-      handleLoginGoogle(idToken);
+    if (response?.type === "success") {
+      const { authentication } = response;
     }
   }, [response]);
 
   const handleLoginGoogle = async (idToken: string) => {
     try {
+      console.log("Logging in with Google...");
       const data = await loginGoogle(idToken);
 
       console.log(data, "from server");
