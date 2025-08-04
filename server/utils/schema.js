@@ -108,7 +108,10 @@ export const UserSchema = {
   }),
 
   loginGoogle: Joi.object({
-    idToken: Joi.string().required(),
+    name: Joi.string().required(),
+    profilePhoto: Joi.string().required(),
+    googleId: Joi.string().required(),
+    email: Joi.string().email({ minDomainSegments: 2 }).lowercase().required(),
   }),
 
   params: {

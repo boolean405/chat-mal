@@ -264,7 +264,17 @@ export const useChatStore = create<ChatStore>()(
             };
           }),
 
-        clearAllChats: () => set({ chats: [], currentChat: null }),
+        clearAllChats: async () => {
+          await AsyncStorage.removeItem("chat-storage");
+          set({
+            chats: [],
+            currentChat: null,
+            totalUnreadCount: 0,
+            requestUnreadCount: 0,
+            activeChatId: null,
+            onlineUserIds: [],
+          });
+        },
 
         getChatById: (chatId) => {
           return get().chats.find((chat) => chat._id === chatId);

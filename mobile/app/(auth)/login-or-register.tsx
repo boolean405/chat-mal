@@ -9,7 +9,10 @@ import {
   statusCodes,
 } from "@react-native-google-signin/google-signin";
 
+import { LoginManager, AccessToken } from "react-native-fbsdk-next";
+
 import {
+  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -19,17 +22,15 @@ import {
   useColorScheme,
 } from "react-native";
 
-import { existEmail, loginGoogle } from "@/api/user";
+import { existEmail, loginFacebook, loginGoogle } from "@/api/user";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemedButton } from "@/components/ThemedButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { APP_NAME, APP_TAGLINE } from "@/constants";
-import { useGoogleAuth } from "@/config/useOAuth";
 import { useAuthStore } from "@/stores/authStore";
 
 export default function LoginOrRegister() {
-  useGoogleAuth();
   const colorScheme = useColorScheme();
   const color = colorScheme === "dark" ? "white" : "black";
   const { setUser } = useAuthStore();
@@ -89,24 +90,22 @@ export default function LoginOrRegister() {
       await GoogleSignin.hasPlayServices();
       // Force account picker by signing out first
       await GoogleSignin.signOut();
-      const res = await GoogleSignin.signIn();
-      if (isSuccessResponse(res)) {
-        const response = await loginGoogle(res.data.idToken);
-        console.log(response.status);
-        
-        if (response.status === 200) {
-          router.push({
-            pathname: "/(auth)/login-password",
-          });
-        } else if (response.status === 201) {
-          const user = response.data.result.user;
-          const accessToken = response.data.result.accessToken;
-          setUser(user, accessToken);
-          router.replace("/(tab)");
-        }
+      const response = await GoogleSignin.signIn();
+      if (isSuccessResponse(response)) {
+        const data = await loginGoogle(response.data.user);
+
+        console.log(JSON.stringify(data.result, null, 2));
+        setUser(data.result.user, data.result.accessToken);
+        router.replace("/(tab)");
       } else {
+        Alert.alert(
+          "Failed to login with Google",
+          "Something went wrong. Please try again later."
+        );
       }
     } catch (error: any) {
+      console.log(error.message);
+
       if (isErrorWithCode(error)) {
         switch (error.code) {
           case statusCodes.SIGN_IN_CANCELLED:
@@ -121,6 +120,45 @@ export default function LoginOrRegister() {
       }
     } finally {
       setIsGoogleLoginLoading(false);
+    }
+  };
+
+  // Facebook login
+  const handleFacebookLogin = async () => {
+    Keyboard.dismiss();
+    setIsFacebookLoginLoading(true);
+
+    try {
+      const result = await LoginManager.logInWithPermissions([
+        "public_profile",
+        "email",
+      ]);
+
+      console.log(result, "result");
+
+      if (result.isCancelled) {
+        console.log("Login cancelled");
+        return;
+      }
+
+      // Get the access token
+      const data = await AccessToken.getCurrentAccessToken();
+
+      if (!data) {
+        console.log("Failed to get access token");
+        return;
+      }
+
+      const { accessToken } = data;
+
+      // Send the token to your backend
+      // const response = await loginFacebook(accessToken);
+
+      // console.log("Backend response:");
+    } catch (error: any) {
+      console.log(error.message);
+    } finally {
+      setIsFacebookLoginLoading(false);
     }
   };
 
@@ -210,7 +248,7 @@ export default function LoginOrRegister() {
                 )
               }
               disabled={isFacebookLoginLoading || isGoogleLoginLoading}
-              // onPress={handleContinue}
+              onPress={handleFacebookLogin}
               isLoading={isFacebookLoginLoading}
             />
           </ThemedView>

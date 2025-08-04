@@ -80,8 +80,12 @@ export const useMessageStore = create<MessageState>()(
           delete newMessages[chatId];
           return { messages: newMessages };
         }),
+
       // Clear all messages
-      clearAllMessages: () => set({ messages: {} }),
+      clearAllMessages: async () => {
+        await AsyncStorage.removeItem("messages-storage");
+        set({ messages: {} });
+      },
     }),
     {
       name: "messages-storage",

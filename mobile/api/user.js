@@ -144,10 +144,29 @@ export async function login(email, password) {
 }
 
 // Login google
-export async function loginGoogle(idToken) {
+export async function loginGoogle(user) {
   try {
     const response = await api.post("/api/user/login-google", {
-      idToken,
+      name: user.name,
+      email: user.email,
+      profilePhoto: user.photo,
+      googleId: user.id,
+    });
+
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Google login failed!";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}
+
+// Login facebook
+export async function loginFacebook(accessToken) {
+  try {
+    const response = await api.post("/api/user/login-facebook", {
+      accessToken,
     });
 
     return response;

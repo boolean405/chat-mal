@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { OAuth2Client } from "google-auth-library";
 
 import UserDB from "../../models/user.js";
 import resJson from "../../utils/resJson.js";
@@ -11,49 +10,48 @@ import UserPrivacyDB from "../../models/userPrivacy.js";
 import sendEmail from "../../utils/sendEmail.js";
 import { APP_NAME } from "../../constants/index.js";
 
-const client = new OAuth2Client({
-  clientId: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-});
-
 const loginGoogle = async (req, res, next) => {
   try {
-    const idToken = req.body.idToken;
-    const ticket = await client.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-    const { email, name, picture, sub: googleId } = ticket.getPayload();
+    const { name, email, profilePhoto, googleId } = req.body;
+    let newUser = false;
 
-    // 1. Find by Google ID in authProviders
+    // 1. Try to find user by Google auth provider
     let user = await UserDB.findOne({
       authProviders: {
         $elemMatch: { provider: "google", providerId: googleId },
       },
     });
 
-    // 2. Not found? Try fallback by email
+    // 2. Fallback to email lookup
     if (!user) {
       user = await UserDB.findOne({ email });
 
-      // User exists but only with local? Return warning
+      // If found, but Google is not linked, link it
       if (user) {
-        const hasGoogleProvider = user.authProviders?.some(
-          (p) => p.provider === "google"
+        const alreadyLinked = user.authProviders?.some(
+          (p) => p.provider === "google" && p.providerId === googleId
         );
 
-        if (!hasGoogleProvider) {
-          return resJson(
-            res,
-            200,
-            "Account already exists with email. Please login using email and password."
+        if (!alreadyLinked) {
+          user = await UserDB.findByIdAndUpdate(
+            user._id,
+            {
+              $addToSet: {
+                authProviders: {
+                  provider: "google",
+                  providerId: googleId,
+                },
+              },
+            },
+            { new: true }
           );
         }
       }
     }
 
-    // 3. New user? Create
+    // 3. New user creation
     if (!user) {
+      newUser = true;
       let baseUsername = email.split("@")[0].replace(/\./g, "");
       let username = baseUsername;
       let count = 1;
@@ -66,44 +64,25 @@ const loginGoogle = async (req, res, next) => {
         name,
         email,
         username,
-        profilePhoto: picture,
+        profilePhoto,
         authProviders: [{ provider: "google", providerId: googleId }],
       });
 
       await UserPrivacyDB.create({ user: user._id });
-    } else {
-      // 4. User exists but might not have Google provider linked yet
-      const alreadyLinked = user.authProviders.some(
-        (p) => p.provider === "google" && p.providerId === googleId
-      );
-
-      if (!alreadyLinked) {
-        await UserDB.updateOne(
-          { _id: user._id },
-          {
-            $addToSet: {
-              authProviders: {
-                provider: "google",
-                providerId: googleId,
-              },
-            },
-          }
-        );
-      }
     }
 
-    // 5. Create tokens
+    // 4. Create tokens
     const refreshToken = Token.makeRefreshToken({ id: user._id.toString() });
     const accessToken = Token.makeAccessToken({ id: user._id.toString() });
 
-    // 6. Update refresh token
+    // 5. Update user with refresh token
     user = await UserDB.findByIdAndUpdate(
       user._id,
       { refreshToken },
       { new: true, select: "-password" }
     );
 
-    // 7. Send email
+    // 6. Send login email
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
     const htmlFile = fs.readFileSync(
@@ -117,14 +96,20 @@ const loginGoogle = async (req, res, next) => {
       htmlFile
     );
 
-    // 8. Final response
+    // 7. Send response with tokens
     resCookie(req, res, "refreshToken", refreshToken);
-    return resJson(res, 201, "Success login with Google.", {
-      user,
-      accessToken,
-    });
+    return resJson(
+      res,
+      newUser ? 201 : 200,
+      "Success login with google account.",
+      {
+        user,
+        accessToken,
+      }
+    );
   } catch (error) {
     next(error);
   }
 };
+
 export default loginGoogle;
