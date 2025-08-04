@@ -382,3 +382,16 @@ export async function updatePushToken(pushToken) {
     throw customError;
   }
 }
+
+// logout
+export async function logout() {
+  try {
+    const response = await api.post(`/api/user/logout`);
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Failed to logout!";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}

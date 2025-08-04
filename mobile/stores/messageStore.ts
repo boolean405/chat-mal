@@ -82,10 +82,7 @@ export const useMessageStore = create<MessageState>()(
         }),
 
       // Clear all messages
-      clearAllMessages: async () => {
-        await AsyncStorage.removeItem("messages-storage");
-        set({ messages: {} });
-      },
+      clearAllMessages: () => set({ messages: {} }),
     }),
     {
       name: "messages-storage",

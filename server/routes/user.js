@@ -41,7 +41,7 @@ router.get(
 
 router.post("/register", validateBody(UserSchema.register), register);
 router.post("/login", validateBody(UserSchema.login), login);
-router.post("/logout", validateCookie(), logout);
+router.post("/logout", validateToken(), validateCookie(), logout);
 router.post("/refresh", validateCookie(), refresh);
 router.get("/", validateToken(), getUser);
 

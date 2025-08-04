@@ -9,30 +9,37 @@ import {
   statusCodes,
 } from "@react-native-google-signin/google-signin";
 
-import { LoginManager, AccessToken } from "react-native-fbsdk-next";
+import {
+  LoginManager,
+  AccessToken,
+  GraphRequestManager,
+  GraphRequest,
+} from "react-native-fbsdk-next";
 
 import {
-  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
+  Text,
   TextInput,
   useColorScheme,
+  View,
 } from "react-native";
 
-import { existEmail, loginFacebook, loginGoogle } from "@/api/user";
+import { existEmail, loginGoogle } from "@/api/user";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemedButton } from "@/components/ThemedButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { APP_NAME, APP_TAGLINE } from "@/constants";
 import { useAuthStore } from "@/stores/authStore";
+import { Colors } from "@/constants/colors";
 
 export default function LoginOrRegister() {
   const colorScheme = useColorScheme();
-  const color = colorScheme === "dark" ? "white" : "black";
+  const color = Colors[colorScheme ?? "light"];
   const { setUser } = useAuthStore();
 
   const router = useRouter();
@@ -94,14 +101,9 @@ export default function LoginOrRegister() {
       if (isSuccessResponse(response)) {
         const data = await loginGoogle(response.data.user);
 
-        console.log(JSON.stringify(data.result, null, 2));
         setUser(data.result.user, data.result.accessToken);
         router.replace("/(tab)");
       } else {
-        Alert.alert(
-          "Failed to login with Google",
-          "Something went wrong. Please try again later."
-        );
       }
     } catch (error: any) {
       console.log(error.message);
@@ -123,7 +125,7 @@ export default function LoginOrRegister() {
     }
   };
 
-  // Facebook login
+  // Facebook login , now unavaliable
   const handleFacebookLogin = async () => {
     Keyboard.dismiss();
     setIsFacebookLoginLoading(true);
@@ -134,27 +136,51 @@ export default function LoginOrRegister() {
         "email",
       ]);
 
-      console.log(result, "result");
-
       if (result.isCancelled) {
-        console.log("Login cancelled");
-        return;
+        return console.log("Login cancelled");
       }
 
-      // Get the access token
       const data = await AccessToken.getCurrentAccessToken();
 
-      if (!data) {
-        console.log("Failed to get access token");
-        return;
+      if (data) {
+        const infoRequest = new GraphRequest(
+          "/me",
+          {
+            accessToken: data.accessToken,
+            parameters: {
+              fields: {
+                string: "id,name,email,picture.type(large)",
+              },
+            },
+          },
+          (error, result) => {
+            if (error) {
+              console.log("Error fetching data: " + error.toString());
+            } else if (result) {
+              const user = {
+                id: result.id,
+                name: result.name,
+                email: result.email,
+                picture: result.picture,
+              };
+
+              // const data = loginFacebook();
+
+              console.log(
+                "Success fetching data: ",
+                JSON.stringify(result, null, 2)
+              );
+              console.log("email", result.email);
+              console.log(
+                "Granted permissions:",
+                result.grantedPermissions?.toString()
+              );
+            }
+          }
+        );
+
+        new GraphRequestManager().addRequest(infoRequest).start();
       }
-
-      const { accessToken } = data;
-
-      // Send the token to your backend
-      // const response = await loginFacebook(accessToken);
-
-      // console.log("Backend response:");
     } catch (error: any) {
       console.log(error.message);
     } finally {
@@ -185,10 +211,16 @@ export default function LoginOrRegister() {
           </ThemedText>
 
           {/* Input container */}
-          <ThemedView style={[styles.inputContainer, { borderColor: color }]}>
-            <Ionicons name="mail-outline" size={24} style={[{ color }]} />
+          <ThemedView
+            style={[styles.inputContainer, { borderColor: color.border }]}
+          >
+            <Ionicons
+              name="mail-outline"
+              size={24}
+              style={[{ color: color.icon }]}
+            />
             <TextInput
-              style={[styles.textInput, { color }]}
+              style={[styles.textInput, { color: color.text }]}
               placeholder="Email"
               keyboardType="email-address"
               textContentType="emailAddress"
@@ -219,38 +251,59 @@ export default function LoginOrRegister() {
               styles.button,
               (isInvalidEmail || isLoading || isError) && { opacity: 0.5 }, // dim button when disabled
             ]}
-            title={!isLoading && "Continue"}
+            title={"Continue"}
             disabled={isInvalidEmail || isLoading || isError}
             onPress={handleContinue}
             isLoading={isLoading}
           />
-          <ThemedText type="small" style={{ fontWeight: "200" }}>
+          <ThemedText type="small" style={{ fontWeight: "condensedBold" }}>
             OR
           </ThemedText>
 
+          {/* Google button */}
           <ThemedView style={styles.authLoginContainer}>
             <ThemedButton
               style={[styles.authButton]}
               title={
-                !isGoogleLoginLoading && (
-                  <Ionicons name="logo-google" size={22} />
-                )
+                <View style={styles.authButtonContainer}>
+                  <Ionicons
+                    color={color.background}
+                    name="logo-google"
+                    size={22}
+                  />
+                  <Text
+                    style={[styles.authButtonText, { color: color.background }]}
+                  >
+                    Continue with Google
+                  </Text>
+                </View>
               }
               disabled={isGoogleLoginLoading || isFacebookLoginLoading}
               onPress={handleGoogleLogin}
               isLoading={isGoogleLoginLoading}
             />
-            <ThemedButton
+
+            {/* Facebook button */}
+            {/* <ThemedButton
               style={[styles.authButton]}
               title={
-                !isFacebookLoginLoading && (
-                  <Ionicons name="logo-facebook" size={22} />
-                )
+                <View style={styles.authButtonContainer}>
+                  <Ionicons
+                    color={color.background}
+                    name="logo-facebook"
+                    size={22}
+                  />
+                  <Text
+                    style={[styles.authButtonText, { color: color.background }]}
+                  >
+                    Continue with Facebook
+                  </Text>
+                </View>
               }
-              disabled={isFacebookLoginLoading || isGoogleLoginLoading}
+              disabled={isGoogleLoginLoading || isFacebookLoginLoading}
               onPress={handleFacebookLogin}
               isLoading={isFacebookLoginLoading}
-            />
+            /> */}
           </ThemedView>
           <ThemedText style={{ fontWeight: "200", marginTop: 10 }}>
             By clicking continue, you agree to our
@@ -273,6 +326,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingVertical: 60,
   },
   logoImage: {
     width: 150,
@@ -301,15 +355,26 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   authButton: {
-    width: "48%",
+    width: "100%",
     justifyContent: "center",
     alignItems: "center",
+    marginVertical: 10,
+    // marginBottom:10
   },
   authLoginContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    // flexDirection: "row",
+    // justifyContent: "space-between",
     width: "80%", // was 50%
     alignItems: "center",
-    marginVertical: 10,
+    // marginVertical: 10,
+  },
+  authButtonContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  authButtonText: {
+    fontWeight: "semibold",
+    marginLeft: 10,
+    fontSize: 16,
   },
 });

@@ -29,7 +29,8 @@ const validateToken = () => {
 const validateCookie = () => {
   return async (req, res, next) => {
     const refreshToken = req.cookies.refreshToken;
-    if (!refreshToken) return next(resError(401, "Need refresh token cookie!"));
+    // if (!refreshToken) return next(resError(401, "Need refresh token cookie!"));
+    if (!refreshToken) return next();
     const decoded = Token.verifyRefreshToken(refreshToken);
     if (decoded) req.decodedId = decoded.id;
     next();

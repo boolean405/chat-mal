@@ -9,10 +9,11 @@ import resCookie from "../../utils/resCookie.js";
 import UserPrivacyDB from "../../models/userPrivacy.js";
 import sendEmail from "../../utils/sendEmail.js";
 import { APP_NAME } from "../../constants/index.js";
+import uploadAuthPhoto from "../../utils/uploadAuthPhoto.js";
 
 const loginGoogle = async (req, res, next) => {
   try {
-    const { name, email, profilePhoto, googleId } = req.body;
+    const { name, email, profilePhoto: photourl, googleId } = req.body;
     let newUser = false;
 
     // 1. Try to find user by Google auth provider
@@ -59,6 +60,13 @@ const loginGoogle = async (req, res, next) => {
       while (await UserDB.exists({ username })) {
         username = `${baseUsername}${count++}`;
       }
+
+      const profilePhoto = await uploadAuthPhoto({
+        username,
+        photourl,
+        type: "profilePhoto",
+        folder: "chat-mal/users/profile-photo",
+      });
 
       user = await UserDB.create({
         name,

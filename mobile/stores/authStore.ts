@@ -36,8 +36,7 @@ export const useAuthStore = create<AuthState>()(
         return !!user && !!accessToken;
       },
 
-      logout: async () => {
-        await AsyncStorage.removeItem("auth-storage");
+      logout: () => {
         set({ user: null, accessToken: null });
         router.replace("/(auth)");
       },

@@ -21,7 +21,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import SafeScreen from "@/components/SafeScreen";
 import { FloatingCall } from "@/components/FloatingCall";
 import { useNotifications } from "@/hooks/useNotifications";
-import { useGoogleAuth } from "@/hooks/useOAuth";
+import { useOAuth } from "@/hooks/useOAuth";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -31,8 +31,9 @@ if (!KeyboardController.preload) {
 }
 
 export default function RootLayout() {
+  useOAuth();
   useNotifications();
-  useGoogleAuth();
+
   const colorScheme = useColorScheme();
 
   const [fontsLoaded] = useFonts({

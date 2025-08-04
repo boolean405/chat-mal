@@ -264,8 +264,13 @@ export const useChatStore = create<ChatStore>()(
             };
           }),
 
-        clearAllChats: async () => {
-          await AsyncStorage.removeItem("chat-storage");
+        getChatById: (chatId) => {
+          return get().chats.find((chat) => chat._id === chatId);
+        },
+
+        setCurrentChat: (chat) => set({ currentChat: chat }),
+
+        clearAllChats: () => {
           set({
             chats: [],
             currentChat: null,
@@ -275,12 +280,6 @@ export const useChatStore = create<ChatStore>()(
             onlineUserIds: [],
           });
         },
-
-        getChatById: (chatId) => {
-          return get().chats.find((chat) => chat._id === chatId);
-        },
-
-        setCurrentChat: (chat) => set({ currentChat: chat }),
       };
     },
     {

@@ -5,6 +5,7 @@ import { useChatStore } from "@/stores/chatStore";
 import { useMessageStore } from "@/stores/messageStore";
 import { Ionicons } from "@expo/vector-icons";
 import { Alert, StyleSheet, TouchableOpacity } from "react-native";
+import { logout as logoutApi } from "@/api/user";
 
 export const LogoutButton: React.FC = () => {
   const { logout } = useAuthStore();
@@ -22,19 +23,14 @@ export const LogoutButton: React.FC = () => {
         onPress: async () => {
           // api here
           try {
-            // Uncomment the following lines if you have a logout API endpoint
-            // const data = await logout();
-            // if (!data.status) {
-            //   Alert.alert("Error", data.message || "Failed to logout!");
-            //   return;
-            // }
+            await logoutApi(); // api logout
 
-            // clearUser();
+            // Zustand storage clear all
             clearAllChats();
             clearAllMessages();
             logout(); // include routing to auth
           } catch (error: any) {
-            Alert.alert("Error", error.message || "Failed to logout!");
+            Alert.alert("Logout Failed", error.message || "Failed to logout!");
             return;
           }
         },
