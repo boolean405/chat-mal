@@ -1,103 +1,122 @@
-import Image from "next/image";
+import Head from "next/head";
+import { FaGooglePlay, FaApple } from "react-icons/fa";
+
+import image1 from "../assets/images/app_1.jpg";
+import image2 from "../assets/images/app_2.jpg";
+import image3 from "../assets/images/app_3.jpg";
+import image4 from "../assets/images/app_4.jpg";
+import image5 from "../assets/images/app_5.jpg";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const screenshots = [image1, image2, image3, image4, image5];
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
+  return (
+    <>
+      <Head>
+        <title>Chat Mal – Modern Messaging</title>
+        <meta
+          name="description"
+          content="Chat Mal is a sleek, fast, and private messaging video chat app. Get it now on iOS and Android."
+        />
+      </Head>
+
+      <main className="bg-[#0e0e10] text-white min-h-screen flex flex-col items-center px-4 sm:px-6 md:px-10 py-16 font-sans">
+        {/* Hero */}
+        <section className="text-center max-w-3xl w-full">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold bg-gradient-to-br from-purple-500 via-pink-500 to-red-500 text-transparent bg-clip-text mb-6">
+            Chat Mal
+          </h1>
+          <p className="text-base sm:text-lg md:text-xl text-gray-400 mb-8 px-2">
+            Sleek, secure, and lightning fast messaging — built for the new era.
+          </p>
+
+          {/* Download Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center mb-12 px-2">
+            <a
+              href="https://play.google.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-3 bg-green-600 hover:bg-green-700 transition rounded-xl px-6 py-3 text-sm font-semibold shadow-md w-full sm:w-auto"
+              aria-label="Get it on Google Play"
+            >
+              <FaGooglePlay className="w-5 h-5" />
+              Get it on Google Play
+            </a>
+
+            <button
+              disabled
+              className="inline-flex items-center justify-center gap-3 bg-gray-700 text-gray-400 rounded-xl px-6 py-3 text-sm font-semibold cursor-not-allowed select-none relative w-full sm:w-auto"
+              aria-label="App Store coming soon"
+              title="App Store coming soon"
+            >
+              <FaApple className="w-5 h-5" />
+              Download on the App Store
+              <span className="absolute top-0 right-0 bg-pink-600 text-white text-xs font-bold px-2 rounded-bl-lg">
+                Coming Soon
+              </span>
+            </button>
+          </div>
+
+          {/* Horizontal Screenshot Carousel */}
+          <div className="mt-6 sm:mt-10 w-full overflow-x-auto">
+            <div className="flex gap-4 sm:gap-6 px-2 pb-2">
+              {screenshots.map((src, i) => (
+                <img
+                  key={i}
+                  src={src.src}
+                  alt={`App Screenshot ${i + 1}`}
+                  className="w-52 sm:w-60 md:w-64 flex-shrink-0 rounded-xl shadow-lg border border-gray-800 transition hover:scale-105"
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Features */}
+        <section className="mt-20 max-w-6xl w-full px-2 sm:px-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+            {features.map((feat) => (
+              <div
+                key={feat.title}
+                className="bg-[#1a1a1d] p-5 sm:p-6 rounded-2xl border border-gray-800 shadow-md"
+              >
+                <h3 className="text-lg font-semibold mb-2">{feat.title}</h3>
+                <p className="text-gray-400 text-sm">{feat.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="mt-24 text-center text-sm text-gray-500 px-4">
+          &copy; {new Date().getFullYear()} Chat Mal. All rights reserved.
           <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/privacy-policy"
+            className="text-purple-400 hover:underline ml-2 inline-block"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
+            Privacy Policy
           </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+        </footer>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+    </>
   );
 }
+
+const features = [
+  {
+    title: "🔐 End-to-End Encryption",
+    desc: "Every message you send is private. Not even we can read them.",
+  },
+  {
+    title: "⚡ Instant Messaging",
+    desc: "Chat Mal delivers messages faster than light. Almost.",
+  },
+  {
+    title: "🎨 Sleek Dark UI",
+    desc: "Built for late-night chats and modern tastes.",
+  },
+  {
+    title: "📱 Cross-Platform",
+    desc: "Available now on iOS & Android. More coming soon.",
+  },
+];
