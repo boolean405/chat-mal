@@ -356,43 +356,60 @@ export default function CallScreen() {
           <View style={[styles.controls, { paddingBottom: insets.bottom }]}>
             <TouchableOpacity
               onPress={toggleMute}
-              style={[styles.controlBtn, { backgroundColor: color.secondary }]}
+              style={[
+                styles.controlBtn,
+                { backgroundColor: color.secondaryText },
+              ]}
             >
               {isMuted ? (
-                <Ionicons name="mic-off-outline" size={30} color={color.icon} />
+                <Ionicons
+                  name="mic-off-outline"
+                  size={30}
+                  color={color.primaryIcon}
+                />
               ) : (
-                <Ionicons name="mic-outline" size={30} color={color.icon} />
+                <Ionicons
+                  name="mic-outline"
+                  size={30}
+                  color={color.primaryIcon}
+                />
               )}
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={toggleVideo}
-              style={[styles.controlBtn, { backgroundColor: color.secondary }]}
+              style={[
+                styles.controlBtn,
+                { backgroundColor: color.secondaryText },
+              ]}
             >
               {isVideo ? (
                 <Ionicons
                   name="videocam-outline"
                   size={30}
-                  color={color.icon}
+                  color={color.primaryIcon}
                 />
               ) : (
                 <Ionicons
                   name="videocam-off-outline"
                   size={30}
-                  color={color.icon}
+                  color={color.primaryIcon}
                 />
               )}
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={toggleFacing}
-              style={[styles.controlBtn, { backgroundColor: color.secondary }]}
+              style={[
+                styles.controlBtn,
+                { backgroundColor: color.secondaryText },
+              ]}
               disabled={!isVideo}
             >
               <Ionicons
                 name="camera-reverse-outline"
                 size={30}
-                color={color.icon}
+                color={color.primaryIcon}
               />
             </TouchableOpacity>
 
@@ -553,43 +570,60 @@ export default function CallScreen() {
           <View style={[styles.controls, { paddingBottom: insets.bottom }]}>
             <TouchableOpacity
               onPress={toggleMute}
-              style={[styles.controlBtn, { backgroundColor: color.secondary }]}
+              style={[
+                styles.controlBtn,
+                { backgroundColor: color.secondaryText },
+              ]}
             >
               {isMuted ? (
-                <Ionicons name="mic-off-outline" size={30} color={color.icon} />
+                <Ionicons
+                  name="mic-off-outline"
+                  size={30}
+                  color={color.primaryIcon}
+                />
               ) : (
-                <Ionicons name="mic-outline" size={30} color={color.icon} />
+                <Ionicons
+                  name="mic-outline"
+                  size={30}
+                  color={color.primaryIcon}
+                />
               )}
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={toggleVideo}
-              style={[styles.controlBtn, { backgroundColor: color.secondary }]}
+              style={[
+                styles.controlBtn,
+                { backgroundColor: color.secondaryText },
+              ]}
             >
               {isVideo ? (
                 <Ionicons
                   name="videocam-outline"
                   size={30}
-                  color={color.icon}
+                  color={color.primaryIcon}
                 />
               ) : (
                 <Ionicons
                   name="videocam-off-outline"
                   size={30}
-                  color={color.icon}
+                  color={color.primaryIcon}
                 />
               )}
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={toggleFacing}
-              style={[styles.controlBtn, { backgroundColor: color.secondary }]}
+              style={[
+                styles.controlBtn,
+                { backgroundColor: color.secondaryText },
+              ]}
               disabled={!isVideo}
             >
               <Ionicons
                 name="camera-reverse-outline"
                 size={30}
-                color={color.icon}
+                color={color.primaryIcon}
               />
             </TouchableOpacity>
 

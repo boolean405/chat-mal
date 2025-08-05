@@ -84,7 +84,7 @@ export default function EditProfile() {
       setIsInvalidUsername(!/^[a-z0-9]{5,20}$/.test(username));
     };
     validateInputs();
-  }, [name, username]);
+  }, [name, user?.name, user?.username, username]);
 
   useEffect(() => {
     const requestPermission = async () => {
@@ -252,7 +252,9 @@ export default function EditProfile() {
   };
 
   return (
-    <SafeAreaView style={[{ flex: 1, backgroundColor: color.background }]}>
+    <SafeAreaView
+      style={[{ flex: 1, backgroundColor: color.primaryBackground }]}
+    >
       <KeyboardAvoidingView
         style={[{ flex: 1 }]}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -261,6 +263,7 @@ export default function EditProfile() {
         <ScrollView
           contentContainerStyle={[styles.scrollContainer]}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
           <ThemedView style={[styles.container]}>
             {/* Cover Image */}
@@ -281,7 +284,7 @@ export default function EditProfile() {
                 {isCoverLoading && (
                   <ActivityIndicator
                     size="small"
-                    color={color.background}
+                    color={color.primaryBackground}
                     style={[styles.coverUploadingIcon]}
                   />
                 )}
@@ -302,7 +305,7 @@ export default function EditProfile() {
                   <ThemedView
                     style={[
                       styles.coverPlaceholder,
-                      { backgroundColor: color.secondary },
+                      { backgroundColor: color.secondaryBackground },
                     ]}
                   >
                     <ThemedText type="small">Add Cover Photo</ThemedText>
@@ -326,13 +329,13 @@ export default function EditProfile() {
               }
               style={[
                 styles.profileImageWrapper,
-                { borderColor: color.border },
+                { borderColor: color.secondaryBorder },
               ]}
             >
               {isProfileLoading && (
                 <ActivityIndicator
                   size="small"
-                  color={color.background}
+                  color={color.primaryBackground}
                   style={[styles.profileUploadingIcon]}
                 />
               )}
@@ -345,7 +348,7 @@ export default function EditProfile() {
                   <Ionicons
                     name="create-outline"
                     size={24}
-                    color={color.secondary}
+                    color={color.secondaryIcon}
                     style={styles.addPhotoText}
                   />
                   {/* <TouchableOpacity
@@ -359,7 +362,7 @@ export default function EditProfile() {
                 <ThemedView
                   style={[
                     styles.profilePlaceholder,
-                    { backgroundColor: color.secondary },
+                    { backgroundColor: color.secondaryText },
                   ]}
                 >
                   <ThemedText type="small">Add Profile Photo</ThemedText>
@@ -374,21 +377,24 @@ export default function EditProfile() {
                 {username && `@${username}`}
               </ThemedText>
 
-              <ThemedText type="subtitle" style={styles.nameText}>
+              <ThemedText type="large" style={styles.nameText}>
                 Edit your profile
               </ThemedText>
 
               {/* Name Input */}
               <ThemedView
-                style={[styles.inputContainer, { borderColor: color.border }]}
+                style={[
+                  styles.inputContainer,
+                  { borderColor: color.secondaryBorder },
+                ]}
               >
                 <Ionicons
                   name="person-outline"
                   size={24}
-                  style={{ color: color.icon }}
+                  style={{ color: color.primaryIcon }}
                 />
                 <TextInput
-                  style={[styles.textInput, { color: color.primary }]}
+                  style={[styles.textInput, { color: color.primaryText }]}
                   placeholder="Name"
                   autoComplete="name"
                   placeholderTextColor="gray"
@@ -411,16 +417,18 @@ export default function EditProfile() {
               <ThemedView
                 style={[
                   styles.inputContainer,
-                  { borderColor: isExistUsername ? "red" : color.border },
+                  {
+                    borderColor: isExistUsername ? "red" : color.primaryBorder,
+                  },
                 ]}
               >
                 <Ionicons
                   name="at-outline"
                   size={24}
-                  style={{ color: color.icon }}
+                  style={{ color: color.primaryIcon }}
                 />
                 <TextInput
-                  style={[styles.textInput, { color: color.primary }]}
+                  style={[styles.textInput, { color: color.primaryText }]}
                   placeholder="Username"
                   autoComplete="username-new"
                   placeholderTextColor="gray"
@@ -563,7 +571,7 @@ const styles = StyleSheet.create({
     marginTop: -30,
     borderRadius: 60,
     alignSelf: "center",
-    borderWidth: 2,
+    borderWidth: 1,
     overflow: "hidden",
   },
   profilePhoto: {

@@ -62,7 +62,10 @@ export default function ChatItem({
             <ThemedView
               style={[
                 styles.onlineIndicator,
-                { borderColor: color.secondary, backgroundColor: "limegreen" },
+                {
+                  borderColor: color.onlineBorder,
+                  backgroundColor: color.onlineBackground,
+                },
               ]}
             />
           ) : !chat.isGroupChat && !isOnline && targetUser ? (
@@ -72,8 +75,8 @@ export default function ChatItem({
                   style={[
                     styles.onlineIndicator,
                     {
-                      borderColor: color.secondary,
-                      backgroundColor: "#A9A9A9",
+                      borderColor: color.secondaryBorder,
+                      backgroundColor: color.offlineBackground,
                     },
                   ]}
                 />
@@ -82,7 +85,8 @@ export default function ChatItem({
                   style={[
                     styles.lastOnlineText,
                     {
-                      backgroundColor: color.secondary,
+                      color: color.secondaryBackground,
+                      backgroundColor: color.offlineBackground,
                     },
                   ]}
                 >
@@ -135,7 +139,10 @@ export default function ChatItem({
                 >
                   <Image
                     source={{ uri: chat.latestMessage.content }}
-                    style={[styles.unreadImage, { borderColor: color.border }]}
+                    style={[
+                      styles.unreadImage,
+                      { borderColor: color.secondaryBorder },
+                    ]}
                     contentFit="cover"
                   />
                   <ThemedText
@@ -240,11 +247,11 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     right: 15,
-    width: 12,
+    width: 14,
     height: 12,
     borderRadius: 6,
     fontWeight: "bold",
-    fontSize: 5,
+    fontSize: 6,
     textAlign: "center",
     textAlignVertical: "center",
     // borderWidth: 1,

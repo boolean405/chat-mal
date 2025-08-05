@@ -29,7 +29,10 @@ export function ThemedText({
   type = "default",
   ...rest
 }: ThemedTextProps) {
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, "text");
+  const color = useThemeColor(
+    { light: lightColor, dark: darkColor },
+    "primaryText"
+  );
 
   return (
     <Text
@@ -109,5 +112,6 @@ const styles = StyleSheet.create({
     fontWeight: "semibold",
     color: "#21b0b0",
     fontStyle: "italic",
+    textDecorationLine: "underline",
   },
 });

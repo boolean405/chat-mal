@@ -34,13 +34,16 @@ export default function BottomSheetAction({
       <TouchableWithoutFeedback onPress={onCancel}>
         <ThemedView style={styles.overlay}>
           <ThemedView
-            style={[styles.sheet, { backgroundColor: color.secondary }]}
+            style={[
+              styles.sheet,
+              { backgroundColor: color.secondaryBackground },
+            ]}
           >
             {title && (
               <ThemedText
                 type="larger"
                 numberOfLines={1}
-                style={[styles.title, { borderColor: color.border }]}
+                style={[styles.title, { borderColor: color.secondaryBorder }]}
               >
                 {title}
               </ThemedText>
@@ -54,7 +57,7 @@ export default function BottomSheetAction({
                 <Ionicons
                   name={icon as keyof typeof Ionicons.glyphMap}
                   size={24}
-                  color={color.icon}
+                  color={color.primaryIcon}
                 />
                 <ThemedText
                   style={[

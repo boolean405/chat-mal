@@ -16,8 +16,8 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import ChatItem from "@/components/ChatItem";
 import { APP_NAME } from "@/constants";
-import ChatEmpty from "@/components/chat/ChatEmpty";
-import ChatHeader from "@/components/chat/ChatHeader";
+import ChatEmpty from "@/components/ChatEmpty";
+import ChatHeader from "@/components/ChatHeader";
 import { useAuthStore } from "@/stores/authStore";
 import usePaginatedData from "@/hooks/usePaginateData";
 import BottomSheetAction from "@/components/BottomSheetActions";
@@ -480,18 +480,18 @@ export default function Home() {
         ListHeaderComponent={<ChatHeader stories={stories} user={user} />}
         ListFooterComponent={
           hasMore && isPaging ? (
-            <ActivityIndicator size="small" color={color.icon} />
+            <ActivityIndicator size="small" color={color.primaryIcon} />
           ) : null
         }
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={refresh}
-            colors={[color.primary]} // Spinner color (Android)
-            progressBackgroundColor={color.background} // Background color (Android)
-            tintColor={color.primary} // Spinner color (iOS)
+            colors={[color.primaryText]} // Spinner color (Android)
+            progressBackgroundColor={color.secondaryBackground} // Background color (Android)
+            tintColor={color.tint} // Spinner color (iOS)
             title="Refreshing..." // Optional (iOS)
-            titleColor={color.text} // Optional (iOS)
+            titleColor={color.primaryText} // Optional (iOS)
           />
         }
       />

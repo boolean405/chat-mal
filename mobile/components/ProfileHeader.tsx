@@ -1,26 +1,23 @@
-// components/ProfileHeader.tsx
+import React from "react";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { Colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
-import React from "react";
 import {
   Image,
   StyleSheet,
   ToastAndroid,
   TouchableOpacity,
+  useColorScheme,
 } from "react-native";
 
 interface Props {
   name: string;
   username: string;
-  profilePhoto: string;
   isOnline: boolean;
-  tint: string;
-  textColor: string;
-  iconColor: string;
-  secondary: string;
+  profilePhoto: string;
   onUsernameCopied?: (text: string) => void;
   onPress?: () => void;
 }
@@ -29,22 +26,18 @@ export const ProfileHeader: React.FC<Props> = ({
   name,
   username,
   isOnline,
-  tint,
-  textColor,
-  iconColor,
-  onUsernameCopied,
-  onPress,
   profilePhoto,
-  secondary,
+  onPress,
+  onUsernameCopied,
 }) => {
   const router = useRouter();
+  const colorScheme = useColorScheme();
+  const color = Colors[colorScheme ?? "light"];
 
   const copyUsername = async () => {
     await Clipboard.setStringAsync(username);
     ToastAndroid.show("Username copied!", ToastAndroid.SHORT);
-    if (onUsernameCopied) {
-      onUsernameCopied(username); // 🔥 Notify parent
-    }
+    if (onUsernameCopied) onUsernameCopied(username); // 🔥 Notify parent
   };
 
   return (
@@ -56,7 +49,10 @@ export const ProfileHeader: React.FC<Props> = ({
       <ThemedView
         style={[
           styles.profilePhotoContainer,
-          { borderColor: tint, backgroundColor: secondary },
+          {
+            borderColor: color.secondaryBorder,
+            backgroundColor: color.secondaryBackground,
+          },
         ]}
       >
         {profilePhoto && (
@@ -66,18 +62,21 @@ export const ProfileHeader: React.FC<Props> = ({
       <ThemedView style={styles.profileInfo}>
         <ThemedView style={styles.profileHeader}>
           <ThemedView style={{ flex: 1 }}>
-            <ThemedText style={[styles.name, { color: textColor }]}>
+            <ThemedText
+              type="subtitle"
+              style={[styles.name, { color: color.primaryText }]}
+            >
               {name}
             </ThemedText>
             <ThemedView style={styles.usernameRow}>
-              <ThemedText style={[styles.userName, { color: iconColor }]}>
+              <ThemedText style={[{ color: color.primaryIcon }]}>
                 @{username}
               </ThemedText>
               <TouchableOpacity onPress={copyUsername}>
                 <Ionicons
                   name="copy-outline"
-                  size={18}
-                  color={tint}
+                  size={15}
+                  color={color.primaryIcon}
                   style={styles.copyIcon}
                 />
               </TouchableOpacity>
@@ -86,13 +85,17 @@ export const ProfileHeader: React.FC<Props> = ({
               <ThemedView
                 style={[
                   styles.statusDot,
-                  { backgroundColor: isOnline ? "#4CAF50" : "#F44336" },
+                  {
+                    backgroundColor: isOnline
+                      ? color.onlineBackground
+                      : "#F44336",
+                  },
                 ]}
               />
               <ThemedText
                 style={[
                   styles.statusText,
-                  { color: isOnline ? "#4CAF50" : "#F44336" },
+                  { color: isOnline ? color.onlineBackground : "#F44336" },
                 ]}
               >
                 {isOnline ? "Online" : "Offline"}
@@ -102,7 +105,11 @@ export const ProfileHeader: React.FC<Props> = ({
           <TouchableOpacity
             onPress={() => router.push("/(setting)/edit-profile")}
           >
-            <Ionicons name="create-outline" size={22} color={tint} />
+            <Ionicons
+              name="create-outline"
+              size={22}
+              color={color.primaryIcon}
+            />
           </TouchableOpacity>
         </ThemedView>
       </ThemedView>
@@ -120,7 +127,7 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     borderRadius: 45,
-    borderWidth: 2,
+    borderWidth: 1,
     marginRight: 20,
     overflow: "hidden",
   },
@@ -136,17 +143,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   name: {
-    fontSize: 22,
-    fontWeight: "800",
     marginBottom: 2,
+    fontWeight: "bold",
   },
   usernameRow: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  userName: {
-    fontSize: 14,
-    fontWeight: "500",
   },
   copyIcon: {
     marginLeft: 6,

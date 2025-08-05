@@ -15,7 +15,7 @@ import getLastTime from "@/utils/getLastTime";
 
 interface Props {
   user: User;
-  chatJoinedAt?: Date;
+  joinedAt?: Date;
   moreButtonRef?: React.RefObject<any>;
   tag?: string;
   isSelf?: boolean;
@@ -27,7 +27,7 @@ interface Props {
 
 const UserItem: React.FC<Props> = ({
   user,
-  chatJoinedAt,
+  joinedAt,
   isOnline,
   moreButtonRef,
   tag,
@@ -48,7 +48,7 @@ const UserItem: React.FC<Props> = ({
       <ThemedView style={styles.profilePhotoContainer}>
         <Image
           source={{ uri: user.profilePhoto }}
-          style={styles.profilePhoto}
+          style={[styles.profilePhoto, { borderColor: color.secondaryBorder }]}
         />
         {tag && (
           <ThemedView style={styles.tagBadge}>
@@ -61,8 +61,8 @@ const UserItem: React.FC<Props> = ({
             style={[
               styles.onlineIndicator,
               {
-                borderColor: color.secondary,
-                backgroundColor: "limegreen",
+                borderColor: color.onlineBorder,
+                backgroundColor: color.onlineBackground,
               },
             ]}
           />
@@ -73,8 +73,8 @@ const UserItem: React.FC<Props> = ({
                 style={[
                   styles.onlineIndicator,
                   {
-                    borderColor: color.secondary,
-                    backgroundColor: "#A9A9A9",
+                    borderColor: color.secondaryBorder,
+                    backgroundColor: color.offlineBackground,
                   },
                 ]}
               />
@@ -83,7 +83,8 @@ const UserItem: React.FC<Props> = ({
                 style={[
                   styles.lastOnlineText,
                   {
-                    backgroundColor: color.secondary,
+                    backgroundColor: color.offlineBackground,
+                    color: color.primaryBackground,
                   },
                 ]}
               >
@@ -106,10 +107,10 @@ const UserItem: React.FC<Props> = ({
       </ThemedView>
       <ThemedView style={styles.dateContainer}>
         <ThemedText type="smaller" style={{ color: "gray", marginRight: 5 }}>
-          {chatJoinedAt &&
-            `Joined at: ${new Date(chatJoinedAt).getDate()}/${
-              new Date(chatJoinedAt).getMonth() + 1
-            }/${new Date(chatJoinedAt).getFullYear()}`}{" "}
+          {joinedAt &&
+            `Joined at: ${new Date(joinedAt).getDate()}/${
+              new Date(joinedAt).getMonth() + 1
+            }/${new Date(joinedAt).getFullYear()}`}{" "}
         </ThemedText>
         <TouchableOpacity
           onPress={onPressMore}
@@ -119,7 +120,7 @@ const UserItem: React.FC<Props> = ({
           <Ionicons
             name="ellipsis-vertical-outline"
             size={20}
-            color={color.icon}
+            color={color.primaryIcon}
           />
         </TouchableOpacity>
       </ThemedView>
@@ -141,6 +142,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     marginRight: 15,
+    borderWidth: 0.5,
   },
   textContainer: {
     flex: 1,

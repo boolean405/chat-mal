@@ -55,7 +55,7 @@ export const ListSection: React.FC<Props> = ({
             <Ionicons
               name={item.iconName}
               size={24}
-              color={isDelete ? "red" : color.icon}
+              color={isDelete ? "red" : color.primaryIcon}
             />
             {count > 0 && (
               <ThemedView style={styles.badgeContainer}>
@@ -91,7 +91,7 @@ export const ListSection: React.FC<Props> = ({
 
         // ItemSeparatorComponent={() => (
         //   <ThemedView
-        //     style={[styles.separator, { backgroundColor: color.secondary }]}
+        //     style={[styles.separator, { backgroundColor: color.secondaryText }]}
         //   />
         // )}
       />

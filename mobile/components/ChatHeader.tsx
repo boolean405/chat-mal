@@ -35,15 +35,15 @@ export default function ChatHeader({ stories, user }: Props) {
           style={[
             styles.inputContainer,
             {
-              borderColor: color.border,
-              backgroundColor: color.secondary,
+              borderColor: color.secondaryBorder,
+              backgroundColor: color.secondaryBackground,
             },
           ]}
         >
           <Ionicons
             name="search-outline"
             size={22}
-            style={{ color: color.icon }}
+            style={{ color: color.primaryIcon }}
           />
           <TextInput
             style={[styles.textInput, { color: color.primary }]}
@@ -54,9 +54,9 @@ export default function ChatHeader({ stories, user }: Props) {
           />
           <TouchableOpacity onPress={() => console.log("Scan QR")}>
             <MaterialCommunityIcons
-              name="qrcode-scan"
+              name="line-scan"
               size={22}
-              color={color.icon}
+              color={color.primaryIcon}
             />
           </TouchableOpacity>
         </ThemedView>
@@ -68,7 +68,7 @@ export default function ChatHeader({ stories, user }: Props) {
         horizontal
         keyExtractor={(item) => item._id}
         showsHorizontalScrollIndicator={false}
-        style={[styles.storyList, { borderBottomColor: color.border }]}
+        style={[styles.storyList, { borderBottomColor: color.primaryBorder }]}
         contentContainerStyle={{ paddingHorizontal: 12 }}
         ListHeaderComponent={user && <MyStoryItem user={user} />}
         renderItem={({ item }) => (

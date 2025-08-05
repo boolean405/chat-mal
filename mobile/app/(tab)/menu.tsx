@@ -70,7 +70,10 @@ export default function Menu() {
 
   return (
     <ScrollView
-      style={[styles.outerContainer, { backgroundColor: color.background }]}
+      style={[
+        styles.outerContainer,
+        { backgroundColor: color.primaryBackground },
+      ]}
       contentContainerStyle={{ paddingBottom: 40 }}
       showsVerticalScrollIndicator={false}
       refreshControl={
@@ -78,29 +81,27 @@ export default function Menu() {
           refreshing={isRefreshing}
           onRefresh={onRefresh}
           tintColor={color.tint}
-          colors={[color.background]}
-          progressBackgroundColor={color.tint}
+          colors={[color.primaryText]}
+          progressBackgroundColor={color.secondaryBackground}
+          title="Refreshing..." // Optional (iOS)
+          titleColor={color.primaryText} // Optional (iOS)
         />
       }
     >
       <ThemedView style={styles.container}>
         <ProfileHeader
           name={user?.name}
-          username={user?.username}
           isOnline={isOnline}
-          tint={color.tint}
-          textColor={color.text}
-          iconColor={color.icon}
-          secondary={color.secondary}
-          onUsernameCopied={handleUsernameCopied}
+          username={user?.username}
           profilePhoto={user?.profilePhoto}
+          onUsernameCopied={handleUsernameCopied}
           onPress={() => router.push("/(setting)/edit-profile")}
         />
-{/* 
+        {/* 
         <WalletTab
           balance={walletBalance}
           tint={color.tint}
-          backgroundColor={color.secondary}
+          backgroundColor={color.secondaryText}
         /> */}
 
         <ListSection
@@ -121,7 +122,7 @@ export default function Menu() {
           data={SETTINGS}
           disabled={isLoading}
           onItemPress={(item) => {
-            console.log(item.label);
+            router.push(`/(menu)${item.path}` as any);
           }}
         />
 

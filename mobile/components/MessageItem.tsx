@@ -66,8 +66,11 @@ export default function MessageItem({
         style={[
           styles.messageContainer,
           isMe
-            ? [styles.myMessage, { backgroundColor: color.main }]
-            : [styles.otherMessage, { backgroundColor: color.secondary }],
+            ? [styles.myMessage, { backgroundColor: color.primary }]
+            : [
+                styles.otherMessage,
+                { backgroundColor: color.secondaryBackground },
+              ],
           (item.type === "image" || item.type === "video") &&
             styles.mediaMessage, // remove padding for media
         ]}

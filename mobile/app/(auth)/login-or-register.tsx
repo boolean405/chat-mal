@@ -212,15 +212,18 @@ export default function LoginOrRegister() {
 
           {/* Input container */}
           <ThemedView
-            style={[styles.inputContainer, { borderColor: color.border }]}
+            style={[
+              styles.inputContainer,
+              { borderColor: color.secondaryBorder },
+            ]}
           >
             <Ionicons
               name="mail-outline"
               size={24}
-              style={[{ color: color.icon }]}
+              style={[{ color: color.primaryIcon }]}
             />
             <TextInput
-              style={[styles.textInput, { color: color.text }]}
+              style={[styles.textInput, { color: color.primaryText }]}
               placeholder="Email"
               keyboardType="email-address"
               textContentType="emailAddress"
@@ -267,12 +270,15 @@ export default function LoginOrRegister() {
               title={
                 <View style={styles.authButtonContainer}>
                   <Ionicons
-                    color={color.background}
+                    color={color.primaryBackground}
                     name="logo-google"
                     size={22}
                   />
                   <Text
-                    style={[styles.authButtonText, { color: color.background }]}
+                    style={[
+                      styles.authButtonText,
+                      { color: color.primaryBackground },
+                    ]}
                   >
                     Continue with Google
                   </Text>
@@ -289,12 +295,12 @@ export default function LoginOrRegister() {
               title={
                 <View style={styles.authButtonContainer}>
                   <Ionicons
-                    color={color.background}
+                    color={color.primaryBackground}
                     name="logo-facebook"
                     size={22}
                   />
                   <Text
-                    style={[styles.authButtonText, { color: color.background }]}
+                    style={[styles.authButtonText, { color: color.primaryBackground }]}
                   >
                     Continue with Facebook
                   </Text>

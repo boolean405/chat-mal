@@ -37,13 +37,13 @@ export default function Search() {
 
   const {
     results,
-    page,
+    // page,
     keyword,
     selectedFilter,
     hasMore,
     isLoading,
     isPaging,
-    errorMessage,
+    // errorMessage,
     setKeyword,
     setSelectedFilter,
     fetchSearchUsers,
@@ -57,7 +57,7 @@ export default function Search() {
 
   useEffect(() => {
     fetchSearchUsers(false);
-  }, [debouncedKeyword, selectedFilter]);
+  }, [debouncedKeyword, fetchSearchUsers, selectedFilter]);
 
   const handleLoadMore = async () => {
     if (hasMore && !isPaging && !isLoading) {
@@ -101,7 +101,7 @@ export default function Search() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: color.background }]}
+      style={[styles.container, { backgroundColor: color.primaryBackground }]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
     >
@@ -110,14 +110,14 @@ export default function Search() {
           <ThemedView
             style={[
               styles.inputTextContainer,
-              { backgroundColor: color.secondary },
+              { backgroundColor: color.secondaryBackground },
             ]}
           >
             <TouchableOpacity onPress={() => router.back()}>
               <Ionicons
                 name="chevron-back-outline"
                 size={22}
-                color={color.icon}
+                color={color.primaryIcon}
               />
             </TouchableOpacity>
             <TextInput
@@ -126,13 +126,13 @@ export default function Search() {
               onChangeText={setKeyword}
               placeholder="Search"
               placeholderTextColor="gray"
-              style={[styles.textInput, { color: color.text }]}
+              style={[styles.textInput, { color: color.primaryText }]}
             />
             <TouchableOpacity onPress={() => console.log("QR scan")}>
               <MaterialCommunityIcons
-                name="qrcode-scan"
+                name="line-scan"
                 size={22}
-                color={color.icon}
+                color={color.primaryIcon}
               />
             </TouchableOpacity>
           </ThemedView>
@@ -140,15 +140,20 @@ export default function Search() {
       </ThemedView>
 
       <ThemedView
-        style={[styles.filterContainer, { borderBottomColor: color.border }]}
+        style={[
+          styles.filterContainer,
+          { borderBottomColor: color.primaryBorder },
+        ]}
       >
         {filterTypes.map((filter) => (
           <TouchableOpacity
             key={filter}
             style={[
               styles.filterButton,
-              { borderColor: color.border },
-              selectedFilter === filter && { backgroundColor: color.primary },
+              { borderColor: color.secondaryBorder },
+              selectedFilter === filter && {
+                backgroundColor: color.primaryText,
+              },
             ]}
             onPress={() => setSelectedFilter(filter)}
           >
@@ -157,7 +162,9 @@ export default function Search() {
                 styles.filterText,
                 {
                   color:
-                    selectedFilter === filter ? color.background : color.text,
+                    selectedFilter === filter
+                      ? color.primaryBackground
+                      : color.primaryText,
                 },
               ]}
             >
@@ -185,6 +192,7 @@ export default function Search() {
               user={item}
               isOnline={isOnline}
               disabled={loading}
+              joinedAt={item.createdAt}
               onPress={() => handleResult(item)}
             />
           );
@@ -202,7 +210,7 @@ export default function Search() {
         onEndReachedThreshold={1}
         ListFooterComponent={
           hasMore && results.length > 0 && isPaging ? (
-            <ActivityIndicator size="small" color={color.icon} />
+            <ActivityIndicator size="small" color={color.primaryIcon} />
           ) : null
         }
       />

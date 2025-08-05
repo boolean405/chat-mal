@@ -28,7 +28,7 @@
 //     <ThemedView style={styles.container}>
 //       <ThemedView style={styles.header}>
 //         <TouchableOpacity onPress={() => router.back()}>
-//           <Ionicons name="chevron-back-outline" size={22} color={color.icon} />
+//           <Ionicons name="chevron-back-outline" size={22} color={color.primaryIcon} />
 //         </TouchableOpacity>
 //         <TouchableOpacity
 //           onPress={async () => {
@@ -36,7 +36,7 @@
 //             Alert.alert("Image saved to gallery.");
 //           }}
 //         >
-//           <Ionicons name="download-outline" size={22} color={color.icon} />
+//           <Ionicons name="download-outline" size={22} color={color.primaryIcon} />
 //         </TouchableOpacity>
 //       </ThemedView>
 

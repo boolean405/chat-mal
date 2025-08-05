@@ -134,11 +134,17 @@ export default function Detail() {
   };
 
   return (
-    <ThemedView style={{ flex: 1, backgroundColor: color.background }}>
+    <ThemedView style={{ flex: 1, backgroundColor: color.primaryBackground }}>
       {/* Header */}
-      <ThemedView style={[styles.header, { borderBottomColor: color.border }]}>
+      <ThemedView
+        style={[styles.header, { borderBottomColor: color.primaryBorder }]}
+      >
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="chevron-back-outline" size={22} color={color.icon} />
+          <Ionicons
+            name="chevron-back-outline"
+            size={22}
+            color={color.primaryIcon}
+          />
         </TouchableOpacity>
         <ThemedView style={styles.HeaderTitleContainer}>
           <ThemedText type="headerTitle">Details</ThemedText>
@@ -153,7 +159,10 @@ export default function Detail() {
         <ThemedView style={styles.container}>
           {/* Profile photo */}
           <TouchableOpacity
-            style={[styles.profileImageWrapper, { borderColor: color.border }]}
+            style={[
+              styles.profileImageWrapper,
+              { borderColor: color.secondaryBorder },
+            ]}
           >
             <Image source={{ uri: chatPhoto }} style={styles.profilePhoto} />
           </TouchableOpacity>
@@ -176,14 +185,14 @@ export default function Detail() {
                 <Ionicons
                   name="call-outline"
                   size={22}
-                  style={{ color: color.icon }}
+                  style={{ color: color.primaryIcon }}
                 />
               </TouchableOpacity>
               <TouchableOpacity>
                 <Ionicons
                   name="videocam-outline"
                   size={22}
-                  style={{ color: color.icon, marginLeft: 30 }}
+                  style={{ color: color.primaryIcon, marginLeft: 30 }}
                 />
               </TouchableOpacity>
               {!chat.isGroupChat && (
@@ -191,14 +200,14 @@ export default function Detail() {
                   <Ionicons
                     name="person-outline"
                     size={22}
-                    style={{ color: color.icon, marginLeft: 30 }}
+                    style={{ color: color.primaryIcon, marginLeft: 30 }}
                   />
                 </TouchableOpacity>
               )}
               {/* <Ionicons
                 name="person-outline"
                 size={22}
-                style={{ color: color.icon }}
+                style={{ color: color.primaryIcon }}
                 /> */}
             </ThemedView>
 

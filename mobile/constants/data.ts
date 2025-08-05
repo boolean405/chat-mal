@@ -125,6 +125,12 @@ export const SETTINGS: SettingItem[] = [
     iconName: "help-circle-outline",
     path: "/help",
   },
+  {
+    id: "3",
+    label: "Pravicy Policy",
+    iconName: "document-lock-outline",
+    path: "/privacy-policy",
+  },
 ];
 
 export const MENUS: MenuItem[] = [

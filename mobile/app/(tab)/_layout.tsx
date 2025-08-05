@@ -35,14 +35,14 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false, // Hide the default header
         tabBarButton: HapticTab, // Custom tab button with haptics
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].text, // Use theme color for active tab
+        tabBarActiveTintColor: Colors[colorScheme ?? "light"].primaryText, // Use theme color for active tab
         tabBarStyle: Platform.select({
           ios: {
             position: "absolute", // Absolute positioning for iOS
-            backgroundColor: Colors[colorScheme ?? "light"].background,
+            backgroundColor: Colors[colorScheme ?? "light"].primaryBackground,
           },
           default: {
-            backgroundColor: Colors[colorScheme ?? "light"].background,
+            backgroundColor: Colors[colorScheme ?? "light"].primaryBackground,
             // paddingBottom: insets.bottom, // Add bottom safe area
             // height: 50 + insets.bottom, // Optional: adjust height to avoid layout squeeze
           },

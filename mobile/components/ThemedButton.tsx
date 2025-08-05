@@ -27,11 +27,11 @@ export function ThemedButton({
 }: ThemedButtonProps) {
   const backgroundColor = useThemeColor(
     { light: lightColor, dark: darkColor },
-    "text"
+    "primaryText"
   );
   const textColor = useThemeColor(
     { light: lightColor, dark: darkColor },
-    "background"
+    "primaryBackground"
   );
 
   return (

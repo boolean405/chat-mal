@@ -19,8 +19,8 @@ import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import UserItem from "@/components/UserItem";
-import { Chat, User } from "@/types";
-import SelectableUserItem from "@/components/user/SelectableUserItem";
+import { User } from "@/types";
+import SelectableUserItem from "@/components/SelectableUserItem";
 import { useUsersSearchStore } from "@/stores/usersSearchStore";
 import useDebounce from "@/hooks/useDebounce";
 import {
@@ -59,15 +59,15 @@ export default function Member() {
 
   const {
     results,
-    page,
+    // page,
     keyword,
     selectedFilter,
     hasMore,
     isLoading: loading,
     isPaging,
-    errorMessage,
+    // errorMessage,
     setKeyword,
-    setSelectedFilter,
+    // setSelectedFilter,
     fetchSearchUsers,
   } = useUsersSearchStore();
 
@@ -75,11 +75,11 @@ export default function Member() {
 
   useEffect(() => {
     fetchSearchUsers(false);
-  }, [debouncedKeyword, selectedFilter]);
+  }, [debouncedKeyword, fetchSearchUsers, selectedFilter]);
 
   useEffect(() => {
     if (!isAddMode) setKeyword(""); // clear when exiting add mode
-  }, [isAddMode]);
+  }, [isAddMode, setKeyword]);
 
   const filteredResults = useMemo(() => {
     const existingUserIds = new Set(chat?.users?.map((u) => u.user._id) ?? []);
@@ -312,14 +312,20 @@ export default function Member() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: color.background }]}
+      style={[styles.container, { backgroundColor: color.primaryBackground }]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
     >
       {/* Header */}
-      <ThemedView style={[styles.header, { borderBottomColor: color.border }]}>
+      <ThemedView
+        style={[styles.header, { borderBottomColor: color.primaryBorder }]}
+      >
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="chevron-back-outline" size={22} color={color.icon} />
+          <Ionicons
+            name="chevron-back-outline"
+            size={22}
+            color={color.primaryIcon}
+          />
         </TouchableOpacity>
         <ThemedView style={styles.HeaderTitleContainer}>
           <ThemedText type="headerTitle">Members</ThemedText>
@@ -337,7 +343,11 @@ export default function Member() {
           </TouchableOpacity>
         ) : (
           <TouchableOpacity onPress={() => setIsAddMode(true)}>
-            <Ionicons name="person-add-outline" size={22} color={color.icon} />
+            <Ionicons
+              name="person-add-outline"
+              size={22}
+              color={color.primaryIcon}
+            />
           </TouchableOpacity>
         )}
       </ThemedView>
@@ -347,16 +357,20 @@ export default function Member() {
           <ThemedView
             style={[
               styles.inputTextContainer,
-              { backgroundColor: color.secondary },
+              { backgroundColor: color.secondaryBackground },
             ]}
           >
             <TouchableOpacity>
-              <Ionicons name="search-outline" size={22} color={color.icon} />
+              <Ionicons
+                name="search-outline"
+                size={22}
+                color={color.primaryIcon}
+              />
             </TouchableOpacity>
             <TextInput
               // ref={inputRef} // Step 3: Attach ref
               value={keyword}
-              style={[styles.textInput, { color: color.text }]}
+              style={[styles.textInput, { color: color.primaryText }]}
               placeholder="Search"
               placeholderTextColor="gray"
               onChangeText={(text) => {
@@ -391,10 +405,14 @@ export default function Member() {
               <ThemedView
                 style={[
                   styles.titleTextContainer,
-                  { borderColor: color.border },
+                  { borderColor: color.secondaryBorder },
                 ]}
               >
-                <Ionicons name="people-outline" size={22} color={color.icon} />
+                <Ionicons
+                  name="people-outline"
+                  size={22}
+                  color={color.primaryIcon}
+                />
                 <ThemedText style={{ marginLeft: 10 }}>
                   Add members to group
                 </ThemedText>
@@ -406,7 +424,7 @@ export default function Member() {
             onEndReachedThreshold={0.1}
             ListFooterComponent={
               hasMore && results.length > 0 && isPaging ? (
-                <ActivityIndicator size="small" color={color.icon} />
+                <ActivityIndicator size="small" color={color.primaryIcon} />
               ) : null
             }
           />
@@ -414,12 +432,15 @@ export default function Member() {
           {/* Add to Group Button */}
           {selectedUsers.length > 0 && (
             <TouchableOpacity
-              style={[styles.addButton, { backgroundColor: color.primary }]}
+              style={[
+                styles.addButton,
+                { backgroundColor: color.primaryButtonBackground },
+              ]}
               onPress={handleAddMembers}
             >
               <ThemedText
                 type="defaultBold"
-                style={{ color: color.background }}
+                style={{ color: color.primaryBackground }}
               >
                 Add {selectedUsers.length} member
                 {selectedUsers.length > 1 ? "s" : ""}
@@ -448,7 +469,7 @@ export default function Member() {
                 isSelf={isSelf}
                 isOnline={isOnline}
                 disabled={loading}
-                chatJoinedAt={item.joinedAt}
+                joinedAt={item.joinedAt}
                 tag={tag}
                 onPress={isSelf ? undefined : () => handleItemPress(item.user)}
                 onPressMore={() => setPopoverUser(item.user)}
@@ -459,16 +480,23 @@ export default function Member() {
               />
             );
           }}
-          style={styles.resultList}
+          style={{ flex: 1 }}
           contentContainerStyle={{ paddingBottom: 20 }}
           showsVerticalScrollIndicator={false}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.1}
           ListHeaderComponent={
             <ThemedView
-              style={[styles.titleTextContainer, { borderColor: color.border }]}
+              style={[
+                styles.titleTextContainer,
+                { borderColor: color.secondaryBorder },
+              ]}
             >
-              <Ionicons name="people-outline" size={22} color={color.icon} />
+              <Ionicons
+                name="people-outline"
+                size={22}
+                color={color.primaryIcon}
+              />
               <ThemedText style={{ marginLeft: 10 }}>Group Members</ThemedText>
             </ThemedView>
           }
@@ -481,7 +509,7 @@ export default function Member() {
           onRequestClose={() => setPopoverUser(null)}
           from={moreButtonRefs.current[popoverUser._id]}
           popoverStyle={{
-            backgroundColor: color.secondary,
+            backgroundColor: color.secondaryBackground,
           }}
         >
           {(() => {
@@ -606,9 +634,6 @@ export default function Member() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // paddingBottom: 50,
-    // justifyContent: "center",
-    // alignItems: "center",
   },
   header: {
     padding: 15,
@@ -620,20 +645,13 @@ const styles = StyleSheet.create({
   HeaderTitleContainer: {
     flex: 1,
     alignItems: "center",
-    // marginRight: 20,
   },
-
-  // here
   searchContainer: {
-    // padding: 15,
     paddingVertical: 20,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
-
-  resultList: { flex: 1 },
-
   inputContainer: {
     flexDirection: "row",
     justifyContent: "center",

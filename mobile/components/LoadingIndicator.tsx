@@ -11,7 +11,7 @@ export default function LoadingIndicator() {
     <ThemedView
       style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
     >
-      <ActivityIndicator size="large" color={color.icon} />
+      <ActivityIndicator size="large" color={color.primaryIcon} />
     </ThemedView>
   );
 }

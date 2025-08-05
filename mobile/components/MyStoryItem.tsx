@@ -15,7 +15,7 @@ export default function MyStoryItem({ user }: { user: User }) {
   return (
     <TouchableOpacity
       style={styles.storyItem}
-      onPress={() => alert("Add your story!")}
+      onPress={() => alert("Coming soon!")}
     >
       <ThemedView
         style={[styles.storyAvatarWrapper, styles.myStoryAvatarWrapper]}
@@ -27,9 +27,12 @@ export default function MyStoryItem({ user }: { user: User }) {
           style={styles.storyAvatar}
         />
         <ThemedView
-          style={[styles.plusIconWrapper, { backgroundColor: color.secondary }]}
+          style={[
+            styles.plusIconWrapper,
+            { backgroundColor: color.tertiaryBackground },
+          ]}
         >
-          <Ionicons name="add-outline" size={24} color={color.main} />
+          <Ionicons name="add-outline" size={24} color={color.primary} />
         </ThemedView>
       </ThemedView>
       <ThemedText style={styles.storyName} numberOfLines={1}>
@@ -49,6 +52,10 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     padding: 2,
   },
+  myStoryAvatarWrapper: {
+    borderWidth: 0,
+    position: "relative",
+  },
   storyAvatar: {
     width: 60,
     height: 60,
@@ -61,15 +68,10 @@ const styles = StyleSheet.create({
     maxWidth: 70,
     textAlign: "center",
   },
-
-  myStoryAvatarWrapper: {
-    borderWidth: 0,
-    position: "relative",
-  },
   plusIconWrapper: {
     position: "absolute",
     bottom: -2,
     right: -2,
-    borderRadius: 11,
+    borderRadius: 15,
   },
 });

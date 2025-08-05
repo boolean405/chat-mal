@@ -126,7 +126,7 @@ export default function UploadPhoto() {
             <ThemedView
               style={[
                 styles.coverPlaceholder,
-                { backgroundColor: color.secondary },
+                { backgroundColor: color.secondaryText },
               ]}
             >
               <ThemedText type="small">Add Cover Photo</ThemedText>
@@ -148,7 +148,10 @@ export default function UploadPhoto() {
             [1, 1]
           )
         }
-        style={[styles.profileImageWrapper, { borderColor: color.border }]}
+        style={[
+          styles.profileImageWrapper,
+          { borderColor: color.secondaryBorder },
+        ]}
       >
         {profilePhoto ? (
           <>
@@ -164,7 +167,7 @@ export default function UploadPhoto() {
           <ThemedView
             style={[
               styles.profilePlaceholder,
-              { backgroundColor: color.secondary },
+              { backgroundColor: color.secondaryText },
             ]}
           >
             <ThemedText type="small">Add Profile Photo</ThemedText>

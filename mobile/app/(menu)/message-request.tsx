@@ -16,7 +16,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { useRouter } from "expo-router";
 import BottomSheetAction from "@/components/BottomSheetActions";
 import { getPaginateRequestChats, readChat } from "@/api/chat";
-import ChatEmpty from "@/components/chat/ChatEmpty";
+import ChatEmpty from "@/components/ChatEmpty";
 import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
 import usePaginatedData from "@/hooks/usePaginateData";
@@ -176,15 +176,21 @@ export default function MessageRequest() {
   return (
     <ThemedView style={styles.container}>
       {/* Header */}
-      <ThemedView style={[styles.header, { borderBottomColor: color.border }]}>
+      <ThemedView
+        style={[styles.header, { borderBottomColor: color.primaryBorder }]}
+      >
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="chevron-back-outline" size={22} color={color.icon} />
+          <Ionicons
+            name="chevron-back-outline"
+            size={22}
+            color={color.primaryIcon}
+          />
         </TouchableOpacity>
         <ThemedView style={styles.HeaderTitleContainer}>
           <ThemedText type="headerTitle">Message Request</ThemedText>
         </ThemedView>
         <TouchableOpacity onPress={() => console.log("setting")}>
-          <Ionicons name="cog-outline" size={22} color={color.icon} />
+          <Ionicons name="cog-outline" size={22} color={color.primaryIcon} />
         </TouchableOpacity>
       </ThemedView>
 
@@ -235,13 +241,13 @@ export default function MessageRequest() {
         }
         ListFooterComponent={
           hasMore && chats.length > 0 && isPaging ? (
-            <ActivityIndicator size="small" color={color.icon} />
+            <ActivityIndicator size="small" color={color.primaryIcon} />
           ) : null
         }
 
         // ItemSeparatorComponent={() => (
         //   <ThemedView
-        //     style={[styles.separator, { backgroundColor: color.secondary }]}
+        //     style={[styles.separator, { backgroundColor: color.secondaryText }]}
         //   />
         // )}
       />

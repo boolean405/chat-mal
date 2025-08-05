@@ -557,27 +557,39 @@ export default function ChatMessage() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: color.background }]}
+      style={[styles.container, { backgroundColor: color.primaryBackground }]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
     >
       {/* Header */}
-      <ThemedView style={[styles.header, { borderBottomColor: color.border }]}>
+      <ThemedView
+        style={[styles.header, { borderBottomColor: color.primaryBorder }]}
+      >
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="chevron-back-outline" size={22} color={color.icon} />
+          <Ionicons
+            name="chevron-back-outline"
+            size={22}
+            color={color.primaryIcon}
+          />
         </TouchableOpacity>
 
         {/* Profile avatar */}
         <TouchableOpacity onPress={() => console.log("Profile")}>
           <ThemedView style={styles.profilePhotoContainer}>
-            <Image source={{ uri: chatPhoto }} style={styles.profilePhoto} />
+            <Image
+              source={{ uri: chatPhoto }}
+              style={[
+                styles.profilePhoto,
+                { borderColor: color.secondaryBorder },
+              ]}
+            />
             {!currentChat.isGroupChat && isOnline ? (
               <ThemedView
                 style={[
                   styles.onlineIndicator,
                   {
-                    borderColor: color.secondary,
-                    backgroundColor: "limegreen",
+                    borderColor: color.onlineBorder,
+                    backgroundColor: color.onlineBackground,
                   },
                 ]}
               />
@@ -588,8 +600,8 @@ export default function ChatMessage() {
                     style={[
                       styles.onlineIndicator,
                       {
-                        borderColor: color.secondary,
-                        backgroundColor: "#A9A9A9",
+                        borderColor: color.secondaryBorder,
+                        backgroundColor: color.offlineBackground,
                       },
                     ]}
                   />
@@ -598,7 +610,7 @@ export default function ChatMessage() {
                     style={[
                       styles.lastOnlineText,
                       {
-                        backgroundColor: color.secondary,
+                        backgroundColor: color.offlineBackground,
                       },
                     ]}
                   >
@@ -622,7 +634,7 @@ export default function ChatMessage() {
                 name="call-outline"
                 size={22}
                 style={styles.icon}
-                color={color.icon}
+                color={color.primaryIcon}
               />
             </TouchableOpacity>
             <TouchableOpacity
@@ -632,7 +644,7 @@ export default function ChatMessage() {
                 name="videocam-outline"
                 size={22}
                 style={styles.icon}
-                color={color.icon}
+                color={color.primaryIcon}
               />
             </TouchableOpacity>
             <TouchableOpacity
@@ -647,7 +659,7 @@ export default function ChatMessage() {
                 name="ellipsis-vertical-outline"
                 size={22}
                 style={styles.icon}
-                color={color.icon}
+                color={color.primaryIcon}
               />
             </TouchableOpacity>
           </ThemedView>
@@ -677,7 +689,7 @@ export default function ChatMessage() {
         )}
         ListFooterComponent={
           hasMore && isPaging ? (
-            <ActivityIndicator size="small" color={color.icon} />
+            <ActivityIndicator size="small" color={color.primaryIcon} />
           ) : null
         }
       />
@@ -698,7 +710,10 @@ export default function ChatMessage() {
         <ThemedView style={styles.pendingButtonContainer}>
           <TouchableOpacity
             disabled={isLoading}
-            style={[styles.pendingButton, { backgroundColor: color.secondary }]}
+            style={[
+              styles.pendingButton,
+              { backgroundColor: color.secondaryText },
+            ]}
             onPress={() => console.log("Block User")}
           >
             <ThemedText type="defaultBold" style={styles.blockText}>
@@ -707,7 +722,10 @@ export default function ChatMessage() {
           </TouchableOpacity>
           <TouchableOpacity
             disabled={isLoading}
-            style={[styles.pendingButton, { backgroundColor: color.secondary }]}
+            style={[
+              styles.pendingButton,
+              { backgroundColor: color.secondaryText },
+            ]}
             onPress={handleDelete}
           >
             <ThemedText type="defaultBold" style={styles.deleteText}>
@@ -716,7 +734,10 @@ export default function ChatMessage() {
           </TouchableOpacity>
           <TouchableOpacity
             disabled={isLoading}
-            style={[styles.pendingButton, { backgroundColor: color.secondary }]}
+            style={[
+              styles.pendingButton,
+              { backgroundColor: color.secondaryText },
+            ]}
             onPress={handleAccept}
           >
             <ThemedText type="defaultBold" style={styles.acceptText}>
@@ -730,20 +751,20 @@ export default function ChatMessage() {
           <ThemedView
             style={[
               styles.inputTextContainer,
-              { backgroundColor: color.secondary },
+              { backgroundColor: color.secondaryBackground },
             ]}
           >
             <TouchableOpacity style={styles.imageButton}>
               <Ionicons
                 name="add-circle-outline"
                 size={22}
-                color={color.icon}
+                color={color.primaryIcon}
               />
             </TouchableOpacity>
             <TextInput
               value={newMessage}
               onChangeText={setNewMessage}
-              style={[styles.textInput, { color: color.text }]}
+              style={[styles.textInput, { color: color.primaryText }]}
               placeholder="Type a message"
               placeholderTextColor="gray"
               multiline
@@ -752,13 +773,21 @@ export default function ChatMessage() {
               onPress={handlePressMedia}
               style={styles.imageButton}
             >
-              <Ionicons name="image-outline" size={22} color={color.icon} />
+              <Ionicons
+                name="image-outline"
+                size={22}
+                color={color.primaryIcon}
+              />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setIsCameraVisible(true)}
               style={styles.imageButton}
             >
-              <Ionicons name="camera-outline" size={22} color={color.icon} />
+              <Ionicons
+                name="camera-outline"
+                size={22}
+                color={color.primaryIcon}
+              />
             </TouchableOpacity>
           </ThemedView>
           <TouchableOpacity
@@ -769,7 +798,7 @@ export default function ChatMessage() {
             disabled={newMessage.length === 0}
             onPress={handleSendMessage}
           >
-            <Ionicons name="send-outline" size={22} color={color.icon} />
+            <Ionicons name="send-outline" size={22} color={color.primaryIcon} />
           </TouchableOpacity>
           <CameraModal
             isVisible={isCameraVisible}
@@ -822,7 +851,7 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   sendButton: {
-    backgroundColor: "#128c7e",
+    // backgroundColor: "#128c7e",
     padding: 10,
     borderRadius: 20,
   },
@@ -884,6 +913,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+    borderWidth: 0.5,
     // marginRight: 15,
   },
   textContainer: {

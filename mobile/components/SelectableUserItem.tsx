@@ -39,14 +39,46 @@ const SelectableUserItem: React.FC<Props> = ({
       <ThemedView style={styles.profilePhotoContainer}>
         <Image
           source={{ uri: user.profilePhoto }}
-          style={styles.profilePhoto}
+          style={[styles.profilePhoto, { borderColor: color.secondaryBorder }]}
         />
+
+        {/* Online status */}
         {isOnline ? (
-          <ThemedView style={styles.onlineIndicator} />
+          <ThemedView
+            style={[
+              styles.onlineIndicator,
+              {
+                borderColor: color.onlineBorder,
+                backgroundColor: color.onlineBackground,
+              },
+            ]}
+          />
         ) : (
-          <ThemedText type="extraSmall" style={styles.lastOnlineText}>
-            {getLastTime(lastOnlineAt || user.updatedAt)}
-          </ThemedText>
+          <>
+            {getLastTime(user.lastOnlineAt) === "0m" ? (
+              <ThemedView
+                style={[
+                  styles.onlineIndicator,
+                  {
+                    borderColor: color.secondaryBorder,
+                    backgroundColor: color.offlineBackground,
+                  },
+                ]}
+              />
+            ) : (
+              <ThemedText
+                style={[
+                  styles.lastOnlineText,
+                  {
+                    backgroundColor: color.offlineBackground,
+                    color: color.primaryBackground,
+                  },
+                ]}
+              >
+                {getLastTime(user.lastOnlineAt)}
+              </ThemedText>
+            )}
+          </>
         )}
       </ThemedView>
 
@@ -72,7 +104,7 @@ const SelectableUserItem: React.FC<Props> = ({
         <Ionicons
           name={selected ? "checkbox-outline" : "square-outline"}
           size={22}
-          color={color.icon}
+          color={color.primaryIcon}
         />
       </ThemedView>
     </TouchableOpacity>
@@ -93,6 +125,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     marginRight: 15,
+    borderWidth: 0.5,
   },
   textContainer: {
     flex: 1,
@@ -110,14 +143,19 @@ const styles = StyleSheet.create({
     right: 15,
     width: 10,
     height: 10,
-    backgroundColor: "limegreen",
     borderRadius: 5,
+    borderWidth: 1.5,
   },
   lastOnlineText: {
     position: "absolute",
     bottom: 0,
-    right: 10,
-    color: "gray",
+    right: 15,
     fontWeight: "bold",
+    width: 12,
+    height: 10,
+    borderRadius: 5,
+    fontSize: 5,
+    textAlign: "center",
+    textAlignVertical: "center",
   },
 });
