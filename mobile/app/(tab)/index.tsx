@@ -64,7 +64,6 @@ export default function Home() {
     updateChat,
     clearChat,
     clearGroup,
-    clearAllChats,
     setOnlineUserIds,
     getChatById,
   } = useChatStore();
@@ -97,6 +96,7 @@ export default function Home() {
     closeSheet,
     handleOptionSelect,
   } = useBottomSheetActions({
+    user,
     clearChat,
     setChats,
     clearGroup,
@@ -435,7 +435,6 @@ export default function Home() {
 
     // never deleted → keep
     if (!deletedInfo) return true;
-
     const deletedAt = new Date(deletedInfo.deletedAt);
 
     // latestMessage check
@@ -452,6 +451,11 @@ export default function Home() {
     // no activity after delete → hide
     return false;
   });
+
+  // Other user name
+  const selectedChatName =
+    selectedChat?.name ||
+    selectedChat?.users?.find((u) => u.user._id !== user._id)?.user?.name;
 
   return (
     <ThemedView style={styles.container}>
@@ -520,7 +524,7 @@ export default function Home() {
       {/* Bottom Sheet Actions */}
       <BottomSheetAction
         visible={isSheetVisible}
-        title={selectedChat?.name}
+        title={selectedChatName}
         options={filteredOptions}
         onSelect={handleOptionSelect}
         onCancel={closeSheet}

@@ -15,11 +15,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useRouter } from "expo-router";
 import BottomSheetAction from "@/components/BottomSheetActions";
-import {
-  getPaginateChats,
-  getPaginateRequestChats,
-  readChat,
-} from "@/api/chat";
+import { getPaginateChats, readChat } from "@/api/chat";
 import ChatEmpty from "@/components/ChatEmpty";
 import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
@@ -81,6 +77,7 @@ export default function ArchivedChats() {
     closeSheet,
     handleOptionSelect,
   } = useBottomSheetActions({
+    user,
     clearChat,
     setChats,
     clearGroup,
@@ -200,6 +197,11 @@ export default function ArchivedChats() {
     }
   };
 
+  // Other user name
+  const selectedChatName =
+    selectedChat?.name ||
+    selectedChat?.users?.find((u) => u.user._id !== user._id)?.user?.name;
+
   return (
     <ThemedView style={styles.container}>
       {/* Header */}
@@ -269,7 +271,7 @@ export default function ArchivedChats() {
       {/* Custom Sheet */}
       <BottomSheetAction
         visible={isSheetVisible}
-        title={selectedChat?.name}
+        title={selectedChatName}
         options={filteredOptions}
         onSelect={handleOptionSelect}
         onCancel={closeSheet}

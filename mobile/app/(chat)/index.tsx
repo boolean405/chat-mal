@@ -686,7 +686,7 @@ export default function ChatMessage() {
             disabled={isLoading}
             style={[
               styles.pendingButton,
-              { backgroundColor: color.secondaryText },
+              { backgroundColor: color.secondaryBackground },
             ]}
             onPress={() => console.log("Block User")}
           >
@@ -698,7 +698,7 @@ export default function ChatMessage() {
             disabled={isLoading}
             style={[
               styles.pendingButton,
-              { backgroundColor: color.secondaryText },
+              { backgroundColor: color.secondaryBackground },
             ]}
             onPress={handleDelete}
           >
@@ -710,7 +710,7 @@ export default function ChatMessage() {
             disabled={isLoading}
             style={[
               styles.pendingButton,
-              { backgroundColor: color.secondaryText },
+              { backgroundColor: color.secondaryBackground },
             ]}
             onPress={handleAccept}
           >

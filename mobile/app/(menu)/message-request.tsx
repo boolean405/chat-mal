@@ -76,6 +76,7 @@ export default function MessageRequest() {
     closeSheet,
     handleOptionSelect,
   } = useBottomSheetActions({
+    user,
     clearChat,
     setChats,
     clearGroup,
@@ -174,6 +175,11 @@ export default function MessageRequest() {
     }
   };
 
+  // Other user name
+  const selectedChatName =
+    selectedChat?.name ||
+    selectedChat?.users?.find((u) => u.user._id !== user._id)?.user?.name;
+
   return (
     <ThemedView style={styles.container}>
       {/* Header */}
@@ -256,7 +262,7 @@ export default function MessageRequest() {
       {/* Custom Sheet */}
       <BottomSheetAction
         visible={isSheetVisible}
-        title={selectedChat?.name}
+        title={selectedChatName}
         options={filteredOptions}
         onSelect={handleOptionSelect}
         onCancel={closeSheet}

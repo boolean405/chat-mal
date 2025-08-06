@@ -5,12 +5,16 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
   useColorScheme,
+  Dimensions,
 } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { Ionicons } from "@expo/vector-icons";
 import { BottomSheetOption } from "@/types";
 import { Colors } from "@/constants/colors";
+
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+const MAX_SHEET_HEIGHT = SCREEN_HEIGHT * 0.5;
 
 interface Props {
   visible: boolean;
@@ -29,6 +33,7 @@ export default function BottomSheetAction({
 }: Props) {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
+
   return (
     <Modal visible={visible} transparent animationType="slide">
       <TouchableWithoutFeedback onPress={onCancel}>
@@ -36,14 +41,27 @@ export default function BottomSheetAction({
           <ThemedView
             style={[
               styles.sheet,
-              { backgroundColor: color.secondaryBackground },
+              {
+                backgroundColor: color.secondaryBackground,
+                maxHeight: MAX_SHEET_HEIGHT,
+              },
             ]}
           >
+            {/* Add the handle here */}
+            <ThemedView
+              style={[styles.handle, { backgroundColor: color.primaryText }]}
+            />
+
             {title && (
               <ThemedText
                 type="larger"
                 numberOfLines={1}
-                style={[styles.title, { borderColor: color.secondaryBorder }]}
+                style={[
+                  styles.title,
+                  {
+                    borderBottomColor: color.secondaryBorder,
+                  },
+                ]}
               >
                 {title}
               </ThemedText>
@@ -92,18 +110,26 @@ const styles = StyleSheet.create({
   title: {
     // textAlign: "center",
     // padding: 12,
-    paddingVertical: 12,
-    borderBottomWidth: 0.2,
-    marginBottom: 10,
+    paddingVertical: 10,
+    borderBottomWidth: 0.3,
+    marginBottom: 5,
     // borderColor: "#eee",
   },
   optionButton: {
-    paddingVertical: 16,
+    paddingVertical: 15,
     flexDirection: "row",
     alignItems: "center",
   },
   nameText: {
     paddingLeft: 15,
+  },
+  handle: {
+    width: 40,
+    height: 3,
+    borderRadius: 3,
+    alignSelf: "center",
+    marginBottom: 10,
+    marginTop: 5,
   },
 });
 

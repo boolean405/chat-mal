@@ -227,24 +227,8 @@ export async function archiveChat(chatId) {
     });
     return response.data;
   } catch (error) {
-    const message = error.response?.data?.message || "Failed to archive chat!";
-    const customError = new Error(message);
-    customError.status = error.response?.status;
-    throw customError;
-  }
-}
-
-// Unarchive chat
-export async function unarchiveChat(chatId) {
-  try {
-    await refresh();
-    const response = await api.patch("/api/chat/unarchive-chat", {
-      chatId,
-    });
-    return response.data;
-  } catch (error) {
     const message =
-      error.response?.data?.message || "Failed to unarchive chat!";
+      error.response?.data?.message || "Failed to archive or unarchive chat!";
     const customError = new Error(message);
     customError.status = error.response?.status;
     throw customError;

@@ -1,16 +1,11 @@
 import { useState, useCallback } from "react";
 import { ToastAndroid, Alert } from "react-native";
-import { Chat } from "@/types";
+import { Chat, User } from "@/types";
 import { bottomSheetOptionsData } from "@/constants/data";
-import {
-  deleteChat,
-  createGroup,
-  leaveGroup,
-  archiveChat,
-  unarchiveChat,
-} from "@/api/chat";
+import { deleteChat, createGroup, leaveGroup, archiveChat } from "@/api/chat";
 
 type UseBottomSheetActionsProps = {
+  user: User | null;
   clearChat: (id: string) => void;
   setChats: (chats: any[]) => void;
   clearGroup: (id: string) => void;
@@ -19,6 +14,7 @@ type UseBottomSheetActionsProps = {
 };
 
 export function useBottomSheetActions({
+  user,
   clearChat,
   setChats,
   clearGroup,
@@ -29,12 +25,41 @@ export function useBottomSheetActions({
   const [isSheetVisible, setSheetVisible] = useState(false);
   const [isLoadingAction, setIsLoadingAction] = useState(false);
 
+  // Other user name
+  const selectedChatName =
+    selectedChat?.name ||
+    selectedChat?.users?.find((u) => u.user._id !== user?._id)?.user?.name;
+
+  const isArchived = selectedChat?.archivedInfos.some(
+    (archive) => archive.user._id === user?._id
+  );
+
   const filteredOptions = selectedChat
-    ? bottomSheetOptionsData.filter(
-        (option) =>
-          option.showFor === "all" ||
-          option.showFor === (selectedChat.isGroupChat ? "group" : "chat")
-      )
+    ? bottomSheetOptionsData
+        .filter(
+          (option) =>
+            option.showFor === "all" ||
+            option.showFor === (selectedChat.isGroupChat ? "group" : "chat")
+        )
+        .map((option) => {
+          if (option.path === "/archive" && isArchived) {
+            return {
+              ...option,
+              name: "Unarchive",
+              icon: "arrow-up-outline",
+              path: "/unarchive",
+            };
+          }
+
+          if (option.path === "/create-group") {
+            return {
+              ...option,
+              name: `Create group chat with "${selectedChatName}"`,
+            };
+          }
+
+          return option;
+        })
     : [];
 
   const openSheet = (chat: Chat) => {
@@ -98,17 +123,6 @@ export function useBottomSheetActions({
     }
   };
 
-  const handleUnarchiveChat = async (chat: Chat) => {
-    try {
-      const data = await unarchiveChat(chat._id);
-      ToastAndroid.show(data.message, ToastAndroid.SHORT);
-
-      setChats([data.result]);
-    } catch (error: any) {
-      ToastAndroid.show(error.message, ToastAndroid.SHORT);
-    }
-  };
-
   const handleLeaveGroup = (chat: Chat) => {
     return new Promise<void>((resolve) => {
       Alert.alert("Leave Group", "Are you sure you want to leave this group?", [
@@ -162,10 +176,8 @@ export function useBottomSheetActions({
             await handleLeaveGroup(selectedChat);
             break;
           case "/archive":
-            await handleArchiveChat(selectedChat);
-            break;
           case "/unarchive":
-            await handleUnarchiveChat(selectedChat);
+            await handleArchiveChat(selectedChat);
             break;
           default:
             ToastAndroid.show(

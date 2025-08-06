@@ -8,13 +8,12 @@ import { Colors } from "@/constants/colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useChatStore } from "@/stores/chatStore";
 import { ThemedText } from "@/components/ThemedText";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabLayout() {
   // Get current color scheme (light or dark)
   const colorScheme = useColorScheme();
   const unreadCount = useChatStore((state) => state.totalUnreadCount);
-  const insets = useSafeAreaInsets();
+  // const insets = useSafeAreaInsets();
 
   const tabBarLabel = (label: string) => {
     const Component = ({
