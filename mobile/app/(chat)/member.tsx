@@ -48,14 +48,17 @@ export default function Member() {
   const [popoverUser, setPopoverUser] = useState<User | null>(null);
   const moreButtonRefs = useRef<{ [key: string]: React.RefObject<any> }>({});
 
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const { clearMessages } = useMessageStore();
-  const { onlineUserIds, getChatById, clearChat, updateChat, setChats } =
-    useChatStore();
 
-  const { chatId: rawChatId } = useLocalSearchParams();
-  const chatId = Array.isArray(rawChatId) ? rawChatId[0] : rawChatId;
-  const chat = getChatById(chatId);
+  const {
+    onlineUserIds,
+    currentChat,
+    getChatById,
+    clearChat,
+    updateChat,
+    setChats,
+  } = useChatStore();
 
   const {
     results,
@@ -82,9 +85,9 @@ export default function Member() {
   }, [isAddMode, setKeyword]);
 
   const filteredResults = useMemo(() => {
-    const existingUserIds = new Set(chat?.users?.map((u) => u.user._id) ?? []);
+    const existingUserIds = new Set(currentChat?.users?.map((u) => u.user._id) ?? []);
     return results.filter((user) => !existingUserIds.has(user._id));
-  }, [results, chat]);
+  }, [results, currentChat]);
 
   const filterByKeyword = (
     users: {
@@ -106,15 +109,15 @@ export default function Member() {
 
   // 🔎 Keyword filter on all remaining (non-admin) members
   const filteredMembers = useMemo(() => {
-    const sorted = [...(chat?.users ?? [])].sort((a, b) => {
+    const sorted = [...(currentChat?.users ?? [])].sort((a, b) => {
       const rank = { leader: 0, admin: 1, member: 2 };
       return rank[a.role] - rank[b.role];
     });
 
     return filterByKeyword(sorted, keyword);
-  }, [chat?.users, keyword]);
+  }, [currentChat?.users, keyword]);
 
-  if (!user || !chat) return null;
+  if (!user || !currentChat) return null;
 
   // Load more
   const handleLoadMore = async () => {
@@ -129,7 +132,7 @@ export default function Member() {
     // Api call
     try {
       const userIds = selectedUsers.map((u) => u._id);
-      const data = await addUsersToGroup(chatId, userIds);
+      const data = await addUsersToGroup(currentChat._id, userIds);
       if (data.status) {
         updateChat(data.result);
         setIsAddMode(false);
@@ -161,7 +164,7 @@ export default function Member() {
             // Api call
             try {
               const data = await addAdminToGroup(
-                chatId,
+                currentChat._id,
                 popoverUser?._id.toString()
               );
               if (data.status) {
@@ -197,7 +200,7 @@ export default function Member() {
             setPopoverUser(null);
             // Api call
             try {
-              const data = await removeAdminFromGroup(chatId, popoverUser?._id);
+              const data = await removeAdminFromGroup(currentChat._id, popoverUser?._id);
               if (data.status) {
                 updateChat(data.result);
                 ToastAndroid.show(data.message, ToastAndroid.SHORT);
@@ -231,7 +234,7 @@ export default function Member() {
             setPopoverUser(null);
             // Api call
             try {
-              const data = await removeUserFromGroup(chatId, popoverUser?._id);
+              const data = await removeUserFromGroup(currentChat._id, popoverUser?._id);
               if (data.status) {
                 updateChat(data.result);
                 ToastAndroid.show(data.message, ToastAndroid.SHORT);
@@ -262,10 +265,10 @@ export default function Member() {
           setPopoverUser(null);
           // Api call
           try {
-            const data = await leaveGroup(chatId); // no result
+            const data = await leaveGroup(currentChat._id); // no result
             if (data.status) {
-              clearChat(chatId);
-              clearMessages(chatId);
+              clearMessages(currentChat._id);
+              clearChat(currentChat._id);
               ToastAndroid.show(data.message, ToastAndroid.SHORT);
               router.replace("/(tab)");
             }
@@ -513,10 +516,10 @@ export default function Member() {
           }}
         >
           {(() => {
-            const isLeader = chat.users.some(
+            const isLeader = currentChat.users.some(
               (a) => a.role === "leader" && a.user._id === user._id
             );
-            const isAdmin = chat.users.some(
+            const isAdmin = currentChat.users.some(
               (a) => a.role === "admin" && a.user._id === user._id
             );
             const currentUserRole = isLeader
@@ -525,10 +528,10 @@ export default function Member() {
               ? "admin"
               : "member";
 
-            const isTargetAdmin = chat.users.some(
+            const isTargetAdmin = currentChat.users.some(
               (a) => a.role === "admin" && a.user._id === popoverUser._id
             );
-            const isTargetLeader = chat.users.some(
+            const isTargetLeader = currentChat.users.some(
               (a) => a.role === "leader" && a.user._id === popoverUser._id
             );
             const isSelf = user?._id === popoverUser._id;

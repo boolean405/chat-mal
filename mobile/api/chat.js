@@ -1,10 +1,12 @@
 import api from "@/config/axios";
 import { refresh } from "@/api/user";
 
-export async function getPaginateChats(pageNum) {
+export async function getPaginateChats({ pageNum = 1, archived = false }) {
   try {
     await refresh();
-    const response = await api.get(`/api/chat/paginate/${pageNum}`);
+    const response = await api.get(
+      `/api/chat/paginate/${pageNum}?archived=${archived}`
+    );
     return response.data;
   } catch (error) {
     const message = error.response?.data?.message || "Failed to fetch chats!";
@@ -210,6 +212,39 @@ export async function readChat(chatId) {
     return response.data;
   } catch (error) {
     const message = error.response?.data?.message || "Fetch read chat error!";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}
+
+// Archive chat
+export async function archiveChat(chatId) {
+  try {
+    await refresh();
+    const response = await api.patch("/api/chat/archive-chat", {
+      chatId,
+    });
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Failed to archive chat!";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}
+
+// Unarchive chat
+export async function unarchiveChat(chatId) {
+  try {
+    await refresh();
+    const response = await api.patch("/api/chat/unarchive-chat", {
+      chatId,
+    });
+    return response.data;
+  } catch (error) {
+    const message =
+      error.response?.data?.message || "Failed to unarchive chat!";
     const customError = new Error(message);
     customError.status = error.response?.status;
     throw customError;

@@ -74,16 +74,9 @@ const userSchema = new Schema(
   }
 );
 
-// Text search on name and username
-userSchema.index({ name: "text", username: "text" });
-
-// Find online users
-userSchema.index({ isOnline: 1 });
-
-// Admin filtering or moderation tools
-userSchema.index({ role: 1 });
-userSchema.index({ verified: 1 });
+userSchema.index({ lastOnlineAt: -1 }); 
 userSchema.index({ refreshToken: 1 });
+userSchema.index({ pushToken: 1 });
 userSchema.index(
   { "authProviders.provider": 1, "authProviders.providerId": 1 },
   { unique: true }

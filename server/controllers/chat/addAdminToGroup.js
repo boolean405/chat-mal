@@ -42,7 +42,7 @@ export default async function addAdminToGroup(req, res, next) {
 
     const updatedGroup = await ChatDB.findById(groupId)
       .populate({
-        path: "users.user deletedInfos.user unreadInfos.user initiator",
+        path: "users.user deletedInfos.user unreadInfos.user initiator archivedInfos.user",
         select: "-password",
       })
       .populate({

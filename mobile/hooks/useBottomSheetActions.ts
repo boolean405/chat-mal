@@ -2,13 +2,20 @@ import { useState, useCallback } from "react";
 import { ToastAndroid, Alert } from "react-native";
 import { Chat } from "@/types";
 import { bottomSheetOptionsData } from "@/constants/data";
-import { deleteChat, createGroup, leaveGroup } from "@/api/chat";
+import {
+  deleteChat,
+  createGroup,
+  leaveGroup,
+  archiveChat,
+  unarchiveChat,
+} from "@/api/chat";
 
 type UseBottomSheetActionsProps = {
   clearChat: (id: string) => void;
   setChats: (chats: any[]) => void;
   clearGroup: (id: string) => void;
   clearMessages: (id: string) => void;
+  updateChat: (chat: Chat) => void;
 };
 
 export function useBottomSheetActions({
@@ -16,6 +23,7 @@ export function useBottomSheetActions({
   setChats,
   clearGroup,
   clearMessages,
+  updateChat,
 }: UseBottomSheetActionsProps) {
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [isSheetVisible, setSheetVisible] = useState(false);
@@ -78,6 +86,29 @@ export function useBottomSheetActions({
       ToastAndroid.show(error.message, ToastAndroid.SHORT);
     }
   };
+
+  const handleArchiveChat = async (chat: Chat) => {
+    try {
+      const data = await archiveChat(chat._id);
+      ToastAndroid.show(data.message, ToastAndroid.SHORT);
+
+      updateChat(data.result);
+    } catch (error: any) {
+      ToastAndroid.show(error.message, ToastAndroid.SHORT);
+    }
+  };
+
+  const handleUnarchiveChat = async (chat: Chat) => {
+    try {
+      const data = await unarchiveChat(chat._id);
+      ToastAndroid.show(data.message, ToastAndroid.SHORT);
+
+      setChats([data.result]);
+    } catch (error: any) {
+      ToastAndroid.show(error.message, ToastAndroid.SHORT);
+    }
+  };
+
   const handleLeaveGroup = (chat: Chat) => {
     return new Promise<void>((resolve) => {
       Alert.alert("Leave Group", "Are you sure you want to leave this group?", [
@@ -129,6 +160,12 @@ export function useBottomSheetActions({
             break;
           case "/leave-group":
             await handleLeaveGroup(selectedChat);
+            break;
+          case "/archive":
+            await handleArchiveChat(selectedChat);
+            break;
+          case "/unarchive":
+            await handleUnarchiveChat(selectedChat);
             break;
           default:
             ToastAndroid.show(

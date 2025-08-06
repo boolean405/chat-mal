@@ -85,6 +85,16 @@ export default async function createMessage(req, res, next) {
       await ChatDB.bulkWrite(bulkUpdates);
     }
 
+    // 🧹 Clear all archivedInfos when a message is sent
+    await ChatDB.updateOne(
+      { _id: chatId },
+      {
+        $set: {
+          archivedInfos: [],
+        },
+      }
+    );
+
     // Fully re-fetch the updated message (with populated fields)
     const message = await MessageDB.findById(newMessage._id)
       .populate({

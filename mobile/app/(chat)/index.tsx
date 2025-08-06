@@ -1,7 +1,6 @@
 import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import NetInfo from "@react-native-community/netinfo";
 
 import {
   ActivityIndicator,
@@ -10,7 +9,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
-  Text,
   TextInput,
   ToastAndroid,
   TouchableOpacity,
@@ -33,13 +31,14 @@ import { useAuthStore } from "@/stores/authStore";
 import { acceptChatRequest, deleteChat, readChat } from "@/api/chat";
 import getLastTime from "@/utils/getLastTime";
 import { socket } from "@/config/socket";
-import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
 import { useUiStore } from "@/stores/uiStore";
 import CameraModal from "@/components/Camera";
+import { useCallStore } from "@/stores/callStore";
 import ImagePreview from "@/components/ImagePreview";
 import VideoPreview from "@/components/VideoPreview";
 import { chatMediaPicker } from "@/utils/chatMediaPicker";
-import { useCallStore } from "@/stores/callStore";
+import { useNetworkStore } from "@/stores/useNetworkStore";
+import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
 
 export default function ChatMessage() {
   useTimeTickWhenFocused();
@@ -51,8 +50,9 @@ export default function ChatMessage() {
   const flatListRef = useRef<FlatList>(null);
 
   const user = useAuthStore((state) => state.user);
-  const { chatId: rawChatId } = useLocalSearchParams();
-  const chatId = Array.isArray(rawChatId) ? rawChatId[0] : rawChatId;
+  const { chatId } = useLocalSearchParams() as { chatId: string };
+  const networkInfo = useNetworkStore((state) => state.networkInfo);
+
   // Get chat and messages from stores
   const {
     currentChat,
@@ -93,7 +93,17 @@ export default function ChatMessage() {
     type: "image" | "video";
     isLoading: boolean;
   } | null>(null);
-  const [isConnected, setIsConnected] = useState(true);
+
+  // Set current chat when screen mounts
+  useEffect(() => {
+    if (chatId) {
+      const chat = getChatById(chatId);
+      if (chat) setCurrentChat(chat);
+      else setCurrentChat(null);
+    }
+
+    return () => setCurrentChat(null);
+  }, [chatId, getChatById, setCurrentChat]);
 
   // Pagination handling
   const {
@@ -106,7 +116,7 @@ export default function ChatMessage() {
   } = usePaginatedData<Message>({
     fetchData: async (page: number) => {
       if (!chatId) return { items: [], totalPage: 0 };
-      const alreadyLoaded = storedMessages[chatId]?.length > 0;
+      // const alreadyLoaded = storedMessages[chatId]?.length > 0;
 
       // ⛔ Skip page 1 fetch if messages are already in store
       // if (page === 1 && alreadyLoaded) {
@@ -137,15 +147,6 @@ export default function ChatMessage() {
   //     setChats(newChats);
   //   }
   // }, [newChats, clearAllChats, setChats, isFetching]);
-
-  // Netinfo
-  useEffect(() => {
-    const unsubscribe = NetInfo.addEventListener((state) => {
-      setIsConnected(state.isConnected ?? false);
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   useEffect(() => {
     setActiveChatId(chatId); // when entering
@@ -229,22 +230,6 @@ export default function ChatMessage() {
     }
   }, [chatId, hasEmittedTyping, newMessage, user]);
 
-  // Set current chat when screen mounts
-  useEffect(() => {
-    if (chatId) {
-      const chat = getChatById(chatId);
-      if (chat) {
-        setCurrentChat(chat);
-      } else {
-        setCurrentChat(null);
-      }
-    }
-
-    return () => {
-      setCurrentChat(null);
-    };
-  }, [chatId, getChatById, setCurrentChat]);
-
   useEffect(() => {
     if (isSentMessage && currentMessages.length > 0) {
       flatListRef.current?.scrollToIndex({ index: 0, animated: true });
@@ -262,7 +247,7 @@ export default function ChatMessage() {
 
   // Handle send message
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !chatId || !currentChat) return;
+    if (!newMessage.trim()) return;
 
     setIsSentMessage(true);
     socket.emit("stop-typing", { chatId });
@@ -275,7 +260,7 @@ export default function ChatMessage() {
       sender: user,
       chat: currentChat,
       type: "text",
-      status: isConnected ? "pending" : "failed",
+      status: networkInfo?.isConnected ? "pending" : "failed",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -284,7 +269,7 @@ export default function ChatMessage() {
     setNewMessage("");
 
     // If offline, don't send to server
-    if (!isConnected) return;
+    if (!networkInfo?.isConnected) return;
 
     // Call api message
     try {
@@ -396,14 +381,14 @@ export default function ChatMessage() {
       sender: user,
       chat: currentChat,
       type: pendingMediaPreview.type,
-      status: isConnected ? "pending" : "failed",
+      status: networkInfo?.isConnected ? "pending" : "failed",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
     addMessage(chatId, tempMessage);
 
-    if (!isConnected) {
+    if (!networkInfo?.isConnected) {
       setPendingMediaPreview(null);
       return;
     }
@@ -459,14 +444,14 @@ export default function ChatMessage() {
       sender: user,
       chat: currentChat,
       type: media.type === "image" ? "image" : "video",
-      status: isConnected ? "pending" : "failed",
+      status: networkInfo?.isConnected ? "pending" : "failed",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
     addMessage(chatId, tempMessage);
 
-    if (!isConnected) {
+    if (!networkInfo?.isConnected) {
       setPendingMediaPreview(null);
       return;
     }
@@ -505,7 +490,7 @@ export default function ChatMessage() {
   )?.user;
   // const targetUserId = otherUser?._id;
 
-  // Handle video call
+  // Handle call
   const handlePressCall = ({ callMode }: { callMode: "audio" | "video" }) => {
     if (!isCallActive) {
       setRequestCall({ chat: currentChat, caller: user, callMode });
@@ -516,11 +501,6 @@ export default function ChatMessage() {
       pathname: "/(chat)/call",
       params: { chatId },
     });
-
-    // socket.emit("request-call", {
-    //   chatId,
-    //   callMode,
-    // });
   };
 
   const isOnline =
@@ -610,6 +590,7 @@ export default function ChatMessage() {
                     style={[
                       styles.lastOnlineText,
                       {
+                        color: color.secondaryBackground,
                         backgroundColor: color.offlineBackground,
                       },
                     ]}
@@ -647,14 +628,7 @@ export default function ChatMessage() {
                 color={color.primaryIcon}
               />
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() =>
-                router.push({
-                  pathname: "/(chat)/detail",
-                  params: { chatId },
-                })
-              }
-            >
+            <TouchableOpacity onPress={() => router.push("/(chat)/detail")}>
               <Ionicons
                 name="ellipsis-vertical-outline"
                 size={22}
@@ -940,14 +914,14 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   lastOnlineText: {
-    position: "absolute",
     bottom: 0,
     right: 1,
-    fontWeight: "bold",
     width: 12,
     height: 10,
-    borderRadius: 5,
     fontSize: 5,
+    borderRadius: 5,
+    fontWeight: "bold",
+    position: "absolute",
     textAlign: "center",
     textAlignVertical: "center",
   },

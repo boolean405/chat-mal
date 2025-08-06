@@ -13,7 +13,7 @@ export default async function getChat(req, res, next) {
 
     const dbChat = await ChatDB.findById(chatId)
       .populate({
-        path: "users.user deletedInfos.user initiator",
+        path: "users.user deletedInfos.user initiator unreadInfos.user archivedInfos.user",
         select: "-password",
       })
       .populate({

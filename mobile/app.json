@@ -57,7 +57,7 @@
             "image": "./assets/images/splash-icon.png",
             "backgroundColor": "#000000"
           },
-          "imageWidth": 200,
+          "imageWidth": 150,
           "resizeMode": "contain"
         }
       ],
@@ -113,7 +113,11 @@
           "appID": "796836696245947",
           "displayName": "Chat Mal",
           "clientToken": "d4085b98beb9bbd477a3e9a09c710d34",
-          "scheme": "fb796836696245947"
+          "scheme": "fb796836696245947",
+          "advertiserIDCollectionEnabled": false,
+          "autoLogAppEventsEnabled": false,
+          "isAutoInitEnabled": true,
+          "iosUserTrackingPermission": "This identifier will be used to deliver personalized ads to you."
         }
       ]
     ],

@@ -157,13 +157,6 @@ export default function LoginOrRegister() {
             if (error) {
               console.log("Error fetching data: " + error.toString());
             } else if (result) {
-              const user = {
-                id: result.id,
-                name: result.name,
-                email: result.email,
-                picture: result.picture,
-              };
-
               // const data = loginFacebook();
 
               console.log(
@@ -205,8 +198,8 @@ export default function LoginOrRegister() {
             source={require("@/assets/images/logo.png")}
           />
           <ThemedText type="title">{APP_NAME}</ThemedText>
-          <ThemedText type="subtitle">{APP_TAGLINE}</ThemedText>
-          <ThemedText style={styles.titleText}>
+          {/* <ThemedText type="subtitle">{APP_TAGLINE}</ThemedText> */}
+          <ThemedText type="large" style={styles.titleText}>
             Enter your email address to login or register
           </ThemedText>
 
@@ -314,8 +307,12 @@ export default function LoginOrRegister() {
           <ThemedText style={{ fontWeight: "200", marginTop: 10 }}>
             By clicking continue, you agree to our
           </ThemedText>
-          <ThemedText style={{ fontWeight: "400" }}>
-            Terms of Service and Privacy Policy
+          <ThemedText type="link" style={{ fontWeight: "400" }}>
+            Terms of Service
+          </ThemedText>
+          <ThemedText>and</ThemedText>
+          <ThemedText type="link" style={{ fontWeight: "400" }}>
+            Privacy Policy
           </ThemedText>
         </ThemedView>
       </ScrollView>
@@ -340,7 +337,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     marginTop: 60,
-    marginBottom: 20,
+    marginBottom: 0,
   },
   inputContainer: {
     flexDirection: "row",

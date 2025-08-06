@@ -26,7 +26,7 @@ export default async function acceptChatRequest(req, res, next) {
       { new: true }
     )
       .populate({
-        path: "users.user initiator unreadInfos.user deletedInfos.user",
+        path: "users.user initiator unreadInfos.user deletedInfos.user archivedInfos.user",
         select: "-password",
       })
       .populate({

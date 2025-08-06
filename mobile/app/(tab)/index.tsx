@@ -79,8 +79,8 @@ export default function Home() {
     refresh,
     loadMore,
   } = usePaginatedData<Chat>({
-    fetchData: async (page: number) => {
-      const data = await getPaginateChats(page);
+    fetchData: async (pageNum: number) => {
+      const data = await getPaginateChats({ pageNum });
       return {
         items: data.result.chats,
         totalPage: data.result.totalPage,
@@ -101,6 +101,7 @@ export default function Home() {
     setChats,
     clearGroup,
     clearMessages,
+    updateChat,
   });
 
   // Socket io
@@ -334,12 +335,24 @@ export default function Home() {
   ]);
 
   // Update store when new chats are fetched
+  // useEffect(() => {
+  //   if (!isFetching && newChats.length > 0) {
+  //     clearAllChats();
+  //     setChats(newChats);
+  //   }
+  // }, [newChats, clearAllChats, setChats, isFetching]);
+
   useEffect(() => {
     if (!isFetching && newChats.length > 0) {
-      clearAllChats();
-      setChats(newChats);
+      newChats.forEach((newChat) => {
+        const existing = getChatById(newChat._id);
+        // Merge only if not present or newer
+        if (!existing) {
+          setChats([newChat]);
+        }
+      });
     }
-  }, [newChats, clearAllChats, setChats, isFetching]);
+  }, [newChats, getChatById, setChats, isFetching]);
 
   if (!user) return null;
 
@@ -404,6 +417,14 @@ export default function Home() {
 
     // pending requests the user didn’t create → hide
     if (isPending && initiatorId !== user._id) return false;
+
+    // ✅ archived check
+    const isArchived = chat.archivedInfos?.some(
+      (info) =>
+        (typeof info.user === "string" ? info.user : info.user?._id) ===
+        user._id
+    );
+    if (isArchived) return false;
 
     // was this chat deleted by me?
     const deletedInfo = chat.deletedInfos?.find(

@@ -21,6 +21,8 @@ import acceptChatRequest from "../controllers/chat/acceptChatRequest.js";
 import readChat from "../controllers/chat/readChat.js";
 import removeAdminFromGroup from "../controllers/chat/removeAdminFromGroup.js";
 import addAdminToGroup from "../controllers/chat/addAdminToGroup.js";
+import unarchiveChat from "../controllers/chat/unarchiveChat.js";
+import archiveChat from "../controllers/chat/archiveChat.js";
 
 router.post(
   "/",
@@ -104,12 +106,23 @@ router.patch(
   validateBody(ChatSchema.readChat),
   readChat
 );
-
 router.patch(
   "/remove-admin-from-group",
   validateToken(),
   validateBody(ChatSchema.removeAdminFromGroup),
   removeAdminFromGroup
+);
+router.patch(
+  "/archive-chat",
+  validateToken(),
+  validateBody(ChatSchema.archiveChat),
+  archiveChat
+);
+router.patch(
+  "/unarchive-chat",
+  validateToken(),
+  validateBody(ChatSchema.unarchiveChat),
+  unarchiveChat
 );
 
 export default router;

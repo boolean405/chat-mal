@@ -1,14 +1,12 @@
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useRef } from "react";
-import { Animated, Dimensions, StyleSheet } from "react-native";
+import { Animated, StyleSheet } from "react-native";
 
-import { APP_NAME, APP_TAGLINE } from "@/constants";
-import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useAuthStore } from "@/stores/authStore";
 
-const { width } = Dimensions.get("window");
+// const { width } = Dimensions.get("window");
 
 export default function FlashScreen() {
   const router = useRouter();
@@ -20,13 +18,18 @@ export default function FlashScreen() {
     const loadingFlash = Animated.loop(
       Animated.sequence([
         Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
           toValue: 1.2,
-          duration: 800,
+          duration: 500,
           useNativeDriver: true,
         }),
         Animated.timing(scaleAnim, {
           toValue: 1,
-          duration: 800,
+          duration: 500,
           useNativeDriver: true,
         }),
       ])
@@ -37,7 +40,7 @@ export default function FlashScreen() {
     const timeout = setTimeout(() => {
       if (checkAuth()) router.replace("/(tab)");
       else router.replace("/(auth)/login-or-register");
-    }, 500);
+    }, 1500);
 
     return () => {
       loadingFlash.stop();
@@ -56,12 +59,12 @@ export default function FlashScreen() {
           style={styles.illustrationImage}
           contentFit="contain"
         />
-        <ThemedView style={styles.header}>
-          <ThemedText type="title" style={styles.title}>
+        {/* <ThemedView style={styles.header}> */}
+        {/* <ThemedText type="title" style={styles.title}>
             {APP_NAME}
-          </ThemedText>
-          {/* <ThemedText type="subtitle">{APP_TAGLINE}</ThemedText> */}
-        </ThemedView>
+          </ThemedText> */}
+        {/* <ThemedText type="subtitle">{APP_TAGLINE}</ThemedText> */}
+        {/* </ThemedView> */}
       </Animated.View>
     </ThemedView>
   );
@@ -79,8 +82,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   illustrationImage: {
-    width: width * 0.5,
-    height: width * 0.5,
+    width: 150,
+    height: 150,
+    // height: width * 0.4,
   },
   header: {
     alignItems: "center",

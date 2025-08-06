@@ -7,6 +7,7 @@ export default async function getPaginateChats(req, res, next) {
   try {
     const userId = req.userId;
     const page = parseInt(req.params.pageNum);
+    const isArchived = req.query.archived === "true";
     const limit = Number(process.env.PAGINATE_LIMIT) || 15;
     const skipCount = limit * (page - 1);
 
@@ -20,6 +21,9 @@ export default async function getPaginateChats(req, res, next) {
     // Step 1: Base match
     const baseMatch = {
       "users.user": user._id,
+      ...(isArchived
+        ? { "archivedInfos.user": user._id } // Only include archived
+        : { "archivedInfos.user": { $ne: user._id } }), // Exclude archived
       $or: [{ isPending: false }, { initiator: user._id }],
     };
 

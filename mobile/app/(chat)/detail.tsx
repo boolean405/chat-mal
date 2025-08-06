@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Image } from "expo-image";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import {
   ToastAndroid,
   TouchableOpacity,
@@ -8,63 +9,63 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
+
+import { DetailItem } from "@/types";
+import { Colors } from "@/constants/colors";
+import { Ionicons } from "@expo/vector-icons";
+import { DetailsData } from "@/constants/data";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { Ionicons } from "@expo/vector-icons";
-import { Colors } from "@/constants/colors";
-import { ListSection } from "@/components/ListSection";
-import { createGroup, deleteChat, leaveGroup } from "@/api/chat";
-import { DetailItem } from "@/types";
 import { getChatPhoto } from "@/utils/getChatPhoto";
 import { getChatName } from "@/utils/getChatName";
 import { useAuthStore } from "@/stores/authStore";
 import { useChatStore } from "@/stores/chatStore";
-import { DetailsData } from "@/constants/data";
+import { useCallStore } from "@/stores/callStore";
+import { ListSection } from "@/components/ListSection";
 import { useMessageStore } from "@/stores/messageStore";
-import { useState } from "react";
+import { createGroup, deleteChat, leaveGroup } from "@/api/chat";
 
 export default function Detail() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
 
+  const user = useAuthStore((state) => state.user);
+  const { clearMessages } = useMessageStore();
+  const { setRequestCall, isCallActive, callData } = useCallStore();
+  const { currentChat, setChats, clearChat } = useChatStore();
+
   const [isLoading, setIsLoading] = useState(false);
 
-  const user = useAuthStore((state) => state.user);
-  const { getChatById, setChats, clearChat } = useChatStore();
-  const { clearMessages } = useMessageStore();
+  if (!user || !currentChat) return null;
 
-  const { chatId: rawChatId } = useLocalSearchParams();
-  const chatId = Array.isArray(rawChatId) ? rawChatId[0] : rawChatId;
-
-  const chat = getChatById(chatId);
-  if (!chat || !user) return null;
-
-  const chatPhoto = getChatPhoto(chat, user._id);
-  const chatName = chat.name || getChatName(chat, user._id);
+  const chatPhoto = getChatPhoto(currentChat, user._id);
+  const chatName = currentChat.name || getChatName(currentChat, user._id);
 
   // Filter based on chat type
   const Details: DetailItem[] = DetailsData.filter(
     (item) =>
       item.showFor === "all" ||
-      (chat?.isGroupChat && item.showFor === "group") ||
-      (!chat?.isGroupChat && item.showFor === "chat")
+      (currentChat?.isGroupChat && item.showFor === "group") ||
+      (!currentChat?.isGroupChat && item.showFor === "chat")
   ).sort((a, b) => Number(a.id) - Number(b.id));
 
   // Handle detail press
   const handleDetail = async (item: DetailItem) => {
+    setIsLoading(true);
+
     // Member
     if (item.path === "/members")
       router.push({
         pathname: "/(chat)/member",
         params: {
-          chatId: chatId,
+          chatId: currentChat._id,
         },
       });
     // Create group
     else if (item.path === "/create-group") {
       try {
-        const userIds = chat?.users?.map((user) => user.user._id) ?? [];
+        const userIds = currentChat?.users?.map((user) => user.user._id) ?? [];
         const data = await createGroup(userIds);
         if (data.status) {
           ToastAndroid.show(data.message, ToastAndroid.SHORT);
@@ -90,11 +91,11 @@ export default function Detail() {
           style: "destructive",
           onPress: async () => {
             try {
-              const data = await deleteChat(chatId);
+              const data = await deleteChat(currentChat._id);
               if (data.status) {
                 ToastAndroid.show(data.message, ToastAndroid.SHORT);
-                clearChat(chatId);
-                clearMessages(chatId);
+                clearChat(currentChat._id);
+                clearMessages(currentChat._id);
                 router.replace("/(tab)");
               }
             } catch (error: any) {
@@ -116,11 +117,11 @@ export default function Detail() {
             style: "destructive",
             onPress: async () => {
               try {
-                const data = await leaveGroup(chatId);
+                const data = await leaveGroup(currentChat._id);
                 if (data.status) {
                   ToastAndroid.show(data.message, ToastAndroid.SHORT);
-                  clearChat(chatId);
-                  clearMessages(chatId);
+                  clearChat(currentChat._id);
+                  clearMessages(currentChat._id);
                   router.replace("/(tab)");
                 }
               } catch (error: any) {
@@ -131,6 +132,20 @@ export default function Detail() {
         ]
       );
     }
+    setIsLoading(false);
+  };
+
+  // Handle call
+  const handlePressCall = ({ callMode }: { callMode: "audio" | "video" }) => {
+    if (!isCallActive) {
+      setRequestCall({ chat: currentChat, caller: user, callMode });
+    } else if (callData?.chat._id !== currentChat._id) {
+      return;
+    }
+    router.push({
+      pathname: "/(chat)/call",
+      params: { chatId: currentChat._id },
+    });
   };
 
   return (
@@ -171,7 +186,7 @@ export default function Detail() {
             <ThemedText
               type="headerTitle"
               style={styles.nameText}
-              numberOfLines={2}
+              numberOfLines={1}
             >
               {chatName}
             </ThemedText>
@@ -186,6 +201,7 @@ export default function Detail() {
                   name="call-outline"
                   size={22}
                   style={{ color: color.primaryIcon }}
+                  onPress={() => handlePressCall({ callMode: "audio" })}
                 />
               </TouchableOpacity>
               <TouchableOpacity>
@@ -193,9 +209,10 @@ export default function Detail() {
                   name="videocam-outline"
                   size={22}
                   style={{ color: color.primaryIcon, marginLeft: 30 }}
+                  onPress={() => handlePressCall({ callMode: "video" })}
                 />
               </TouchableOpacity>
-              {!chat.isGroupChat && (
+              {!currentChat.isGroupChat && (
                 <TouchableOpacity>
                   <Ionicons
                     name="person-outline"
@@ -212,7 +229,6 @@ export default function Detail() {
             </ThemedView>
 
             {/* Details */}
-
             <ThemedView style={styles.listContainer}>
               <ListSection
                 title="Details"
@@ -233,12 +249,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingBottom: 50,
     paddingTop: 50,
-    // justifyContent: "center",
-    // alignItems: "center",
   },
   header: {
     padding: 15,
-    // paddingRight: 20,
     flexDirection: "row",
     alignItems: "center",
     borderBottomWidth: 0.4,
@@ -250,11 +263,8 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flexGrow: 1,
-    // marginTop: 50,
-    // justifyContent: "center",
   },
   profileImageWrapper: {
-    // position: "relative",
     width: 120,
     height: 120,
     marginTop: -30,
@@ -277,7 +287,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   nameText: {
-    // marginTop: 20,
     marginHorizontal: 30,
     textAlign: "center",
   },

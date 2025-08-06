@@ -66,6 +66,10 @@ export default async function createOrOpen(req, res, next) {
           path: "unreadInfos.user",
           select: "-password",
         })
+        .populate({
+          path: "archivedInfos.user",
+          select: "-password",
+        })
         .lean();
 
       return resJson(res, 200, "Success open PM chat.", chat);

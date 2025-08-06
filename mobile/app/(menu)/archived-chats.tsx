@@ -15,7 +15,11 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useRouter } from "expo-router";
 import BottomSheetAction from "@/components/BottomSheetActions";
-import { getPaginateRequestChats, readChat } from "@/api/chat";
+import {
+  getPaginateChats,
+  getPaginateRequestChats,
+  readChat,
+} from "@/api/chat";
 import ChatEmpty from "@/components/ChatEmpty";
 import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
@@ -25,7 +29,7 @@ import { useBottomSheetActions } from "@/hooks/useBottomSheetActions";
 import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
 import { useMessageStore } from "@/stores/messageStore";
 
-export default function MessageRequest() {
+export default function ArchivedChats() {
   // Hard coded render
   useTimeTickWhenFocused();
 
@@ -40,27 +44,28 @@ export default function MessageRequest() {
   const { clearMessages } = useMessageStore();
 
   const {
-    setChats,
     chats,
     onlineUserIds,
+    setChats,
+    updateChat,
     clearChat,
     clearGroup,
+    clearAllChats,
     getChatById,
-    updateChat,
   } = useChatStore();
 
+  // Paginated data handling
   const {
-    data: newRequestChats,
-    // isLoading: loading,
+    data: newChats,
+    isLoading: isFetching,
     isRefreshing,
     isPaging,
     hasMore,
     refresh,
     loadMore,
-    // setData,
   } = usePaginatedData<Chat>({
-    fetchData: async (page: number) => {
-      const data = await getPaginateRequestChats(page);
+    fetchData: async (pageNum: number) => {
+      const data = await getPaginateChats({ pageNum, archived: true });
       return {
         items: data.result.chats,
         totalPage: data.result.totalPage,
@@ -84,9 +89,16 @@ export default function MessageRequest() {
   });
 
   // Update store when new chats are fetched
+  // useEffect(() => {
+  //   if (!isFetching && newChats.length > 0) {
+  //     clearAllChats();
+  //     setChats(newChats);
+  //   }
+  // }, [newChats, clearAllChats, setChats, isFetching]);
+
   useEffect(() => {
-    if (newRequestChats.length > 0) {
-      newRequestChats.forEach((newChat) => {
+    if (!isFetching && newChats.length > 0) {
+      newChats.forEach((newChat) => {
         const existing = getChatById(newChat._id);
         // Merge only if not present or newer
         if (!existing) {
@@ -94,33 +106,47 @@ export default function MessageRequest() {
         }
       });
     }
-  }, [newRequestChats, getChatById, setChats]);
+  }, [newChats, getChatById, setChats, isFetching]);
 
   if (!user) return null;
   // const allRequestChats = chats.filter(
   //   (chat) => chat.isPending && chat.initiator._id !== user._id
   // );
 
-  const allRequestChats = chats.filter((chat) => {
-    const initiatorId =
-      typeof chat.initiator === "string" ? chat.initiator : chat.initiator?._id;
+  const allArchivedChats = chats.filter((chat) => {
+    // ✅ Only include archived chats
+    const isArchived = chat.archivedInfos?.some(
+      (info) =>
+        (typeof info.user === "string" ? info.user : info.user?._id) ===
+        user._id
+    );
+    if (!isArchived) return false;
 
-    return chat.isPending && initiatorId !== user._id;
+    // ❌ Exclude if user deleted it
+    const deletedInfo = chat.deletedInfos?.find(
+      (info) =>
+        (typeof info.user === "string" ? info.user : info.user?._id) ===
+        user._id
+    );
+
+    if (!deletedInfo) return true; // not deleted → show it
+
+    const deletedAt = new Date(deletedInfo.deletedAt);
+
+    // If the chat has newer activity than when it was deleted → show
+    if (chat.latestMessage?.createdAt) {
+      const latestMsgAt = new Date(chat.latestMessage.createdAt);
+      return deletedAt < latestMsgAt;
+    }
+
+    if (chat.updatedAt) {
+      const chatUpdatedAt = new Date(chat.updatedAt);
+      return deletedAt < chatUpdatedAt;
+    }
+
+    // No new activity since delete → hide
+    return false;
   });
-
-  // Handle chat press
-  // const handleChat = (chat: Chat) => {
-  //   if (!getChatById(chat._id)) {
-  //     console.log("added new one");
-  //     setChats([chat]);
-  //   }
-  //   router.push({
-  //     pathname: "/(chat)",
-  //     params: {
-  //       chatId: chat._id,
-  //     },
-  //   });
-  // };
 
   // Handle chat request press
   const handleChatPress = async (chat: Chat) => {
@@ -188,16 +214,16 @@ export default function MessageRequest() {
           />
         </TouchableOpacity>
         <ThemedView style={styles.HeaderTitleContainer}>
-          <ThemedText type="headerTitle">Message Request</ThemedText>
+          <ThemedText type="headerTitle">Archived Chats</ThemedText>
         </ThemedView>
-        <TouchableOpacity onPress={() => console.log("setting")}>
+        {/* <TouchableOpacity onPress={() => console.log("setting")}>
           <Ionicons name="cog-outline" size={22} color={color.primaryIcon} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </ThemedView>
 
       {/* Chats */}
       <FlatList
-        data={allRequestChats}
+        data={allArchivedChats}
         keyExtractor={(item) => item._id}
         showsVerticalScrollIndicator={false}
         refreshing={isRefreshing}
@@ -227,19 +253,6 @@ export default function MessageRequest() {
             />
           );
         }}
-        ListHeaderComponent={
-          <ThemedView style={styles.headerContainer}>
-            <ThemedText>
-              Open a chat for more info to see. Sender wil not know you have
-              seen the message until you reply or accept the request.
-            </ThemedText>
-            <TouchableOpacity>
-              <ThemedText type="link" style={{ fontSize: 14 }}>
-                Click here to change message request settings.
-              </ThemedText>
-            </TouchableOpacity>
-          </ThemedView>
-        }
         ListFooterComponent={
           hasMore && chats.length > 0 && isPaging ? (
             <ActivityIndicator size="small" color={color.primaryIcon} />
@@ -282,6 +295,7 @@ const styles = StyleSheet.create({
   HeaderTitleContainer: {
     flex: 1,
     alignItems: "center",
+    marginRight: 22,
   },
 
   separator: {
@@ -325,11 +339,5 @@ const styles = StyleSheet.create({
     bottom: -2,
     right: -2,
     borderRadius: 11,
-  },
-  headerContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 5,
-    // flexDirection: "row",
-    // alignItems: "center",
   },
 });

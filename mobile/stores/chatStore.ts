@@ -39,7 +39,6 @@ export const useChatStore = create<ChatStore>()(
         }, 0);
       };
 
-      // Only show home unreads chats
       const filterHomeChats = (chats: Chat[], userId: string): Chat[] => {
         return chats.filter((chat) => {
           const isPending = chat?.isPending ?? false;
@@ -48,14 +47,23 @@ export const useChatStore = create<ChatStore>()(
               ? chat.initiator
               : chat.initiator?._id;
 
+          // ❌ Message requests not initiated by user
           if (isPending && initiatorId !== userId) return false;
 
+          // ❌ Archived by this user
+          const isArchived = chat.archivedInfos?.some(
+            (info) =>
+              (typeof info.user === "string" ? info.user : info.user?._id) ===
+              userId
+          );
+          if (isArchived) return false;
+
+          // ✅ If not deleted by me, include
           const deletedInfo = chat.deletedInfos?.find(
             (info) =>
               (typeof info.user === "string" ? info.user : info.user?._id) ===
               userId
           );
-
           if (!deletedInfo) return true;
 
           const deletedAt = new Date(deletedInfo.deletedAt);

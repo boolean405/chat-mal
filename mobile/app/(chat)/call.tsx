@@ -54,11 +54,8 @@ export default function CallScreen() {
   const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } =
     Dimensions.get("window");
 
-  const { chatId: rawChatId } = useLocalSearchParams();
-  const chatId = Array.isArray(rawChatId) ? rawChatId[0] : rawChatId;
-
-  const { user } = useAuthStore();
-
+  const user = useAuthStore((state) => state.user);
+  const { chatId } = useLocalSearchParams() as { chatId: string };
   const [showControls, setShowControls] = useState(true);
 
   const {
@@ -358,7 +355,7 @@ export default function CallScreen() {
               onPress={toggleMute}
               style={[
                 styles.controlBtn,
-                { backgroundColor: color.secondaryText },
+                { backgroundColor: color.tertiaryBackground },
               ]}
             >
               {isMuted ? (
@@ -380,7 +377,7 @@ export default function CallScreen() {
               onPress={toggleVideo}
               style={[
                 styles.controlBtn,
-                { backgroundColor: color.secondaryText },
+                { backgroundColor: color.tertiaryBackground },
               ]}
             >
               {isVideo ? (
@@ -402,7 +399,7 @@ export default function CallScreen() {
               onPress={toggleFacing}
               style={[
                 styles.controlBtn,
-                { backgroundColor: color.secondaryText },
+                { backgroundColor: color.tertiaryBackground },
               ]}
               disabled={!isVideo}
             >
@@ -572,7 +569,7 @@ export default function CallScreen() {
               onPress={toggleMute}
               style={[
                 styles.controlBtn,
-                { backgroundColor: color.secondaryText },
+                { backgroundColor: color.tertiaryBackground },
               ]}
             >
               {isMuted ? (
@@ -594,7 +591,7 @@ export default function CallScreen() {
               onPress={toggleVideo}
               style={[
                 styles.controlBtn,
-                { backgroundColor: color.secondaryText },
+                { backgroundColor: color.tertiaryBackground },
               ]}
             >
               {isVideo ? (
@@ -616,7 +613,7 @@ export default function CallScreen() {
               onPress={toggleFacing}
               style={[
                 styles.controlBtn,
-                { backgroundColor: color.secondaryText },
+                { backgroundColor: color.tertiaryBackground },
               ]}
               disabled={!isVideo}
             >

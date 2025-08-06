@@ -37,6 +37,10 @@ export type Chat = {
     user: User;
     deletedAt: Date;
   }[];
+  archivedInfos: {
+    user: User;
+    archivedAt: Date;
+  }[];
   latestMessage?: Message;
   createdAt: Date;
   updatedAt: Date;

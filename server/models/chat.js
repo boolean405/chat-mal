@@ -35,6 +35,12 @@ const chatSchema = new Schema(
         count: { type: Number, default: 0 },
       },
     ],
+    archivedInfos: [
+      {
+        user: { type: Schema.Types.ObjectId, ref: "user", required: true },
+        archivedAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   {
     timestamps: true,
@@ -45,5 +51,7 @@ const chatSchema = new Schema(
 chatSchema.index({ name: 1 });
 chatSchema.index({ "users.user": 1 });
 chatSchema.index({ "unreadInfos.user": 1 });
+chatSchema.index({ "deletedInfos.user": 1 });
+chatSchema.index({ "archivedInfos.user": 1 });
 
 export default mongoose.model("chat", chatSchema);
