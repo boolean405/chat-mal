@@ -24,6 +24,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
@@ -200,7 +201,7 @@ export default function LoginOrRegister() {
           <ThemedText type="title">{APP_NAME}</ThemedText>
           {/* <ThemedText type="subtitle">{APP_TAGLINE}</ThemedText> */}
           <ThemedText type="large" style={styles.titleText}>
-            Enter your email address to login or register
+            Enter your email address
           </ThemedText>
 
           {/* Input container */}
@@ -307,13 +308,29 @@ export default function LoginOrRegister() {
           <ThemedText style={{ fontWeight: "200", marginTop: 10 }}>
             By clicking continue, you agree to our
           </ThemedText>
-          <ThemedText type="link" style={{ fontWeight: "400" }}>
-            Terms of Service
-          </ThemedText>
-          <ThemedText>and</ThemedText>
-          <ThemedText type="link" style={{ fontWeight: "400" }}>
-            Privacy Policy
-          </ThemedText>
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => router.push("/(menu)/terms-of-service")}
+            >
+              <ThemedText type="link" style={{ fontWeight: "400" }}>
+                Terms of Service
+              </ThemedText>
+            </TouchableOpacity>
+            <ThemedText style={{ fontWeight: "200" }}>{" and "}</ThemedText>
+            <TouchableOpacity
+              onPress={() => router.push("/(menu)/privacy-policy")}
+            >
+              <ThemedText type="link" style={{ fontWeight: "400" }}>
+                Privacy Policy
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
         </ThemedView>
       </ScrollView>
     </KeyboardAvoidingView>

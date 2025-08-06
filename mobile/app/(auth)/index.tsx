@@ -40,7 +40,7 @@ export default function FlashScreen() {
     const timeout = setTimeout(() => {
       if (checkAuth()) router.replace("/(tab)");
       else router.replace("/(auth)/login-or-register");
-    }, 1500);
+    }, 1000);
 
     return () => {
       loadingFlash.stop();

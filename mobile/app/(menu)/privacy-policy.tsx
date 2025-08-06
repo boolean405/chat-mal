@@ -44,7 +44,7 @@ export default function PrivacyPolicy() {
         {/* Header Section */}
         <View style={styles.header}>
           <ThemedText type="title">Privacy Policy</ThemedText>
-          <ThemedText style={[styles.subtitle]}>
+          <ThemedText style={styles.subtitle}>
             Effective February 1, 2025
           </ThemedText>
         </View>
@@ -55,29 +55,81 @@ export default function PrivacyPolicy() {
         >
           <ThemedText type="large" style={styles.intro}>
             Welcome to <ThemedText type="link">Chat Mal</ThemedText>, your
-            secure place for messaging and video calling. Here&apos;s how we
-            protect your data.
+            secure place for messaging, video calling, payments, and sharing
+            stories. Here&apos;s how we protect your data.
           </ThemedText>
 
           <Section title="1. What We Collect">
-            - Name, email, and profile photo{"\n"}- Messages and call history
-            {"\n"}- Device information & usage data{"\n"}- Camera and microphone
-            access
+            - Name, email, and profile photo{"\n"}- Messages, calls, and story
+            uploads{"\n"}- Device information (model, OS, identifiers){"\n"}-
+            Payment-related data (tokenized, never stored){"\n"}- Location (only
+            with your permission)
           </Section>
 
           <Section title="2. Why We Collect It">
-            - To enable messaging & calls{"\n"}- Personalize your experience
-            {"\n"}- Detect issues and improve performance{"\n"}- Comply with
-            legal obligations
+            - To enable chat, calls, and content sharing{"\n"}- Improve app
+            performance and personalization{"\n"}- Detect and prevent fraud and
+            abuse{"\n"}- Provide support and respond to inquiries{"\n"}- Comply
+            with legal and payment regulations
           </Section>
 
           <Section title="3. Your Choices">
-            You can request access, update, or deletion of your data by yourself
-            or contact us at {""}
+            - You can access, update, or delete your personal data in settings.
+            {"\n"}- You can disable camera, mic, or location access via your
+            device permissions.{"\n"}- Contact us anytime to delete or update
+            your data.
+          </Section>
+
+          <Section title="4. Security">
+            - We use end-to-end encryption for chats and calls.{"\n"}- Secure
+            socket layers (SSL) for all transactions.{"\n"}- Access to data is
+            restricted to authorized personnel only.
+          </Section>
+
+          <Section title="5. Payment Information">
+            - All payments are securely processed by trusted third-party
+            providers (e.g. Stripe, PayPal).{"\n"}- We do not store your credit
+            card or banking information.{"\n"}- Transaction history is kept for
+            legal and support purposes.
+          </Section>
+
+          <Section title="6. Stories & Media Content">
+            - Stories you upload are visible to your selected audience.{"\n"}-
+            You can delete your stories at any time.{"\n"}- Media content is
+            encrypted and stored securely.
+          </Section>
+
+          <Section title="7. Data Retention">
+            - Messages and call logs are retained unless manually deleted.{"\n"}
+            - Inactive accounts may be removed after a long period of
+            inactivity.{"\n"}- Some data may be retained for legal or regulatory
+            compliance.
+          </Section>
+
+          <Section title="8. External Services">
+            - We integrate with Firebase and third-party APIs (e.g., Google,
+            Apple){"\n"}- These services have their own privacy policies you
+            should review.
+          </Section>
+
+          <Section title="9. Children’s Privacy">
+            - Our services are not intended for users under 13.{"\n"}- We do not
+            knowingly collect data from children without parental consent.
+          </Section>
+
+          <Section title="10. Policy Updates">
+            We may update this policy. Major changes will be communicated
+            through the app or via email. Continued use of Chat Mal indicates
+            acceptance of the new policy.
+          </Section>
+
+          <Section title="11. Contact Us">
+            If you have any questions or concerns about this policy, please
+            reach out to us at{" "}
             <TouchableOpacity
               onPress={() =>
                 Linking.openURL(
-                  "mailto:info.chatmal@gmail.com?subject=Support Request from Chat Mal App"
+                  "mailto:info.chatmal@gmail.com?subject=Privacy Policy Inquiry"
                 )
               }
             >
@@ -88,21 +140,6 @@ export default function PrivacyPolicy() {
             .
           </Section>
 
-          <Section title="4. Security">
-            All your data is protected with strong encryption. Only authorized
-            personnel have access.
-          </Section>
-
-          <Section title="5. External Services">
-            We use services like Firebase & our own secure database, each with
-            their own privacy practices.
-          </Section>
-
-          <Section title="6. Policy Updates">
-            We may revise this policy occasionally. We&apos;ll notify you about
-            major updates through the app.
-          </Section>
-
           {/* Contact Button */}
           <ThemedButton
             title={"Contact Support"}
@@ -110,7 +147,7 @@ export default function PrivacyPolicy() {
             style={styles.button}
             onPress={() =>
               Linking.openURL(
-                "mailto:info.chatmal@gmail.com?subject=Support Request from Chat Mal App"
+                "mailto:info.chatmal@gmail.com?subject=Privacy Support Request"
               )
             }
           />
