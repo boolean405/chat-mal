@@ -9,6 +9,7 @@ interface AuthState {
   accessToken: string | null;
   setUser: (user: User, accessToken: string) => void;
   setUserOnly: (user: User) => void;
+  updateUser: (newUserData: User) => void;
   clearUser: () => void;
   checkAuth: () => boolean;
   logout: () => void;
@@ -26,6 +27,14 @@ export const useAuthStore = create<AuthState>()(
         const { accessToken } = get();
         set({ user, accessToken }); // Keep accessToken unchanged
       },
+
+      updateUser: (newUserData) =>
+        set((state) => ({
+          user: {
+            ...state.user, // keep existing fields
+            ...newUserData, // overwrite with new fields
+          },
+        })),
 
       clearUser: () => {
         set({ user: null, accessToken: null });

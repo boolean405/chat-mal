@@ -7,6 +7,7 @@ import {
   RefreshControl,
   ToastAndroid,
 } from "react-native";
+
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { Chat, Story, User } from "@/types";
@@ -30,6 +31,8 @@ import { useMessageStore } from "@/stores/messageStore";
 import { showNotification } from "@/utils/showNotifications";
 import { useCallStore } from "@/stores/callStore";
 import { webrtcClient } from "@/config/webrtcClient";
+import { useNetworkStore } from "@/stores/useNetworkStore";
+import { Ionicons } from "@expo/vector-icons";
 
 // Stories data - consider moving to a separate file or API call
 const stories: Story[] = [
@@ -53,7 +56,11 @@ export default function Home() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const { user, accessToken } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
+  const accessToken = useAuthStore((state) => state.accessToken);
+
+  const networkInfo = useNetworkStore((state) => state.networkInfo);
+
   const { addMessage, clearMessages, markMessagesAsSeen } = useMessageStore();
   const { setIncomingCall, endCall, setAcceptedCall } = useCallStore();
 
@@ -469,6 +476,15 @@ export default function Home() {
         />
       </ThemedView>
 
+      {!networkInfo?.isConnected && (
+        <ThemedView style={styles.offlineBanner}>
+          <Ionicons name="wifi-outline" size={20} color="white" />
+          <ThemedText type="small" style={styles.offlineText}>
+            You are offline
+          </ThemedText>
+        </ThemedView>
+      )}
+
       {/* Chat List - Now using storedChats instead of chats */}
       <FlatList
         data={allChats || []}
@@ -550,5 +566,20 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 20,
+  },
+  offlineBanner: {
+    backgroundColor: "#FF5252",
+    // paddingVertical: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 10,
+    borderRadius: 5,
+    marginBottom: 6,
+    flexDirection: "row",
+    gap: 8,
+  },
+  offlineText: {
+    color: "#fff",
+    // fontWeight: "600",
   },
 });

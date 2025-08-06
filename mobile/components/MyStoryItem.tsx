@@ -29,10 +29,10 @@ export default function MyStoryItem({ user }: { user: User }) {
         <ThemedView
           style={[
             styles.plusIconWrapper,
-            { backgroundColor: color.tertiaryBackground },
+            // { backgroundColor: color.tertiaryBackground },
           ]}
         >
-          <Ionicons name="add-outline" size={24} color={color.primary} />
+          <Ionicons name="add-circle-outline" size={24} color={color.primaryIcon} />
         </ThemedView>
       </ThemedView>
       <ThemedText style={styles.storyName} numberOfLines={1}>
@@ -63,15 +63,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#ccc",
   },
   storyName: {
-    marginTop: 4,
+    marginTop: 8,
     fontSize: 12,
     maxWidth: 70,
     textAlign: "center",
   },
   plusIconWrapper: {
     position: "absolute",
-    bottom: -2,
-    right: -2,
+    bottom: 0,
+    right: 0,
     borderRadius: 15,
   },
 });

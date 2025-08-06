@@ -119,14 +119,20 @@ export const SETTINGS: SettingItem[] = [
     iconName: "settings-outline",
     path: "/setting",
   },
-  {
-    id: "2",
-    label: "Help & Support",
-    iconName: "help-circle-outline",
-    path: "/help",
-  },
+  // {
+  //   id: "2",
+  //   label: "Help & Support",
+  //   iconName: "help-circle-outline",
+  //   path: "/help",
+  // },
   {
     id: "3",
+    label: "Terms of Service",
+    iconName: "newspaper-outline",
+    path: "/terms-of-service",
+  },
+  {
+    id: "4",
     label: "Pravicy Policy",
     iconName: "document-lock-outline",
     path: "/privacy-policy",

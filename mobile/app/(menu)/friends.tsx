@@ -1,5 +1,5 @@
-import { useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import useDebounce from "@/hooks/useDebounce";
 import {
   TextInput,
@@ -22,6 +22,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { User } from "@/types";
 import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
+import { getMe } from "@/api/user";
 
 export default function Search() {
   const router = useRouter();
@@ -32,7 +33,8 @@ export default function Search() {
   const [loading, setLoading] = useState(false);
   const isNavigatingRef = useRef(false);
 
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
+  const updateUser = useAuthStore((state) => state.updateUser);
   const { setChats, getChatById, onlineUserIds } = useChatStore();
 
   const {
@@ -51,9 +53,20 @@ export default function Search() {
 
   const debouncedKeyword = useDebounce(keyword, 400);
 
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      const refreshUser = async () => {
+        try {
+          const data = await getMe();
+          updateUser(data.result.user); // Updates Zustand store
+        } catch (error: any) {
+          console.log("Failed to refresh user", error.message);
+        }
+      };
+
+      refreshUser();
+    }, [updateUser])
+  );
 
   useEffect(() => {
     fetchSearchUsers(false);
@@ -97,11 +110,15 @@ export default function Search() {
 
   if (!user) return null;
 
-  const filterTypes = ["All", "Online", "Male", "Female", "Group"];
-  const filteredResults =
+  const filterTypes = ["All", "Online", "Male", "Female"];
+
+  const friends = results.filter(
+    (u) => user.following.includes(u._id) && user.followers.includes(u._id)
+  );
+  const filteredFriends =
     selectedFilter === "Online"
-      ? results.filter((u) => onlineUserIds.includes(u._id))
-      : results;
+      ? friends.filter((u) => onlineUserIds.includes(u._id))
+      : friends;
 
   return (
     <KeyboardAvoidingView
@@ -109,7 +126,22 @@ export default function Search() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
     >
-      <ThemedView style={styles.header}>
+      {/* Header */}
+      <ThemedView
+        style={[styles.header, { borderBottomColor: color.primaryBorder }]}
+      >
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons
+            name="chevron-back-outline"
+            size={22}
+            color={color.primaryIcon}
+          />
+        </TouchableOpacity>
+        <ThemedView style={styles.headerTitleContainer}>
+          <ThemedText type="headerTitle">Friends</ThemedText>
+        </ThemedView>
+      </ThemedView>
+      <ThemedView style={styles.headerInputContainer}>
         <ThemedView style={styles.inputContainer}>
           <ThemedView
             style={[
@@ -117,13 +149,11 @@ export default function Search() {
               { backgroundColor: color.secondaryBackground },
             ]}
           >
-            <TouchableOpacity onPress={() => router.back()}>
-              <Ionicons
-                name="chevron-back-outline"
-                size={22}
-                color={color.primaryIcon}
-              />
-            </TouchableOpacity>
+            <Ionicons
+              name="search-outline"
+              size={22}
+              color={color.primaryIcon}
+            />
             <TextInput
               ref={inputRef}
               value={keyword}
@@ -132,13 +162,6 @@ export default function Search() {
               placeholderTextColor="gray"
               style={[styles.textInput, { color: color.primaryText }]}
             />
-            <TouchableOpacity onPress={() => console.log("QR scan")}>
-              <MaterialCommunityIcons
-                name="line-scan"
-                size={22}
-                color={color.primaryIcon}
-              />
-            </TouchableOpacity>
           </ThemedView>
         </ThemedView>
       </ThemedView>
@@ -159,7 +182,6 @@ export default function Search() {
                 backgroundColor: color.primaryText,
               },
             ]}
-            disabled={selectedFilter === filter}
             onPress={() => setSelectedFilter(filter)}
           >
             <ThemedText
@@ -180,7 +202,7 @@ export default function Search() {
       </ThemedView>
 
       <FlatList
-        data={filteredResults}
+        data={filteredFriends}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => {
           let isOnline = false;
@@ -191,7 +213,6 @@ export default function Search() {
               user={item}
               isOnline={isOnline}
               disabled={loading}
-              joinedAt={item.createdAt}
               onPress={() => handleResult(item)}
             />
           );
@@ -219,7 +240,19 @@ export default function Search() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  headerTitleContainer: {
+    flex: 1,
+    alignItems: "center",
+    marginRight: 22,
+  },
   header: {
+    padding: 15,
+    // paddingRight: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    borderBottomWidth: 0.4,
+  },
+  headerInputContainer: {
     paddingVertical: 20,
     flexDirection: "row",
     alignItems: "center",

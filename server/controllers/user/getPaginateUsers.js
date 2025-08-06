@@ -7,7 +7,6 @@ export default async function getPaginateUsers(req, res, next) {
     const userId = req.userId;
     const keyword = req.query.keyword;
     const gender = req.query.gender;
-    const isOnline = req.query.isOnline;
     const page = parseInt(req.params.pageNum, 10);
 
     if (!(await UserDB.exists({ _id: userId })))
@@ -30,17 +29,17 @@ export default async function getPaginateUsers(req, res, next) {
         }
       : {};
 
-    const filter = {
+    let filter = {
       ...keywordSearch,
       _id: { $ne: userId },
     };
 
-    // Extra filter
-    if (gender && ["male", "female"].includes(gender.toLowerCase()))
-      filter.gender = gender.toLowerCase();
-
-    if (typeof isOnline !== "undefined") {
-      if (isOnline === "true") filter.isOnline = true;
+    // Gender filter logic
+    if (gender && ["male", "female"].includes(gender.toLowerCase())) {
+      filter.$or = [
+        { gender: { $exists: false } },
+        { gender: gender.toLowerCase() },
+      ];
     }
 
     const users = await UserDB.find(filter)

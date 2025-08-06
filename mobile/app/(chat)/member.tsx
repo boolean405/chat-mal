@@ -1,3 +1,4 @@
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import {
   TouchableOpacity,
   KeyboardAvoidingView,
@@ -10,8 +11,7 @@ import {
   Platform,
   ToastAndroid,
 } from "react-native";
-import React, { useEffect, useState, useRef, useMemo } from "react";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import Popover from "react-native-popover-view";
 
 import { ThemedView } from "@/components/ThemedView";
@@ -85,7 +85,9 @@ export default function Member() {
   }, [isAddMode, setKeyword]);
 
   const filteredResults = useMemo(() => {
-    const existingUserIds = new Set(currentChat?.users?.map((u) => u.user._id) ?? []);
+    const existingUserIds = new Set(
+      currentChat?.users?.map((u) => u.user._id) ?? []
+    );
     return results.filter((user) => !existingUserIds.has(user._id));
   }, [results, currentChat]);
 
@@ -200,7 +202,10 @@ export default function Member() {
             setPopoverUser(null);
             // Api call
             try {
-              const data = await removeAdminFromGroup(currentChat._id, popoverUser?._id);
+              const data = await removeAdminFromGroup(
+                currentChat._id,
+                popoverUser?._id
+              );
               if (data.status) {
                 updateChat(data.result);
                 ToastAndroid.show(data.message, ToastAndroid.SHORT);
@@ -234,7 +239,10 @@ export default function Member() {
             setPopoverUser(null);
             // Api call
             try {
-              const data = await removeUserFromGroup(currentChat._id, popoverUser?._id);
+              const data = await removeUserFromGroup(
+                currentChat._id,
+                popoverUser?._id
+              );
               if (data.status) {
                 updateChat(data.result);
                 ToastAndroid.show(data.message, ToastAndroid.SHORT);
@@ -330,7 +338,7 @@ export default function Member() {
             color={color.primaryIcon}
           />
         </TouchableOpacity>
-        <ThemedView style={styles.HeaderTitleContainer}>
+        <ThemedView style={styles.headerTitleContainer}>
           <ThemedText type="headerTitle">Members</ThemedText>
         </ThemedView>
 
@@ -645,7 +653,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderBottomWidth: 0.4,
   },
-  HeaderTitleContainer: {
+  headerTitleContainer: {
     flex: 1,
     alignItems: "center",
   },
@@ -674,29 +682,12 @@ const styles = StyleSheet.create({
     height: "100%",
     paddingLeft: 20,
   },
-  filterButton: {
-    paddingVertical: 5,
-    paddingHorizontal: 15,
-    borderRadius: 20,
-    // backgroundColor: "transparent",
-    borderWidth: 0.5,
-    marginHorizontal: 3,
-  },
-  filterText: {
-    fontSize: 14,
-  },
   titleTextContainer: {
     flexDirection: "row",
     alignItems: "center",
     paddingLeft: 25,
     paddingVertical: 10,
     borderBottomWidth: 0.2,
-  },
-  filterContainer: {
-    flexDirection: "row",
-    paddingHorizontal: 30,
-    borderBottomWidth: 0.2,
-    paddingBottom: 10,
   },
   addButton: {
     position: "absolute",

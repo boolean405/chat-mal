@@ -7,6 +7,8 @@ export type User = {
   email: string;
   profilePhoto: string;
   coverPhoto?: string;
+  followers: string[];
+  following: string[];
   gender?: "male" | "female";
   birthday?: Date;
   bio?: string;

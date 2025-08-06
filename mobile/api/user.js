@@ -351,11 +351,11 @@ export async function deletePhoto(photo, type) {
 }
 
 // Search user with keyword
-export async function getPaginateUsers(PageNum, keyword, gender, isOnline) {
+export async function getPaginateUsers(PageNum, keyword, gender) {
   try {
     await refresh();
     const response = await api.get(
-      `/api/user/paginate/${PageNum}?keyword=${keyword}&gender=${gender}&isOnline=${isOnline}`
+      `/api/user/paginate/${PageNum}?keyword=${keyword}&gender=${gender}`
     );
     return response.data;
   } catch (error) {
@@ -390,6 +390,19 @@ export async function logout() {
     return response.data;
   } catch (error) {
     const message = error.response?.data?.message || "Failed to logout!";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}
+
+// Get me
+export async function getMe() {
+  try {
+    const response = await api.get(`/api/user`);
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Failed to get me!";
     const customError = new Error(message);
     customError.status = error.response?.status;
     throw customError;

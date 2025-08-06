@@ -193,7 +193,7 @@ export default function MessageRequest() {
             color={color.primaryIcon}
           />
         </TouchableOpacity>
-        <ThemedView style={styles.HeaderTitleContainer}>
+        <ThemedView style={styles.headerTitleContainer}>
           <ThemedText type="headerTitle">Message Request</ThemedText>
         </ThemedView>
         <TouchableOpacity onPress={() => console.log("setting")}>
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderBottomWidth: 0.4,
   },
-  HeaderTitleContainer: {
+  headerTitleContainer: {
     flex: 1,
     alignItems: "center",
   },

@@ -1,3 +1,12 @@
+import {
+  Dimensions,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  ToastAndroid,
+  useColorScheme,
+} from "react-native";
+
 import { ListSection } from "@/components/ListSection";
 import { LogoutButton } from "@/components/LogoutButton";
 import { ProfileHeader } from "@/components/ProfileHeader";
@@ -10,32 +19,25 @@ import { useChatStore } from "@/stores/chatStore";
 import { MenuItem, SettingItem } from "@/types";
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
-import {
-  Dimensions,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  ToastAndroid,
-  useColorScheme,
-} from "react-native";
+import { useNetworkStore } from "@/stores/useNetworkStore";
 
 const screenWidth = Dimensions.get("window").width;
 const CONTAINER_WIDTH = screenWidth * 0.8;
 
 export default function Menu() {
+  const router = useRouter();
   const colorScheme = useColorScheme();
   const color = colorScheme === "dark" ? Colors.dark : Colors.light;
-  const router = useRouter();
   const isNavigatingRef = useRef(false);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
+  const networkInfo = useNetworkStore((state) => state.networkInfo);
   const { requestUnreadCount } = useChatStore();
 
-  const walletBalance = 0.0;
-  const isOnline = true;
+  // const walletBalance = 0.0;
 
   const handleUsernameCopied = (username: string) => {
     ToastAndroid.show("Username copied!", ToastAndroid.SHORT);
@@ -90,10 +92,10 @@ export default function Menu() {
     >
       <ThemedView style={styles.container}>
         <ProfileHeader
-          name={user?.name}
-          isOnline={isOnline}
-          username={user?.username}
-          profilePhoto={user?.profilePhoto}
+          name={user.name}
+          isOnline={networkInfo?.isConnected ?? false}
+          username={user.username}
+          profilePhoto={user.profilePhoto}
           onUsernameCopied={handleUsernameCopied}
           onPress={() => router.push("/(setting)/edit-profile")}
         />

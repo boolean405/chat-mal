@@ -6,7 +6,6 @@ import register from "../controllers/user/register.js";
 import login from "../controllers/user/login.js";
 import refresh from "../controllers/user/refresh.js";
 import logout from "../controllers/user/logout.js";
-import getUser from "../controllers/user/getUser.js";
 import deleteAccount from "../controllers/user/deleteAccount.js";
 import changePassword from "../controllers/user/changePassword.js";
 import changeName from "../controllers/user/changeName.js";
@@ -31,6 +30,7 @@ import {
 } from "../utils/validator.js";
 import updatePushToken from "../controllers/user/updaetPushToken.js";
 import loginGoogle from "../controllers/user/loginGoogle.js";
+import getMe from "../controllers/user/getMe.js";
 
 router.get("/exist-email", validateQuery(UserSchema.existEmail), existEmail);
 router.get(
@@ -43,7 +43,7 @@ router.post("/register", validateBody(UserSchema.register), register);
 router.post("/login", validateBody(UserSchema.login), login);
 router.post("/logout", validateToken(), validateCookie(), logout);
 router.post("/refresh", validateCookie(), refresh);
-router.get("/", validateToken(), getUser);
+router.get("/", validateToken(), getMe);
 
 router.post(
   "/register-verify",

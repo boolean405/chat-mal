@@ -48,8 +48,6 @@ export const useUsersSearchStore = create<UserSearchState>((set, get) => ({
   fetchSearchUsers: async (isPaging = false) => {
     const { page, keyword, selectedFilter, results } = get();
     let gender = "";
-    let isOnline = "";
-    let group = "";
 
     switch (selectedFilter) {
       case "Male":
@@ -57,12 +55,6 @@ export const useUsersSearchStore = create<UserSearchState>((set, get) => ({
         break;
       case "Female":
         gender = "female";
-        break;
-      case "Online":
-        isOnline = "true";
-        break;
-      case "Group":
-        group = "true";
         break;
     }
 
@@ -75,7 +67,7 @@ export const useUsersSearchStore = create<UserSearchState>((set, get) => ({
         errorMessage: "",
       });
 
-      const data = await getPaginateUsers(nextPage, keyword, gender, isOnline);
+      const data = await getPaginateUsers(nextPage, keyword, gender);
 
       const newResults = data.result.users;
 
