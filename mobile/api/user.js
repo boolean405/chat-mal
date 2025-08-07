@@ -355,7 +355,7 @@ export async function getPaginateUsers(PageNum, keyword, gender) {
   try {
     await refresh();
     const response = await api.get(
-      `/api/user/paginate/${PageNum}?keyword=${keyword}&gender=${gender}`
+      `/api/user/paginate/${PageNum}?keyword=${keyword.trim()}&gender=${gender}`
     );
     return response.data;
   } catch (error) {
@@ -458,7 +458,7 @@ export async function getPaginatedFollowUsers({
 }) {
   try {
     const response = await api.get(
-      `/api/user/paginate/follow/${type}/${pageNum}`
+      `/api/user/paginate/follow/${type.toLowerCase()}/${pageNum}?keyword=${keyword.trim()}`
     );
     return response.data;
   } catch (error) {

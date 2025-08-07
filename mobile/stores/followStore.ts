@@ -26,21 +26,29 @@ export const useFollowStore = create<FollowState>((set, get) => ({
 
   fetchUsers: async (isNextPage = false, keyword = "") => {
     const { page, selectedType, users, isLoading, totalPage } = get();
-    if (isLoading || (!isNextPage && page > totalPage)) return;
+
+    if (isLoading) return;
+
+    const nextPage = isNextPage ? page + 1 : 1;
 
     set({ isLoading: true });
 
     try {
-      const nextPage = isNextPage ? page + 1 : 1;
       const data = await getPaginatedFollowUsers({
         pageNum: nextPage,
         type: selectedType.toLowerCase(),
         keyword,
       });
 
-      const newUsers = isNextPage
-        ? [...users, ...data.result.users]
-        : data.result.users;
+      let newUsers: User[];
+
+      if (isNextPage) {
+        // append new page
+        newUsers = [...users, ...data.result.users];
+      } else {
+        // replace only when we have the new data
+        newUsers = data.result.users;
+      }
 
       set({
         users: newUsers,

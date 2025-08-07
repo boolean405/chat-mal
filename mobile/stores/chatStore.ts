@@ -299,9 +299,16 @@ export const useChatStore = create<ChatStore>()(
         }
         return {
           ...persistedState,
-          currentChat: persistedState.currentChat || null, // Ensure currentChat exists
+          currentChat: persistedState.currentChat || null,
         };
       },
+      partialize: (state) => ({
+        chats: state.chats,
+        currentChat: state.currentChat,
+        totalUnreadCount: state.totalUnreadCount,
+        requestUnreadCount: state.requestUnreadCount,
+        activeChatId: state.activeChatId,
+      }),
     }
   )
 );

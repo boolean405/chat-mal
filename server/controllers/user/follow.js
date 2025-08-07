@@ -99,6 +99,8 @@ export async function getPaginatedFollowUsers(req, res, next) {
     const page = parseInt(req.params.pageNum, 10);
     const keyword = req.query.keyword?.trim() || "";
 
+    const safeKeyword = keyword ? escapeRegex(keyword) : "";
+
     if (isNaN(page) || page <= 0) {
       throw resError(400, "Page number must be a valid number > 0!");
     }
@@ -128,10 +130,10 @@ export async function getPaginatedFollowUsers(req, res, next) {
     // Filter users by keyword
     const query = {
       _id: { $in: userIds },
-      ...(keyword && {
+      ...(safeKeyword && {
         $or: [
-          { username: { $regex: keyword, $options: "i" } },
-          { name: { $regex: keyword, $options: "i" } },
+          { username: { $regex: safeKeyword, $options: "i" } },
+          { name: { $regex: safeKeyword, $options: "i" } },
         ],
       }),
     };
@@ -160,4 +162,8 @@ export async function getPaginatedFollowUsers(req, res, next) {
   } catch (error) {
     next(error);
   }
+}
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

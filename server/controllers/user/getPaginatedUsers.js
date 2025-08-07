@@ -5,7 +5,7 @@ import resJson from "../../utils/resJson.js";
 export default async function getPaginatedUsers(req, res, next) {
   try {
     const userId = req.userId;
-    const keyword = req.query.keyword;
+    const keyword = req.query.keyword.trim() || "";
     const gender = req.query.gender;
     const page = parseInt(req.params.pageNum, 10);
 
