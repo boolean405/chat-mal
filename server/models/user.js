@@ -28,18 +28,6 @@ const userSchema = new Schema(
     coverPhoto: {
       type: String,
     },
-    followers: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "user",
-      },
-    ],
-    following: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "user",
-      },
-    ],
     gender: {
       type: String,
       enum: ["male", "female"],
@@ -85,7 +73,7 @@ const userSchema = new Schema(
     timestamps: true,
   }
 );
-
+userSchema.index({ name: 1 });
 userSchema.index({ lastOnlineAt: -1 });
 userSchema.index({ refreshToken: 1 });
 userSchema.index({ pushToken: 1 });

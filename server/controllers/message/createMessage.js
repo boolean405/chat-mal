@@ -14,51 +14,6 @@ export default async function createMessage(req, res, next) {
 
     if (!chat) throw resError(404, "Chat not found!");
 
-    // 🔥 Auto-follow in private (non-group) chat
-    if (!chat.isGroupChat && chat.users.length === 2) {
-      const otherUserId =
-        chat.users.find(
-          (entry) =>
-            (entry.user || entry)._id.toString() !== user._id.toString()
-        )?.user?._id ||
-        chat.users.find((entry) => entry._id.toString() !== user._id.toString())
-          ?._id;
-
-      if (otherUserId) {
-        const [currentUser, otherUser] = await Promise.all([
-          UserDB.findById(user._id).select("following"),
-          UserDB.findById(otherUserId).select("followers"),
-        ]);
-
-        const isAlreadyFollowing = currentUser.following.includes(otherUserId);
-        const isAlreadyFollower = otherUser.followers.includes(user._id);
-
-        const updates = [];
-
-        if (!isAlreadyFollowing) {
-          updates.push(
-            UserDB.updateOne(
-              { _id: user._id },
-              { $addToSet: { following: otherUserId } }
-            )
-          );
-        }
-
-        if (!isAlreadyFollower) {
-          updates.push(
-            UserDB.updateOne(
-              { _id: otherUserId },
-              { $addToSet: { followers: user._id } }
-            )
-          );
-        }
-
-        if (updates.length > 0) {
-          await Promise.all(updates);
-        }
-      }
-    }
-
     // Upload media if image or video to cloudinary
     let content = origContent;
     if (type === "image" || type === "video") {

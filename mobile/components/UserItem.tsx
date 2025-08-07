@@ -112,17 +112,19 @@ const UserItem: React.FC<Props> = ({
               new Date(joinedAt).getMonth() + 1
             }/${new Date(joinedAt).getFullYear()}`}{" "}
         </ThemedText>
-        <TouchableOpacity
-          onPress={onPressMore}
-          ref={moreButtonRef}
-          disabled={disabled}
-        >
-          <Ionicons
-            name="ellipsis-vertical-outline"
-            size={20}
-            color={color.primaryIcon}
-          />
-        </TouchableOpacity>
+        {onPressMore && (
+          <TouchableOpacity
+            onPress={onPressMore}
+            ref={moreButtonRef}
+            disabled={disabled}
+          >
+            <Ionicons
+              name="ellipsis-vertical-outline"
+              size={20}
+              color={color.primaryIcon}
+            />
+          </TouchableOpacity>
+        )}
       </ThemedView>
     </TouchableOpacity>
   );

@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import useDebounce from "@/hooks/useDebounce";
 import {
   TextInput,
@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   ToastAndroid,
   useColorScheme,
+  Alert,
 } from "react-native";
 import { createOrOpen } from "@/api/chat";
 import { ThemedView } from "@/components/ThemedView";
@@ -22,6 +23,8 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { User } from "@/types";
 import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
+import UserPopoverMenu from "@/components/UserPopoverMenu";
+import { block, checkIsFollowing, follow, unfollow } from "@/api/user";
 
 export default function Search() {
   const router = useRouter();
@@ -29,8 +32,11 @@ export default function Search() {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
 
-  const [loading, setLoading] = useState(false);
   const isNavigatingRef = useRef(false);
+  const [isFollowing, setIsFollowing] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
+  const [popoverUser, setPopoverUser] = useState<User | null>(null);
+  const moreButtonRefs = useRef<{ [key: string]: React.RefObject<any> }>({});
 
   const { user } = useAuthStore();
   const { setChats, getChatById, onlineUserIds } = useChatStore();
@@ -55,6 +61,22 @@ export default function Search() {
     inputRef.current?.focus();
   }, []);
 
+  // Check following or not
+  useEffect(() => {
+    const fetchFollowStatus = async () => {
+      if (!popoverUser?._id) return;
+
+      try {
+        const data = await checkIsFollowing(popoverUser?._id);
+        setIsFollowing(data.result.isFollowing);
+      } catch (error: any) {
+        console.log("Failed to fetch follow status", error.message);
+      }
+    };
+
+    fetchFollowStatus();
+  }, [popoverUser?._id]);
+
   useEffect(() => {
     fetchSearchUsers(false);
   }, [debouncedKeyword, fetchSearchUsers, selectedFilter]);
@@ -73,9 +95,16 @@ export default function Search() {
     try {
       const response = await createOrOpen(user._id);
       const chat = response.data.result;
+      console.log("response", response.status);
+      console.log("chat", chat._id);
+      const existchat = getChatById(chat._id);
+      console.log("existchat", existchat?._id);
 
       if (response.status === 200 && !getChatById(chat._id)) {
+        console.log("no caht found added new chat");
+
         setChats([chat]);
+        console.log(response.status);
       } else if (response.status === 201) {
         setChats([chat]);
       }
@@ -193,6 +222,11 @@ export default function Search() {
               disabled={loading}
               joinedAt={item.createdAt}
               onPress={() => handleResult(item)}
+              onPressMore={() => setPopoverUser(item)}
+              moreButtonRef={
+                moreButtonRefs.current[item._id] ||
+                (moreButtonRefs.current[item._id] = React.createRef())
+              }
             />
           );
         }}
@@ -212,6 +246,84 @@ export default function Search() {
             <ActivityIndicator size="small" color={color.primaryIcon} />
           ) : null
         }
+      />
+
+      {/* Popover */}
+      <UserPopoverMenu
+        user={popoverUser}
+        fromRef={moreButtonRefs.current[popoverUser?._id ?? ""]}
+        onRequestClose={() => setPopoverUser(null)}
+        options={[
+          isFollowing
+            ? {
+                label: "Unfollow",
+                icon: "person-remove-outline",
+                destructive: true,
+                onPress: () => {
+                  Alert.alert("Unfollow", `Unfollow ${popoverUser?.name}?`, [
+                    { text: "Cancel", style: "cancel" },
+                    {
+                      text: "Unfollow",
+                      style: "destructive",
+                      onPress: async () => {
+                        try {
+                          setPopoverUser(null);
+                          const data = await unfollow(popoverUser?._id);
+
+                          ToastAndroid.show(data.message, ToastAndroid.SHORT);
+                        } catch (error) {
+                          console.log("Failed to unfollow", error);
+                        }
+                      },
+                    },
+                  ]);
+                },
+              }
+            : {
+                label: "Follow",
+                icon: "person-add-outline",
+                onPress: async () => {
+                  try {
+                    const data = await follow(popoverUser?._id);
+                    setPopoverUser(null);
+
+                    ToastAndroid.show(data.message, ToastAndroid.SHORT);
+                  } catch (error) {
+                    console.log("Failed to follow", error);
+                  }
+                },
+              },
+
+          // Block
+          {
+            label: "Block",
+            icon: "remove-circle-outline",
+            onPress: () => {
+              Alert.alert(
+                "Block",
+                `Are your sure you want to block ${popoverUser?.name}?`,
+                [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Block",
+                    style: "destructive",
+                    onPress: async () => {
+                      try {
+                        setPopoverUser(null);
+                        const data = await block(popoverUser?._id);
+
+                        ToastAndroid.show(data.message, ToastAndroid.SHORT);
+                      } catch (error) {
+                        console.log("Failed to block", error);
+                      }
+                    },
+                  },
+                ]
+              );
+            },
+            destructive: true,
+          },
+        ]}
       />
     </KeyboardAvoidingView>
   );

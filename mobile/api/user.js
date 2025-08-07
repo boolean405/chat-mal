@@ -408,3 +408,92 @@ export async function getMe() {
     throw customError;
   }
 }
+// Follow user
+export async function follow(userId) {
+  try {
+    const response = await api.post(`/api/user/follow`, {
+      userId,
+    });
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Failed to follow user!";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}
+
+// Unfollow user
+export async function unfollow(userId) {
+  try {
+    const response = await api.delete(`/api/user/unfollow/${userId}`);
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Failed to unfollow user!";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}
+
+// Check is following or not
+export async function checkIsFollowing(userId) {
+  try {
+    const response = await api.get(`/api/user/is-following/${userId}`);
+    return response.data;
+  } catch (error) {
+    const message =
+      error.response?.data?.message || "Failed to check is following or not!";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}
+
+// Get all paginate follow users
+export async function getPaginatedFollowUsers({
+  pageNum,
+  type = "friends",
+  keyword = "",
+}) {
+  try {
+    const response = await api.get(
+      `/api/user/paginate/follow/${type}/${pageNum}`
+    );
+    return response.data;
+  } catch (error) {
+    const message =
+      error.response?.data?.message || "Failed to check is following or not!";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}
+
+// Block user
+export async function block(userId) {
+  try {
+    const response = await api.post(`/api/user/block`, {
+      userId,
+    });
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Failed to block user!";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}
+
+// Unblock user
+export async function unblock(userId) {
+  try {
+    const response = await api.delete(`/api/user/unfollow/${userId}`);
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Failed to unblock user!";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}

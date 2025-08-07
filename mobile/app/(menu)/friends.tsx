@@ -1,5 +1,5 @@
-import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "expo-router";
+import React, { useEffect, useRef, useState } from "react";
 import useDebounce from "@/hooks/useDebounce";
 import {
   TextInput,
@@ -11,18 +11,20 @@ import {
   ActivityIndicator,
   ToastAndroid,
   useColorScheme,
+  Alert,
 } from "react-native";
 import { createOrOpen } from "@/api/chat";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/colors";
 import UserItem from "@/components/UserItem";
-import { useUsersSearchStore } from "@/stores/usersSearchStore";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { User } from "@/types";
 import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
-import { getMe } from "@/api/user";
+import { block, checkIsFollowing, follow, unfollow } from "@/api/user";
+import UserPopoverMenu from "@/components/UserPopoverMenu";
+import { useFollowStore } from "@/stores/followStore";
 
 export default function Search() {
   const router = useRouter();
@@ -31,52 +33,46 @@ export default function Search() {
   const color = Colors[colorScheme ?? "light"];
 
   const [loading, setLoading] = useState(false);
+  const [keyword, setKeyword] = useState("");
+  const debouncedKeyword = useDebounce(keyword, 400);
+  const [isFollowing, setIsFollowing] = useState<boolean>(false);
+  const [popoverUser, setPopoverUser] = useState<User | null>(null);
+  const moreButtonRefs = useRef<{ [key: string]: React.RefObject<any> }>({});
+
   const isNavigatingRef = useRef(false);
+  const filters = ["friends", "followers", "following"] as const;
 
   const user = useAuthStore((state) => state.user);
-  const updateUser = useAuthStore((state) => state.updateUser);
   const { setChats, getChatById, onlineUserIds } = useChatStore();
 
   const {
-    results,
-    // page,
-    keyword,
-    selectedFilter,
-    hasMore,
+    users,
+    selectedType,
+    setSelectedType,
+    fetchUsers,
     isLoading,
-    isPaging,
-    // errorMessage,
-    setKeyword,
-    setSelectedFilter,
-    fetchSearchUsers,
-  } = useUsersSearchStore();
-
-  const debouncedKeyword = useDebounce(keyword, 400);
-
-  useFocusEffect(
-    useCallback(() => {
-      const refreshUser = async () => {
-        try {
-          const data = await getMe();
-          updateUser(data.result.user); // Updates Zustand store
-        } catch (error: any) {
-          console.log("Failed to refresh user", error.message);
-        }
-      };
-
-      refreshUser();
-    }, [updateUser])
-  );
+    hasMore,
+  } = useFollowStore();
 
   useEffect(() => {
-    fetchSearchUsers(false);
-  }, [debouncedKeyword, fetchSearchUsers, selectedFilter]);
+    fetchUsers(false, debouncedKeyword);
+  }, [debouncedKeyword, fetchUsers, selectedType]);
 
-  const handleLoadMore = async () => {
-    if (hasMore && !isPaging && !isLoading) {
-      await fetchSearchUsers(true);
-    }
-  };
+  // Check following or not
+  useEffect(() => {
+    const fetchFollowStatus = async () => {
+      if (!popoverUser?._id) return;
+
+      try {
+        const data = await checkIsFollowing(popoverUser?._id);
+        setIsFollowing(data.result.isFollowing);
+      } catch (error: any) {
+        console.log("Failed to fetch follow status", error.message);
+      }
+    };
+
+    fetchFollowStatus();
+  }, [popoverUser?._id]);
 
   const handleResult = async (user: User) => {
     if (isNavigatingRef.current) return;
@@ -100,25 +96,28 @@ export default function Search() {
     } catch (error: any) {
       ToastAndroid.show(error.message, ToastAndroid.SHORT);
     } finally {
-      // Wait a bit to allow navigation to settle
       setTimeout(() => {
         isNavigatingRef.current = false;
-      }, 1000); // consistent delay for all cases
+      }, 1000);
       setLoading(false);
     }
   };
 
+  const handleLoadMore = () => {
+    if (hasMore && !isLoading) {
+      fetchUsers(true, debouncedKeyword);
+    }
+  };
+
+  // For ui
+  const removeUserFromList = (userId: string) => {
+    // Assuming useFollowStore exposes a setter or you can patch state directly
+    useFollowStore.setState((state) => ({
+      users: state.users.filter((u) => u._id !== userId),
+    }));
+  };
+
   if (!user) return null;
-
-  const filterTypes = ["All", "Online", "Male", "Female"];
-
-  const friends = results.filter(
-    (u) => user.following.includes(u._id) && user.followers.includes(u._id)
-  );
-  const filteredFriends =
-    selectedFilter === "Online"
-      ? friends.filter((u) => onlineUserIds.includes(u._id))
-      : friends;
 
   return (
     <KeyboardAvoidingView
@@ -141,6 +140,8 @@ export default function Search() {
           <ThemedText type="headerTitle">Friends</ThemedText>
         </ThemedView>
       </ThemedView>
+
+      {/* Search Input */}
       <ThemedView style={styles.headerInputContainer}>
         <ThemedView style={styles.inputContainer}>
           <ThemedView
@@ -166,34 +167,34 @@ export default function Search() {
         </ThemedView>
       </ThemedView>
 
+      {/* Filter Buttons */}
       <ThemedView
         style={[
           styles.filterContainer,
           { borderBottomColor: color.primaryBorder },
         ]}
       >
-        {filterTypes.map((filter) => (
+        {filters.map((filter) => (
           <TouchableOpacity
             key={filter}
             style={[
               styles.filterButton,
               { borderColor: color.secondaryBorder },
-              selectedFilter === filter && {
+              selectedType === filter && {
                 backgroundColor: color.primaryText,
               },
             ]}
-            onPress={() => setSelectedFilter(filter)}
+            onPress={() => setSelectedType(filter)}
+            disabled={selectedType === filter}
           >
             <ThemedText
               type="small"
-              style={[
-                {
-                  color:
-                    selectedFilter === filter
-                      ? color.primaryBackground
-                      : color.primaryText,
-                },
-              ]}
+              style={{
+                color:
+                  selectedType === filter
+                    ? color.primaryBackground
+                    : color.primaryText,
+              }}
             >
               {filter}
             </ThemedText>
@@ -201,19 +202,23 @@ export default function Search() {
         ))}
       </ThemedView>
 
+      {/* User List */}
       <FlatList
-        data={filteredFriends}
+        data={users}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => {
-          let isOnline = false;
-          const otherUserId = item._id !== user._id ? item._id : null;
-          if (otherUserId) isOnline = onlineUserIds.includes(otherUserId);
+          const isOnline = onlineUserIds.includes(item._id);
           return (
             <UserItem
               user={item}
               isOnline={isOnline}
               disabled={loading}
               onPress={() => handleResult(item)}
+              onPressMore={() => setPopoverUser(item)}
+              moreButtonRef={
+                moreButtonRefs.current[item._id] ||
+                (moreButtonRefs.current[item._id] = React.createRef())
+              }
             />
           );
         }}
@@ -227,12 +232,91 @@ export default function Search() {
         style={styles.resultList}
         showsVerticalScrollIndicator={false}
         onEndReached={handleLoadMore}
-        onEndReachedThreshold={1}
+        onEndReachedThreshold={0.8}
         ListFooterComponent={
-          hasMore && results.length > 0 && isPaging ? (
+          hasMore && users.length > 0 && isLoading ? (
             <ActivityIndicator size="small" color={color.primaryIcon} />
           ) : null
         }
+      />
+
+      {/* Popover */}
+      <UserPopoverMenu
+        user={popoverUser}
+        fromRef={moreButtonRefs.current[popoverUser?._id ?? ""]}
+        onRequestClose={() => setPopoverUser(null)}
+        options={[
+          isFollowing
+            ? {
+                label: "Unfollow",
+                icon: "person-remove-outline",
+                destructive: true,
+                onPress: () => {
+                  Alert.alert("Unfollow", `Unfollow ${popoverUser?.name}?`, [
+                    { text: "Cancel", style: "cancel" },
+                    {
+                      text: "Unfollow",
+                      style: "destructive",
+                      onPress: async () => {
+                        try {
+                          setPopoverUser(null);
+                          const data = await unfollow(popoverUser?._id);
+
+                          // Remove user from current list immediately
+                          if (popoverUser?._id)
+                            removeUserFromList(popoverUser._id);
+
+                          ToastAndroid.show(data.message, ToastAndroid.SHORT);
+                        } catch (error) {
+                          console.log("Failed to unfollow", error);
+                        }
+                      },
+                    },
+                  ]);
+                },
+              }
+            : {
+                label: "Follow",
+                icon: "person-add-outline",
+                onPress: async () => {
+                  try {
+                    const data = await follow(popoverUser?._id);
+                    setPopoverUser(null);
+
+                    ToastAndroid.show(data.message, ToastAndroid.SHORT);
+                  } catch (error) {
+                    console.log("Failed to follow", error);
+                  }
+                },
+              },
+          {
+            label: "Block",
+            icon: "remove-circle-outline",
+            onPress: () => {
+              Alert.alert(
+                "Block",
+                `Are you sure you want to block ${popoverUser?.name}?`,
+                [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Block",
+                    style: "destructive",
+                    onPress: async () => {
+                      try {
+                        setPopoverUser(null);
+                        const data = await block(popoverUser?._id);
+                        ToastAndroid.show(data.message, ToastAndroid.SHORT);
+                      } catch (error) {
+                        console.log("Failed to block", error);
+                      }
+                    },
+                  },
+                ]
+              );
+            },
+            destructive: true,
+          },
+        ]}
       />
     </KeyboardAvoidingView>
   );
@@ -247,7 +331,6 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 15,
-    // paddingRight: 20,
     flexDirection: "row",
     alignItems: "center",
     borderBottomWidth: 0.4,

@@ -2,7 +2,7 @@ import UserDB from "../../models/user.js";
 import resError from "../../utils/resError.js";
 import resJson from "../../utils/resJson.js";
 
-export default async function getPaginateUsers(req, res, next) {
+export default async function getPaginatedUsers(req, res, next) {
   try {
     const userId = req.userId;
     const keyword = req.query.keyword;
@@ -22,9 +22,9 @@ export default async function getPaginateUsers(req, res, next) {
     const keywordSearch = keyword
       ? {
           $or: [
-            { name: { $regex: req.query.keyword, $options: "i" } },
-            { username: { $regex: req.query.keyword, $options: "i" } },
-            { email: { $regex: req.query.keyword, $options: "i" } },
+            { name: { $regex: keyword, $options: "i" } },
+            { username: { $regex: keyword, $options: "i" } },
+            { email: { $regex: keyword, $options: "i" } },
           ],
         }
       : {};

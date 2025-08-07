@@ -114,6 +114,21 @@ export const UserSchema = {
     email: Joi.string().email({ minDomainSegments: 2 }).lowercase().required(),
   }),
 
+  resetPassword: Joi.object({
+    email: Joi.string().email({ minDomainSegments: 2 }).lowercase().required(),
+    newPassword: Joi.string()
+      .pattern(new RegExp('^[a-zA-Z0-9!@#$%^&*()_+={}|:"<>?\\,-.]{8,30}$'))
+      .required(),
+  }),
+
+  follow: Joi.object({
+    userId: Joi.string().length(24).hex().required(),
+  }),
+
+  block: Joi.object({
+    userId: Joi.string().length(24).hex().required(),
+  }),
+
   params: {
     userId: Joi.object({
       userId: Joi.string()
@@ -123,14 +138,13 @@ export const UserSchema = {
     pageNum: Joi.object({
       pageNum: Joi.string().min(1).required(),
     }),
+    type: Joi.object({
+      type: Joi.string()
+        .valid("friends", "followers", "following")
+        .default("Friends")
+        .required(),
+    }),
   },
-
-  resetPassword: Joi.object({
-    email: Joi.string().email({ minDomainSegments: 2 }).lowercase().required(),
-    newPassword: Joi.string()
-      .pattern(new RegExp('^[a-zA-Z0-9!@#$%^&*()_+={}|:"<>?\\,-.]{8,30}$'))
-      .required(),
-  }),
 };
 
 export const ChatSchema = {

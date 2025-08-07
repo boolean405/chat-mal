@@ -1,6 +1,21 @@
 import express from "express";
 const router = express.Router();
 
+import {
+  validateBody,
+  validateToken,
+  validateCookie,
+  validateParam,
+  validateQuery,
+} from "../utils/validator.js";
+
+import {
+  follow,
+  unfollow,
+  isFollowing,
+  getPaginatedFollowUsers,
+} from "../controllers/user/follow.js";
+
 import { UserSchema } from "../utils/schema.js";
 import register from "../controllers/user/register.js";
 import login from "../controllers/user/login.js";
@@ -18,19 +33,13 @@ import resetPassword from "../controllers/user/resetPassword.js";
 import changeNames from "../controllers/user/changeNames.js";
 import registerVerify from "../controllers/user/registerVerify.js";
 import deletePhoto from "../controllers/user/deletePhoto.js";
-import getPaginateUsers from "../controllers/user/getPaginateUsers.js";
 import forgotPasswordVerify from "../controllers/user/forgotPasswrodVerify.js";
 
-import {
-  validateBody,
-  validateToken,
-  validateCookie,
-  validateParam,
-  validateQuery,
-} from "../utils/validator.js";
 import updatePushToken from "../controllers/user/updaetPushToken.js";
 import loginGoogle from "../controllers/user/loginGoogle.js";
 import getMe from "../controllers/user/getMe.js";
+import { block, isBlocked, unblock } from "../controllers/user/block.js";
+import getPaginatedUsers from "../controllers/user/getPaginatedUsers.js";
 
 router.get("/exist-email", validateQuery(UserSchema.existEmail), existEmail);
 router.get(
@@ -122,7 +131,7 @@ router.get(
   validateToken(),
   validateParam(UserSchema.params.pageNum, "pageNum"),
   // validateQuery(UserSchema.query.keyword),
-  getPaginateUsers
+  getPaginatedUsers
 );
 
 router.post(
@@ -133,5 +142,47 @@ router.post(
 );
 
 router.post("/login-google", validateBody(UserSchema.loginGoogle), loginGoogle);
+
+// Follow
+router.post(
+  "/follow",
+  validateToken(),
+  validateBody(UserSchema.follow),
+  follow
+);
+router.delete(
+  "/unfollow/:userId",
+  validateToken(),
+  validateParam(UserSchema.params.userId, "userId"),
+  unfollow
+);
+router.get(
+  "/is-following/:userId",
+  validateToken(),
+  validateParam(UserSchema.params.userId, "userId"),
+  isFollowing
+);
+router.get(
+  "/paginate/follow/:type/:pageNum",
+  validateToken(),
+  validateParam(UserSchema.params.pageNum, "pageNum"),
+  validateParam(UserSchema.params.type, "type"),
+  getPaginatedFollowUsers
+);
+
+// Block
+router.post("/block", validateToken(), validateBody(UserSchema.block), block);
+router.delete(
+  "/unblock/:userId",
+  validateToken(),
+  validateParam(UserSchema.params.userId, "userId"),
+  unblock
+);
+router.get(
+  "/is-blocked/:userId",
+  validateToken(),
+  validateParam(UserSchema.params.userId, "userId"),
+  isBlocked
+);
 
 export default router;
