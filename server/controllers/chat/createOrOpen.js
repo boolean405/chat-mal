@@ -7,7 +7,67 @@ import UserPrivacyDB from "../../models/userPrivacy.js";
 export default async function createOrOpen(req, res, next) {
   try {
     const user = req.user;
-    const receiverId = req.body.receiverId;
+    const receiverId = req.body.userId;
+    const chatId = req.body.chatId;
+
+    let chat;
+
+    if (chatId) {
+      // Find chat by chatId directly
+      chat = await ChatDB.findById(chatId)
+        .populate({
+          path: "users.user",
+          select: "-password",
+        })
+        .populate({
+          path: "deletedInfos.user",
+          select: "-password",
+        })
+        .populate({
+          path: "initiator",
+          select: "-password",
+        })
+        .populate({
+          path: "latestMessage",
+          populate: {
+            path: "sender",
+            select: "-password",
+          },
+        })
+        .populate({
+          path: "unreadInfos.user",
+          select: "-password",
+        })
+        .populate({
+          path: "archivedInfos.user",
+          select: "-password",
+        })
+        .lean();
+
+      if (!chat) throw resError(404, "Chat not found.");
+
+      // Optionally, reset unread count for current user if needed (like your current logic)
+      const myUnread = chat.unreadInfos?.find(
+        (uc) => uc.user.toString() === user._id.toString() && uc.count > 0
+      );
+      if (myUnread) {
+        await ChatDB.findByIdAndUpdate(
+          chat._id,
+          {
+            $set: {
+              "unreadInfos.$[elem].count": 0,
+            },
+          },
+          {
+            arrayFilters: [{ "elem.user": user._id }],
+          }
+        );
+      }
+
+      return resJson(res, 200, "Success open chat by chatId.", chat);
+    }
+
+    // else, handle receiverId logic (your existing code)
 
     if (!(await UserDB.exists({ _id: receiverId })))
       throw resError(404, "Receiver not found!");
@@ -41,7 +101,6 @@ export default async function createOrOpen(req, res, next) {
         );
       }
 
-      // 🧠 Re-fetch with updated unreadInfos
       const chat = await ChatDB.findById(isChat._id)
         .populate({
           path: "users.user",
@@ -76,7 +135,6 @@ export default async function createOrOpen(req, res, next) {
     } else {
       const receiverPrivacy = await UserPrivacyDB.findOne({ user: receiverId });
 
-      // if (receiverPrivacy?.isRequestMessage) isPending = true;
       const isPending =
         receiverPrivacy?.isRequestMessage === true ? true : false;
 
@@ -117,7 +175,7 @@ export default async function createOrOpen(req, res, next) {
         })
         .lean();
 
-      resJson(
+      return resJson(
         res,
         201,
         isPending

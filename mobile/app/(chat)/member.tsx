@@ -298,7 +298,7 @@ export default function Member() {
 
     // Api call
     try {
-      const response = await createOrOpen(user._id);
+      const response = await createOrOpen({userId: user._id});
       const chat = response.data.result;
 
       if (response.status === 200 && !getChatById(chat._id)) {

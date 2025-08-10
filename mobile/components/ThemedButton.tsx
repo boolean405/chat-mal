@@ -14,6 +14,7 @@ export type ThemedButtonProps = TouchableOpacityProps & {
   type?: "primary" | "secondary" | "link";
   title: any;
   isLoading: boolean;
+  fontSize?: number;
 };
 
 export function ThemedButton({
@@ -23,6 +24,7 @@ export function ThemedButton({
   type = "primary",
   title,
   isLoading,
+  fontSize = 16,
   ...rest
 }: ThemedButtonProps) {
   const backgroundColor = useThemeColor(
@@ -48,7 +50,9 @@ export function ThemedButton({
       {isLoading ? (
         <ActivityIndicator color={textColor} size="small" />
       ) : (
-        <Text style={[styles.text, { color: textColor }]}>{title}</Text>
+        <Text style={[styles.text, { color: textColor, fontSize }]}>
+          {title}
+        </Text>
       )}
     </TouchableOpacity>
   );
@@ -62,7 +66,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   text: {
-    fontSize: 16,
     fontWeight: "semibold",
   },
   secondary: {

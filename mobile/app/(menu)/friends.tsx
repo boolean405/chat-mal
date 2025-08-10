@@ -25,8 +25,9 @@ import { useAuthStore } from "@/stores/authStore";
 import { block, checkIsFollowing, follow, unfollow } from "@/api/user";
 import UserPopoverMenu from "@/components/UserPopoverMenu";
 import { useFollowStore } from "@/stores/followStore";
+import { ThemedButton } from "@/components/ThemedButton";
 
-export default function Search() {
+export default function Friends() {
   const router = useRouter();
   const inputRef = useRef<TextInput>(null);
   const colorScheme = useColorScheme();
@@ -40,7 +41,7 @@ export default function Search() {
   const moreButtonRefs = useRef<{ [key: string]: React.RefObject<any> }>({});
 
   const isNavigatingRef = useRef(false);
-  const filters = ["friends", "followers", "following"] as const;
+  const filters = ["Friends", "Followers", "Following"] as const;
 
   const user = useAuthStore((state) => state.user);
   const { setChats, getChatById, onlineUserIds } = useChatStore();
@@ -80,7 +81,7 @@ export default function Search() {
     setLoading(true);
 
     try {
-      const response = await createOrOpen(user._id);
+      const response = await createOrOpen({userId: user._id});
       const chat = response.data.result;
 
       if (response.status === 200 && !getChatById(chat._id)) {
@@ -129,16 +130,30 @@ export default function Search() {
       <ThemedView
         style={[styles.header, { borderBottomColor: color.primaryBorder }]}
       >
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons
-            name="chevron-back-outline"
-            size={22}
-            color={color.primaryIcon}
-          />
-        </TouchableOpacity>
-        <ThemedView style={styles.headerTitleContainer}>
-          <ThemedText type="headerTitle">Friends</ThemedText>
+        {/* Left side: back icon (touchable) and Friend text (not touchable) */}
+        <ThemedView style={styles.leftContainer}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons
+              name="chevron-back-outline"
+              size={22}
+              color={color.primaryIcon}
+            />
+          </TouchableOpacity>
+          <ThemedText type="headerTitle" style={styles.backText}>
+            Friends
+          </ThemedText>
         </ThemedView>
+
+        {/* Right side: Create button */}
+        <ThemedButton
+          style={styles.findButton}
+          title={
+            <ThemedText type="small" style={{ color: color.primaryBackground }}>
+              Find
+            </ThemedText>
+          }
+          isLoading={false}
+        />
       </ThemedView>
 
       {/* Search Input */}
@@ -188,7 +203,6 @@ export default function Search() {
             disabled={selectedType === filter}
           >
             <ThemedText
-              type="small"
               style={{
                 color:
                   selectedType === filter
@@ -327,13 +341,27 @@ const styles = StyleSheet.create({
   headerTitleContainer: {
     flex: 1,
     alignItems: "center",
-    marginRight: 22,
+    // marginRight: 22,
   },
   header: {
     padding: 15,
     flexDirection: "row",
     alignItems: "center",
     borderBottomWidth: 0.4,
+    justifyContent: "space-between",
+  },
+  leftContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  backText: {
+    marginLeft: 8,
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  findButton: {
+    paddingVertical: 4,
+    paddingHorizontal: 15,
   },
   headerInputContainer: {
     paddingVertical: 20,
@@ -362,16 +390,17 @@ const styles = StyleSheet.create({
   },
   filterContainer: {
     flexDirection: "row",
-    paddingHorizontal: 30,
-    borderBottomWidth: 0.4,
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
     paddingBottom: 10,
   },
   filterButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 20,
+    flex: 1, // make all buttons equal width
+    alignItems: "center", // center text inside
+    paddingVertical: 5,
+    borderRadius: 10,
     borderWidth: 0.5,
-    marginHorizontal: 3,
+    marginHorizontal: 5, // spacing between buttons
   },
   resultList: { flex: 1 },
 });

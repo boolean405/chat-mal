@@ -5,6 +5,7 @@ const chatSchema = new Schema(
   {
     name: { type: String, trim: true },
     isGroupChat: { type: Boolean, default: false },
+    isPrivate: { type: Boolean, default: false },
     isPending: { type: Boolean, default: false },
     initiator: { type: Schema.Types.ObjectId, ref: "user" },
     groupPhoto: { type: String },

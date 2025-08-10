@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { User } from "@/types";
 import { getPaginatedFollowUsers } from "@/api/user";
 
-type FollowType = "followers" | "following" | "friends";
+type FollowType = "Followers" | "Following" | "Friends";
 
 interface FollowState {
   users: User[];
@@ -22,7 +22,7 @@ export const useFollowStore = create<FollowState>((set, get) => ({
   totalPage: 1,
   isLoading: false,
   hasMore: true,
-  selectedType: "friends",
+  selectedType: "Friends",
 
   fetchUsers: async (isNextPage = false, keyword = "") => {
     const { page, selectedType, users, isLoading, totalPage } = get();

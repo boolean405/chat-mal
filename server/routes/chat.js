@@ -6,6 +6,7 @@ import createOrOpen from "../controllers/chat/createOrOpen.js";
 import {
   validateBody,
   validateParam,
+  validateQuery,
   validateToken,
 } from "../utils/validator.js";
 import createGroup from "../controllers/chat/createGroup.js";
@@ -23,6 +24,7 @@ import removeAdminFromGroup from "../controllers/chat/removeAdminFromGroup.js";
 import addAdminToGroup from "../controllers/chat/addAdminToGroup.js";
 import unarchiveChat from "../controllers/chat/unarchiveChat.js";
 import archiveChat from "../controllers/chat/archiveChat.js";
+import getPaginatedGroupChats from "../controllers/chat/getPaginateGroupChats.js";
 
 router.post(
   "/",
@@ -123,6 +125,14 @@ router.patch(
   validateToken(),
   validateBody(ChatSchema.unarchiveChat),
   unarchiveChat
+);
+router.get(
+  "/group/paginate/:type/:sort/:pageNum",
+  validateToken(),
+  validateParam(ChatSchema.params.groupType, "type"),
+  validateParam(ChatSchema.params.pageNum, "pageNum"),
+  validateParam(ChatSchema.params.sort, "sort"),
+  getPaginatedGroupChats
 );
 
 export default router;

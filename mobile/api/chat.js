@@ -84,12 +84,22 @@ export async function leaveGroup(groupId) {
 }
 
 // Create or open chat
-export async function createOrOpen(receiverId) {
+export async function createOrOpen({ userId='', chatId='' }) {
   try {
     await refresh();
-    const response = await api.post("/api/chat", {
-      receiverId,
-    });
+
+    // Prepare payload with exactly one of userId or chatId
+    const payload = {};
+
+    if (userId) {
+      payload.userId = userId;
+    } else if (chatId) {
+      payload.chatId = chatId;
+    } else {
+      throw new Error("Either userId or chatId must be provided");
+    }
+
+    const response = await api.post("/api/chat", payload);
     return response;
   } catch (error) {
     const message = error.response?.data?.message || "Something went wrong";
@@ -229,6 +239,28 @@ export async function archiveChat(chatId) {
   } catch (error) {
     const message =
       error.response?.data?.message || "Failed to archive or unarchive chat!";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}
+
+// Group chat
+export async function getPaginateGroupChats({
+  type,
+  pageNum = 1,
+  keyword = "",
+  sort = "popular",
+}) {
+  try {
+    await refresh();
+    const response = await api.get(
+      `/api/chat/group/paginate/${type}/${sort}/${pageNum}?keyword=${keyword}`
+    );
+    return response.data;
+  } catch (error) {
+    const message =
+      error.response?.data?.message || "Failed to get group chats!";
     const customError = new Error(message);
     customError.status = error.response?.status;
     throw customError;

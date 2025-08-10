@@ -9,6 +9,7 @@ export type User = {
   coverPhoto?: string;
   followers: string[];
   following: string[];
+  isOnline: boolean;
   gender?: "male" | "female";
   birthday?: Date;
   bio?: string;
@@ -23,6 +24,7 @@ export type Chat = {
   _id: string;
   name: string;
   isGroupChat: boolean;
+  isPrivate: boolean;
   isPending: boolean;
   initiator: User;
   users: {

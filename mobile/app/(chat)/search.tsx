@@ -93,7 +93,7 @@ export default function Search() {
     setLoading(true);
 
     try {
-      const response = await createOrOpen(user._id);
+      const response = await createOrOpen({ userId: user._id });
       const chat = response.data.result;
       console.log("response", response.status);
       console.log("chat", chat._id);

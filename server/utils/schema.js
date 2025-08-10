@@ -149,8 +149,9 @@ export const UserSchema = {
 
 export const ChatSchema = {
   createOrOpen: Joi.object({
-    receiverId: Joi.string().length(24).hex().required(),
-  }),
+    userId: Joi.string().length(24).hex(),
+    chatId: Joi.string().length(24).hex(),
+  }).xor("userId", "chatId"),
 
   createGroup: Joi.object({
     name: Joi.string().min(1).max(30),
@@ -217,8 +218,25 @@ export const ChatSchema = {
     pageNum: Joi.object({
       pageNum: Joi.string().min(1).required(),
     }),
+
     chatId: Joi.object({
       chatId: Joi.string().length(24).hex().required(),
+    }),
+
+    groupType: Joi.object({
+      type: Joi.string()
+        .lowercase()
+        .valid("all", "my", "recommend")
+        .default("all")
+        .required(),
+    }),
+
+    sort: Joi.object({
+      sort: Joi.string()
+        .lowercase()
+        .valid("popular", "new", "a-z", "z-a", "active")
+        .default("active")
+        .required(),
     }),
   },
 };

@@ -1,294 +1,355 @@
-// import { useFocusEffect, useRouter } from "expo-router";
-// import { useCallback, useEffect, useRef, useState } from "react";
-// import useDebounce from "@/hooks/useDebounce";
-// import {
-//   TextInput,
-//   TouchableOpacity,
-//   FlatList,
-//   KeyboardAvoidingView,
-//   Platform,
-//   StyleSheet,
-//   ActivityIndicator,
-//   ToastAndroid,
-//   useColorScheme,
-// } from "react-native";
-// import { createOrOpen } from "@/api/chat";
-// import { ThemedView } from "@/components/ThemedView";
-// import { ThemedText } from "@/components/ThemedText";
-// import { Colors } from "@/constants/colors";
-// import UserItem from "@/components/UserItem";
-// import { useUsersSearchStore } from "@/stores/usersSearchStore";
-// import { Ionicons } from "@expo/vector-icons";
-// import { User } from "@/types";
-// import { useChatStore } from "@/stores/chatStore";
-// import { useAuthStore } from "@/stores/authStore";
-// import { getMe } from "@/api/user";
+import { useRouter } from "expo-router";
+import React, { useEffect, useRef, useState } from "react";
+import useDebounce from "@/hooks/useDebounce";
+import {
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  ActivityIndicator,
+  useColorScheme,
+  ToastAndroid,
+} from "react-native";
+import { ThemedView } from "@/components/ThemedView";
+import { ThemedText } from "@/components/ThemedText";
+import { Colors } from "@/constants/colors";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuthStore } from "@/stores/authStore";
+import { ThemedButton } from "@/components/ThemedButton";
+import ChatItem from "@/components/ChatItem";
+import { useGroupChatStore } from "@/stores/groupChatStore";
+import Popover from "react-native-popover-view";
+import { Chat } from "@/types";
+import { createOrOpen } from "@/api/chat";
+import { useChatStore } from "@/stores/chatStore";
 
-// export default function Search() {
-//   const router = useRouter();
-//   const inputRef = useRef<TextInput>(null);
-//   const colorScheme = useColorScheme();
-//   const color = Colors[colorScheme ?? "light"];
+export default function Groups() {
+  const router = useRouter();
+  const colorScheme = useColorScheme();
+  const color = Colors[colorScheme ?? "light"];
 
-//   const [loading, setLoading] = useState(false);
-//   const isNavigatingRef = useRef(false);
+  const isNavigatingRef = useRef(false);
+  const inputRef = useRef<TextInput>(null);
+  const filterIconRef = useRef<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [isSortPopoverVisible, setSortPopoverVisible] = useState(false);
 
-//   const user = useAuthStore((state) => state.user);
-//   const updateUser = useAuthStore((state) => state.updateUser);
-//   const { setChats, getChatById, onlineUserIds } = useChatStore();
+  const filterGroups = ["My groups", "Recommend", "Explore"] as const;
+  const sortOptions = ["Active", "A-Z", "Z-A", "New", "Popular"] as const;
 
-//   const {
-//     results,
-//     // page,
-//     keyword,
-//     selectedFilter,
-//     hasMore,
-//     isLoading,
-//     isPaging,
-//     // errorMessage,
-//     setKeyword,
-//     setSelectedFilter,
-//     fetchSearchUsers,
-//   } = useUsersSearchStore();
+  const user = useAuthStore((state) => state.user);
 
-//   const debouncedKeyword = useDebounce(keyword, 400);
+  // Zustand state and actions
+  const {
+    groups,
+    isLoading,
+    hasMore,
+    keyword,
+    selectedType,
+    selectedSort,
+    exit,
+    setKeyword,
+    setSelectedType,
+    loadMore,
+    setSelectedSort,
+    reset,
+    fetchGroups,
+  } = useGroupChatStore();
 
-//   useFocusEffect(
-//     useCallback(() => {
-//       const refreshUser = async () => {
-//         try {
-//           const data = await getMe();
-//           updateUser(data.result.user); // Updates Zustand store
-//         } catch (error: any) {
-//           console.log("Failed to refresh user", error.message);
-//         }
-//       };
+  const { setChats, getChatById } = useChatStore();
 
-//       refreshUser();
-//     }, [updateUser])
-//   );
+  const debouncedKeyword = useDebounce(keyword, 300);
 
-//   useEffect(() => {
-//     fetchSearchUsers(false);
-//   }, [debouncedKeyword, fetchSearchUsers, selectedFilter]);
+  useEffect(() => {
+    return () => {
+      exit();
+    };
+  }, [exit]);
 
-//   const handleLoadMore = async () => {
-//     if (hasMore && !isPaging && !isLoading) {
-//       await fetchSearchUsers(true);
-//     }
-//   };
+  useEffect(() => {
+    reset(); // reset data on filter or keyword change
+    fetchGroups(true); // fetch first page
+  }, [selectedType, debouncedKeyword, selectedSort, reset, fetchGroups]);
 
-//   const handleResult = async (user: User) => {
-//     if (isNavigatingRef.current) return;
-//     isNavigatingRef.current = true;
-//     setLoading(true);
+  // Handler when user selects a sort option
+  const onSelectSort = (option: (typeof sortOptions)[number]) => {
+    setSelectedSort(option);
+    setSortPopoverVisible(false);
+  };
 
-//     try {
-//       const response = await createOrOpen(user._id);
-//       const chat = response.data.result;
+  // Handle press my group chat
+  const handlePressMyGroupChat = async (chatId: string) => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+    setLoading(true);
 
-//       if (response.status === 200 && !getChatById(chat._id)) {
-//         setChats([chat]);
-//       } else if (response.status === 201) {
-//         setChats([chat]);
-//       }
+    try {
+      const response = await createOrOpen({ chatId });
+      const chat = response.data.result;
 
-//       router.push({
-//         pathname: "/(chat)",
-//         params: { chatId: chat._id },
-//       });
-//     } catch (error: any) {
-//       ToastAndroid.show(error.message, ToastAndroid.SHORT);
-//     } finally {
-//       // Wait a bit to allow navigation to settle
-//       setTimeout(() => {
-//         isNavigatingRef.current = false;
-//       }, 1000); // consistent delay for all cases
-//       setLoading(false);
-//     }
-//   };
+      if (response.status === 200 && !getChatById(chat._id)) {
+        setChats([chat]);
+      } else if (response.status === 201) {
+        setChats([chat]);
+      }
 
-//   if (!user) return null;
+      router.push({
+        pathname: "/(chat)",
+        params: { chatId: chat._id },
+      });
+    } catch (error: any) {
+      ToastAndroid.show(error.message, ToastAndroid.SHORT);
+    } finally {
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 1000);
+      setLoading(false);
+    }
+  };
 
-//   const filterTypes = ["All", "Online", "Male", "Female"];
+  if (!user) return null;
 
-//   const friends = results.filter(
-//     (u) => user.following.includes(u._id) && user.followers.includes(u._id)
-//   );
-//   const filteredFriends =
-//     selectedFilter === "Online"
-//       ? friends.filter((u) => onlineUserIds.includes(u._id))
-//       : friends;
+  return (
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: color.primaryBackground }]}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+    >
+      {/* Header */}
+      <ThemedView
+        style={[styles.header, { borderBottomColor: color.primaryBorder }]}
+      >
+        {/* Left side: back icon (touchable) and Groups text (not touchable) */}
+        <ThemedView style={styles.leftContainer}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons
+              name="chevron-back-outline"
+              size={22}
+              color={color.primaryIcon}
+            />
+          </TouchableOpacity>
+          <ThemedText type="headerTitle" style={styles.backText}>
+            Groups
+          </ThemedText>
+        </ThemedView>
 
-//   return (
-//     <KeyboardAvoidingView
-//       style={[styles.container, { backgroundColor: color.primaryBackground }]}
-//       behavior={Platform.OS === "ios" ? "padding" : "height"}
-//       keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
-//     >
-//       {/* Header */}
-//       <ThemedView
-//         style={[styles.header, { borderBottomColor: color.primaryBorder }]}
-//       >
-//         <TouchableOpacity onPress={() => router.back()}>
-//           <Ionicons
-//             name="chevron-back-outline"
-//             size={22}
-//             color={color.primaryIcon}
-//           />
-//         </TouchableOpacity>
-//         <ThemedView style={styles.headerTitleContainer}>
-//           <ThemedText type="headerTitle">Groups</ThemedText>
-//         </ThemedView>
-//       </ThemedView>
-//       <ThemedView style={styles.headerInputContainer}>
-//         <ThemedView style={styles.inputContainer}>
-//           <ThemedView
-//             style={[
-//               styles.inputTextContainer,
-//               { backgroundColor: color.secondaryBackground },
-//             ]}
-//           >
-//             <Ionicons
-//               name="search-outline"
-//               size={22}
-//               color={color.primaryIcon}
-//             />
-//             <TextInput
-//               ref={inputRef}
-//               value={keyword}
-//               onChangeText={setKeyword}
-//               placeholder="Search"
-//               placeholderTextColor="gray"
-//               style={[styles.textInput, { color: color.primaryText }]}
-//             />
-//           </ThemedView>
-//         </ThemedView>
-//       </ThemedView>
+        {/* Right side: Create button */}
+        <ThemedButton
+          style={styles.createButton}
+          title={
+            <ThemedText type="small" style={{ color: color.primaryBackground }}>
+              Create
+            </ThemedText>
+          }
+          isLoading={false}
+        />
+      </ThemedView>
 
-//       <ThemedView
-//         style={[
-//           styles.filterContainer,
-//           { borderBottomColor: color.primaryBorder },
-//         ]}
-//       >
-//         {filterTypes.map((filter) => (
-//           <TouchableOpacity
-//             key={filter}
-//             style={[
-//               styles.filterButton,
-//               { borderColor: color.secondaryBorder },
-//               selectedFilter === filter && {
-//                 backgroundColor: color.primaryText,
-//               },
-//             ]}
-//             onPress={() => setSelectedFilter(filter)}
-//           >
-//             <ThemedText
-//               type="small"
-//               style={[
-//                 {
-//                   color:
-//                     selectedFilter === filter
-//                       ? color.primaryBackground
-//                       : color.primaryText,
-//                 },
-//               ]}
-//             >
-//               {filter}
-//             </ThemedText>
-//           </TouchableOpacity>
-//         ))}
-//       </ThemedView>
+      {/* Search Input */}
+      <ThemedView style={styles.headerInputContainer}>
+        <ThemedView style={styles.inputContainer}>
+          <ThemedView
+            style={[
+              styles.inputTextContainer,
+              { backgroundColor: color.secondaryBackground },
+            ]}
+          >
+            <Ionicons
+              name="search-outline"
+              size={22}
+              color={color.primaryIcon}
+            />
+            <TextInput
+              ref={inputRef}
+              value={keyword}
+              onChangeText={setKeyword}
+              placeholder="Search"
+              placeholderTextColor="gray"
+              style={[styles.textInput, { color: color.primaryText }]}
+            />
+            <TouchableOpacity
+              ref={filterIconRef}
+              onPress={() => setSortPopoverVisible(true)}
+            >
+              <Ionicons
+                name="filter-outline"
+                size={22}
+                color={color.primaryIcon}
+              />
+            </TouchableOpacity>
+          </ThemedView>
+        </ThemedView>
+      </ThemedView>
 
-//       <FlatList
-//         data={filteredFriends}
-//         keyExtractor={(item) => item._id}
-//         renderItem={({ item }) => {
-//           let isOnline = false;
-//           const otherUserId = item._id !== user._id ? item._id : null;
-//           if (otherUserId) isOnline = onlineUserIds.includes(otherUserId);
-//           return (
-//             <UserItem
-//               user={item}
-//               isOnline={isOnline}
-//               disabled={loading}
-//               onPress={() => handleResult(item)}
-//             />
-//           );
-//         }}
-//         ListEmptyComponent={
-//           debouncedKeyword && !isLoading ? (
-//             <ThemedText style={{ textAlign: "center", marginVertical: 10 }}>
-//               No results found!
-//             </ThemedText>
-//           ) : null
-//         }
-//         style={styles.resultList}
-//         showsVerticalScrollIndicator={false}
-//         onEndReached={handleLoadMore}
-//         onEndReachedThreshold={1}
-//         ListFooterComponent={
-//           hasMore && results.length > 0 && isPaging ? (
-//             <ActivityIndicator size="small" color={color.primaryIcon} />
-//           ) : null
-//         }
-//       />
-//     </KeyboardAvoidingView>
-//   );
-// }
+      {/* Filter Group Buttons */}
+      <ThemedView
+        style={[
+          styles.filterContainer,
+          { borderBottomColor: color.primaryBorder },
+        ]}
+      >
+        {filterGroups.map((filter) => (
+          <TouchableOpacity
+            key={filter}
+            style={[
+              styles.filterButton,
+              { borderColor: color.secondaryBorder },
+              selectedType === filter && {
+                backgroundColor: color.primaryText,
+              },
+            ]}
+            onPress={() => setSelectedType(filter)}
+            disabled={selectedType === filter}
+          >
+            <ThemedText
+              style={{
+                color:
+                  selectedType === filter
+                    ? color.primaryBackground
+                    : color.primaryText,
+              }}
+            >
+              {filter}
+            </ThemedText>
+          </TouchableOpacity>
+        ))}
+      </ThemedView>
 
-// const styles = StyleSheet.create({
-//   container: { flex: 1 },
-//   headerTitleContainer: {
-//     flex: 1,
-//     alignItems: "center",
-//     marginRight: 22,
-//   },
-//   header: {
-//     padding: 15,
-//     // paddingRight: 20,
-//     flexDirection: "row",
-//     alignItems: "center",
-//     borderBottomWidth: 0.4,
-//   },
-//   headerInputContainer: {
-//     paddingVertical: 20,
-//     flexDirection: "row",
-//     alignItems: "center",
-//     justifyContent: "center",
-//   },
-//   inputContainer: {
-//     flexDirection: "row",
-//     justifyContent: "center",
-//   },
-//   inputTextContainer: {
-//     height: 40,
-//     width: "95%",
-//     borderRadius: 20,
-//     flexDirection: "row",
-//     alignItems: "center",
-//     paddingHorizontal: 20,
-//   },
-//   textInput: {
-//     flex: 1,
-//     paddingBottom: 0,
-//     paddingTop: 0,
-//     height: "100%",
-//     paddingLeft: 20,
-//   },
-//   filterContainer: {
-//     flexDirection: "row",
-//     paddingHorizontal: 30,
-//     borderBottomWidth: 0.4,
-//     paddingBottom: 10,
-//   },
-//   filterButton: {
-//     paddingVertical: 4,
-//     paddingHorizontal: 10,
-//     borderRadius: 20,
-//     borderWidth: 0.5,
-//     marginHorizontal: 3,
-//   },
-//   resultList: { flex: 1 },
-// });
+      {/* Group chat list */}
+      <FlatList
+        data={groups}
+        keyExtractor={(item) => item._id}
+        style={styles.resultList}
+        showsVerticalScrollIndicator={false}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.1}
+        renderItem={({ item }) => {
+          const isJoined = item.users.some(
+            (u: any) => u.user._id === user._id || u.user === user._id
+          );
+
+          return (
+            <ChatItem
+              chat={item}
+              disabled={isLoading || !isJoined}
+              onPress={() => {
+                if (isJoined) handlePressMyGroupChat(item._id);
+              }}
+            />
+          );
+        }}
+        ListEmptyComponent={
+          debouncedKeyword && !isLoading ? (
+            <ThemedText style={{ textAlign: "center", marginVertical: 10 }}>
+              No results found!
+            </ThemedText>
+          ) : null
+        }
+        ListFooterComponent={
+          hasMore && groups.length > 0 && isLoading ? (
+            <ActivityIndicator size="small" color={color.primaryIcon} />
+          ) : null
+        }
+      />
+
+      {/* Sort Popover */}
+      <Popover
+        isVisible={isSortPopoverVisible}
+        from={filterIconRef}
+        onRequestClose={() => setSortPopoverVisible(false)}
+        popoverStyle={{
+          backgroundColor: color.secondaryBackground,
+          paddingVertical: 5,
+        }}
+      >
+        {sortOptions.map((option) => (
+          <TouchableOpacity
+            key={option}
+            onPress={() => onSelectSort(option)}
+            style={{ padding: 10, minWidth: 120 }}
+          >
+            <ThemedText
+              style={{
+                color: selectedSort === option ? color.primaryText : "gray",
+                fontWeight: selectedSort === option ? "bold" : "normal",
+              }}
+            >
+              {option}
+            </ThemedText>
+          </TouchableOpacity>
+        ))}
+      </Popover>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  headerTitleContainer: {
+    flex: 1,
+    alignItems: "center",
+    // marginRight: 22,
+  },
+  header: {
+    padding: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    borderBottomWidth: 0.4,
+    justifyContent: "space-between",
+  },
+  leftContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  backText: {
+    marginLeft: 8,
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  createButton: {
+    paddingVertical: 4,
+    paddingHorizontal: 15,
+  },
+  headerInputContainer: {
+    paddingVertical: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  inputContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  inputTextContainer: {
+    height: 40,
+    width: "95%",
+    borderRadius: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  textInput: {
+    flex: 1,
+    paddingBottom: 0,
+    paddingTop: 0,
+    height: "100%",
+    paddingLeft: 20,
+  },
+  filterContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+  },
+  filterButton: {
+    flex: 1, // make all buttons equal width
+    alignItems: "center", // center text inside
+    paddingVertical: 5,
+    borderRadius: 10,
+    borderWidth: 0.5,
+    marginHorizontal: 5, // spacing between buttons
+  },
+  resultList: { flex: 1 },
+});

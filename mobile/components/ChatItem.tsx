@@ -12,6 +12,8 @@ import { getChatName } from "@/utils/getChatName";
 import getLastTime from "@/utils/getLastTime";
 import { useAuthStore } from "@/stores/authStore";
 import { useUiStore } from "@/stores/uiStore";
+import { ThemedButton } from "./ThemedButton";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function ChatItem({
   chat,
@@ -24,7 +26,7 @@ export default function ChatItem({
 }: {
   chat: Chat;
   targetUser?: User | null;
-  isOnline: boolean;
+  isOnline?: boolean;
   disabled: boolean;
   onPress?: () => void;
   onProfilePress?: () => void;
@@ -43,6 +45,11 @@ export default function ChatItem({
   // Find the current user's unread count from the array
   const currentUserUnread = chat.unreadInfos?.find((uc) => {
     const id = typeof uc.user === "string" ? uc.user : uc.user._id;
+    return id === user._id;
+  });
+
+  const isJoined = chat.users?.some((u) => {
+    const id = typeof u.user === "string" ? u.user : u.user._id;
     return id === user._id;
   });
 
@@ -108,21 +115,29 @@ export default function ChatItem({
           >
             {chatName}
           </ThemedText>
-          <ThemedText type="small" style={{ color: "#999" }}>
-            {formatDate(chat.updatedAt)}
-          </ThemedText>
+
+          {isJoined ? (
+            <ThemedText type="small" style={{ color: "#999" }}>
+              {formatDate(chat.updatedAt)}
+            </ThemedText>
+          ) : (
+            <ThemedView style={{ flexDirection: "row", alignItems: "center" }}>
+              {chat.isPrivate ? (
+                <Ionicons name="lock-closed-outline" size={16} color="#999" />
+              ) : (
+                <Ionicons name="earth-outline" size={16} color="#999" />
+              )}
+              <ThemedText type="small" style={{ color: "#999", marginLeft: 4 }}>
+                {chat.isPrivate ? "Private" : "Public"}
+              </ThemedText>
+            </ThemedView>
+          )}
         </ThemedView>
         <ThemedView style={styles.chatBottomRow}>
           <ThemedText
             style={[
               styles.unreadText,
-              unreadCount > 0
-                ? {
-                    fontWeight: "bold",
-                  }
-                : {
-                    color: "#666",
-                  },
+              unreadCount > 0 ? { fontWeight: "bold" } : { color: "#666" },
             ]}
             numberOfLines={1}
           >
@@ -131,11 +146,7 @@ export default function ChatItem({
                 chat.latestMessage.content
               ) : chat.latestMessage.type === "image" ? (
                 <ThemedView
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    alignContent: "center",
-                  }}
+                  style={{ flexDirection: "row", alignItems: "center" }}
                 >
                   <Image
                     source={{ uri: chat.latestMessage.content }}
@@ -149,15 +160,9 @@ export default function ChatItem({
                     style={[
                       styles.unreadText,
                       unreadCount > 0
-                        ? {
-                            fontWeight: "bold",
-                          }
-                        : {
-                            color: "#666",
-                          },
-                      {
-                        marginLeft: 5,
-                      },
+                        ? { fontWeight: "bold" }
+                        : { color: "#666" },
+                      { marginLeft: 5 },
                     ]}
                   >
                     Photo
@@ -168,17 +173,28 @@ export default function ChatItem({
               ) : null
             ) : null}
           </ThemedText>
-          {unreadCount > 0 && (
-            <ThemedView
-              style={[
-                styles.unreadBadge,
-                { backgroundColor: color.unreadBadgeBackground },
-              ]}
-            >
-              <ThemedText type="defaultBold">
-                {unreadCount > 99 ? "99+" : unreadCount}
-              </ThemedText>
-            </ThemedView>
+
+          {/* Right-side: show unread badge OR Join button */}
+          {isJoined ? (
+            unreadCount > 0 && (
+              <ThemedView
+                style={[
+                  styles.unreadBadge,
+                  { backgroundColor: color.unreadBadgeBackground },
+                ]}
+              >
+                <ThemedText type="defaultBold">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </ThemedText>
+              </ThemedView>
+            )
+          ) : (
+            <ThemedButton
+              style={styles.joinButton}
+              title={"Join"}
+              isLoading={false}
+              fontSize={12}
+            />
           )}
         </ThemedView>
       </ThemedView>
@@ -261,5 +277,9 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 4,
     borderWidth: 0.2,
+  },
+  joinButton: {
+    paddingVertical: 4,
+    paddingHorizontal: 15,
   },
 });
