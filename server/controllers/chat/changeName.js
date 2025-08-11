@@ -13,8 +13,8 @@ export default async function changeName(req, res, next) {
       ChatDB.findById(chatId),
     ]);
 
-    if (!userExists) throw resError(401, "Authenticated user not found!");
-    if (!chat) throw resError(404, "Chat not found!");
+    if (!userExists) {throw resError(401, "Authenticated user not found!");}
+    if (!chat) {throw resError(404, "Chat not found!");}
 
     // Authorization check
     if (chat.isGroupChat) {
@@ -22,13 +22,13 @@ export default async function changeName(req, res, next) {
         (admin) => admin.user.toString() === userId.toString()
       );
       if (!isAdmin)
-        throw resError(403, "Only group admins can change group name!");
+        {throw resError(403, "Only group admins can change group name!");}
     } else {
       const isParticipant = chat.users.some(
         (u) => u.user.toString() === userId.toString()
       );
       if (!isParticipant)
-        throw resError(403, "Only chat participants can change chat name!");
+        {throw resError(403, "Only chat participants can change chat name!");}
     }
 
     const updatedChat = await ChatDB.findByIdAndUpdate(

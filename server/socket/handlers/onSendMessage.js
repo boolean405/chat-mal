@@ -7,7 +7,9 @@ import { sendPushNotifications } from "../../utils/sendPushNotifications.js";
 export default async function onSendMessage(socket, io, { chatId, message }) {
   const sender = socket.user;
   const chat = await ChatDB.findById(chatId);
-  if (!chat) return;
+  if (!chat) {
+    return;
+  }
 
   const otherUsers = chat.users
     .filter((u) => !u.user.equals(sender._id))

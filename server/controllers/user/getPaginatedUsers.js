@@ -9,12 +9,17 @@ export default async function getPaginatedUsers(req, res, next) {
     const gender = req.query.gender;
     const page = parseInt(req.params.pageNum, 10);
 
-    if (!(await UserDB.exists({ _id: userId })))
+    if (!(await UserDB.exists({ _id: userId }))) {
       throw resError(401, "Authenticated user not found!");
+    }
 
-    if (isNaN(page)) throw resError(400, "Page number must be a valid number!");
+    if (isNaN(page)) {
+      throw resError(400, "Page number must be a valid number!");
+    }
 
-    if (page <= 0) throw resError(400, "Page number must be greater than 0!");
+    if (page <= 0) {
+      throw resError(400, "Page number must be greater than 0!");
+    }
 
     const limit = Number(process.env.PAGINATE_LIMIT) || 15;
     const skipCount = limit * (page - 1);
@@ -29,7 +34,7 @@ export default async function getPaginatedUsers(req, res, next) {
         }
       : {};
 
-    let filter = {
+    const filter = {
       ...keywordSearch,
       _id: { $ne: userId },
     };

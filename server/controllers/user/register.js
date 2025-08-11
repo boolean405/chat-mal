@@ -14,13 +14,17 @@ const register = async (req, res, next) => {
   try {
     const { name, username, email, password } = req.body;
     // Check if user already exist or not
-    if (await UserDB.findOne({ email }))
+    if (await UserDB.findOne({ email })) {
       throw resError(409, "Email already exists!");
-    if (await UserDB.findOne({ username }))
+    }
+    if (await UserDB.findOne({ username })) {
       throw resError(409, "Username already exists!");
+    }
 
     // Delete old verification
-    if (await VerifyDB.findOne({ email })) await VerifyDB.deleteOne({ email });
+    if (await VerifyDB.findOne({ email })) {
+      await VerifyDB.deleteOne({ email });
+    }
 
     // Generate new token
     const code = Math.floor(100000 + Math.random() * 900000).toString(); // e.g. "482391"

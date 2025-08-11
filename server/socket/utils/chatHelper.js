@@ -10,7 +10,7 @@ export function getUnreadInfo(chat, userId) {
 
 export async function getChatUsers(chatId) {
   const chat = await ChatDB.findById(chatId).select("users.user").lean();
-  if (!chat) throw new Error("Chat not found");
+  if (!chat) {throw new Error("Chat not found");}
 
   return chat.users.map((u) => u.user.toString());
 }

@@ -12,7 +12,7 @@ export default async function createMessage(req, res, next) {
 
     const chat = await ChatDB.findById(chatId).populate("users unreadInfos");
 
-    if (!chat) throw resError(404, "Chat not found!");
+    if (!chat) {throw resError(404, "Chat not found!");}
 
     // Upload media if image or video to cloudinary
     let content = origContent;

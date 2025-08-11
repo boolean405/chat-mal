@@ -13,11 +13,14 @@ const forgotPassword = async (req, res, next) => {
   try {
     const email = req.body.email;
     // Check if user already exist or not
-    if (!(await UserDB.findOne({ email })))
+    if (!(await UserDB.findOne({ email }))) {
       throw resError(404, "No user found with this email!");
+    }
 
     // Delete old verification
-    if (await VerifyDB.findOne({ email })) await VerifyDB.deleteOne({ email });
+    if (await VerifyDB.findOne({ email })) {
+      await VerifyDB.deleteOne({ email });
+    }
 
     // Generate new token
     const code = Math.floor(100000 + Math.random() * 900000).toString(); // e.g. "482391"

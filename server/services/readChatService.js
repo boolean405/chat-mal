@@ -5,11 +5,11 @@ import resError from "../utils/resError.js";
 export default async function readChatService(userId, chatId) {
   // Check if chat exists
   const chat = await ChatDB.findById(chatId);
-  if (!chat) throw resError(404, "Chat not found!");
+  if (!chat) {throw resError(404, "Chat not found!");}
 
   // Check user membership
   const isUserInChat = chat.users.some((u) => u.user.equals(userId));
-  if (!isUserInChat) throw resError(403, "You are not a member of this chat!");
+  if (!isUserInChat) {throw resError(403, "You are not a member of this chat!");}
 
   // Mark chat as read
   const updatedChat = await ChatDB.findOneAndUpdate(

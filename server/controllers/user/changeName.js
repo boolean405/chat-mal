@@ -7,7 +7,9 @@ const changeName = async (req, res, next) => {
     const userId = req.userId;
     const name = req.body.name;
     const user = await UserDB.findById(userId);
-    if (!user) throw resError(401, "Authenticated user not found!");
+    if (!user) {
+      throw resError(401, "Authenticated user not found!");
+    }
 
     await UserDB.findByIdAndUpdate(user._id, {
       name,

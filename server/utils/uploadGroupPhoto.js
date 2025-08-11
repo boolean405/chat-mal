@@ -10,7 +10,9 @@ export default async function uploadGroupPhoto(
 ) {
   try {
     // Validate type
-    if (type !== "photo") throw resError(400, "Only photo are allowed!");
+    if (type !== "photo") {
+      throw resError(400, "Only photo are allowed!");
+    }
 
     // Get the current imageBase64 URL dynamically
     const oldImageUrl = group ? group[type] : null;
@@ -18,7 +20,9 @@ export default async function uploadGroupPhoto(
     // Remove old imageBase64 if it's hosted on Cloudinary
     if (oldImageUrl && oldImageUrl.includes("cloudinary")) {
       const publicId = getPublicIdFromUrl(oldImageUrl);
-      if (!publicId) throw resError(400, "Failed to parse public ID!");
+      if (!publicId) {
+        throw resError(400, "Failed to parse public ID!");
+      }
       await cloudinary.uploader.destroy(publicId);
     }
 
@@ -31,7 +35,9 @@ export default async function uploadGroupPhoto(
       folder,
       public_id,
     });
-    if (!result) throw resError(400, "Cloudinary group photo upload failed!");
+    if (!result) {
+      throw resError(400, "Cloudinary group photo upload failed!");
+    }
 
     return result.secure_url;
   } catch (err) {

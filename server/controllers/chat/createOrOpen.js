@@ -44,7 +44,7 @@ export default async function createOrOpen(req, res, next) {
         })
         .lean();
 
-      if (!chat) throw resError(404, "Chat not found.");
+      if (!chat) {throw resError(404, "Chat not found.");}
 
       // Optionally, reset unread count for current user if needed (like your current logic)
       const myUnread = chat.unreadInfos?.find(
@@ -70,7 +70,7 @@ export default async function createOrOpen(req, res, next) {
     // else, handle receiverId logic (your existing code)
 
     if (!(await UserDB.exists({ _id: receiverId })))
-      throw resError(404, "Receiver not found!");
+      {throw resError(404, "Receiver not found!");}
 
     const isChat = await ChatDB.findOne({
       isGroupChat: false,

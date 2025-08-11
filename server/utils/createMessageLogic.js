@@ -14,8 +14,12 @@ export default async function createMessageLogic({
     ChatDB.findById(chatId).select("users unreadInfos"),
   ]);
 
-  if (!userExists) throw new Error("Authenticated user not found!");
-  if (!chat) throw new Error("Chat not found!");
+  if (!userExists) {
+    throw new Error("Authenticated user not found!");
+  }
+  if (!chat) {
+    throw new Error("Chat not found!");
+  }
 
   const newMessage = await MessageDB.create({
     sender: userId,

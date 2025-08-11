@@ -7,7 +7,9 @@ export default async function uploadPhoto(req, res, next) {
   try {
     const user = req.user;
     const body = req.body;
-    if (!body) throw resError(400, "Photo is required to upload!");
+    if (!body) {
+      throw resError(400, "Photo is required to upload!");
+    }
 
     const coverPhoto = body.coverPhoto;
     const profilePhoto = body.profilePhoto;

@@ -14,7 +14,9 @@ export async function sendPushNotifications(
 
   for (const user of users) {
     // Skip the sender
-    if (user.user._id.toString() === senderId.toString()) continue;
+    if (user.user._id.toString() === senderId.toString()) {
+      continue;
+    }
 
     // Skip if no push token
     if (!user.user.pushToken || !Expo.isExpoPushToken(user.user.pushToken)) {

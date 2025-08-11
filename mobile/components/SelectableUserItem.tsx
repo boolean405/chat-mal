@@ -19,7 +19,6 @@ interface Props {
   selected?: boolean;
   onSelect?: () => void;
   isOnline?: boolean;
-  lastOnlineAt?: Date;
 }
 
 const SelectableUserItem: React.FC<Props> = ({
@@ -28,7 +27,6 @@ const SelectableUserItem: React.FC<Props> = ({
   selected = false,
   onSelect,
   isOnline,
-  lastOnlineAt,
 }) => {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];

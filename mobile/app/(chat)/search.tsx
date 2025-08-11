@@ -95,16 +95,9 @@ export default function Search() {
     try {
       const response = await createOrOpen({ userId: user._id });
       const chat = response.data.result;
-      console.log("response", response.status);
-      console.log("chat", chat._id);
-      const existchat = getChatById(chat._id);
-      console.log("existchat", existchat?._id);
 
       if (response.status === 200 && !getChatById(chat._id)) {
-        console.log("no caht found added new chat");
-
         setChats([chat]);
-        console.log(response.status);
       } else if (response.status === 201) {
         setChats([chat]);
       }
@@ -129,7 +122,7 @@ export default function Search() {
   const filterTypes = ["All", "Online", "Male", "Female", "Group"];
   const filteredResults =
     selectedFilter === "Online"
-      ? results.filter((u) => onlineUserIds.includes(u._id))
+      ? results.filter((u) => onlineUserIds.includes(u._id) || u.isOnline)
       : results;
 
   return (
@@ -214,7 +207,8 @@ export default function Search() {
         renderItem={({ item }) => {
           let isOnline = false;
           const otherUserId = item._id !== user._id ? item._id : null;
-          if (otherUserId) isOnline = onlineUserIds.includes(otherUserId);
+          if (otherUserId)
+            isOnline = onlineUserIds.includes(otherUserId) || item.isOnline;
           return (
             <UserItem
               user={item}

@@ -7,10 +7,11 @@ const existUsername = async (req, res, next) => {
     const user = await UserDB.exists({ username });
     console.log(user);
 
-    if (!user)
+    if (!user) {
       return res
         .status(200)
         .json({ status: false, message: "Username don't exist!" });
+    }
 
     resJson(res, 200, "Success exist username.");
   } catch (error) {

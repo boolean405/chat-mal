@@ -10,7 +10,7 @@ export default async function addUsersToGroup(req, res, next) {
     const { groupId, userIds } = req.body;
 
     const dbChat = await ChatDB.findById(groupId);
-    if (!dbChat) throw resError(404, "Chat not found!");
+    if (!dbChat) {throw resError(404, "Chat not found!");}
 
     // Parse and validate userIds
     const arrayUserIds = Array.isArray(userIds) ? userIds : JSON.parse(userIds);
@@ -18,7 +18,7 @@ export default async function addUsersToGroup(req, res, next) {
     // Check if all userIds exist in DB
     const count = await UserDB.countDocuments({ _id: { $in: arrayUserIds } });
     if (count !== arrayUserIds.length)
-      throw resError(404, "One or more users not found!");
+      {throw resError(404, "One or more users not found!");}
 
     const alreadyUsers = arrayUserIds.filter((id) =>
       dbChat.users.some((u) => u.user?.toString() === id)

@@ -15,7 +15,7 @@ export default async function onCallHandlers(socket, io) {
           select: "-password",
         })
         .lean();
-      if (!chat) return;
+      if (!chat) {return;}
 
       // Extract user IDs excluding caller
       const targetUserIds = chat.users
@@ -45,7 +45,7 @@ export default async function onCallHandlers(socket, io) {
 
       // Fetch chat to get all participants
       const chat = await ChatDB.findById(chatId).lean();
-      if (!chat || !chat.users) return;
+      if (!chat || !chat.users) {return;}
 
       const participantIds = chat.users
         .map((u) => u.user.toString())
@@ -73,7 +73,7 @@ export default async function onCallHandlers(socket, io) {
 
       // Get chat participants
       const chat = await ChatDB.findById(chatId).lean();
-      if (!chat || !Array.isArray(chat.users)) return;
+      if (!chat || !Array.isArray(chat.users)) {return;}
 
       const participantIds = chat.users.map((u) => u.user.toString());
 
@@ -82,7 +82,7 @@ export default async function onCallHandlers(socket, io) {
 
       // For now, find any one socket from chat users except the receiver
       for (const userId of participantIds) {
-        if (userId === receiverId.toString()) continue;
+        if (userId === receiverId.toString()) {continue;}
 
         const callerSocketId = await getSocketId(userId);
         if (callerSocketId) {
@@ -104,13 +104,13 @@ export default async function onCallHandlers(socket, io) {
     try {
       // Get chat participants
       const chat = await ChatDB.findById(chatId).lean();
-      if (!chat || !Array.isArray(chat.users)) return;
+      if (!chat || !Array.isArray(chat.users)) {return;}
 
       const participantIds = chat.users.map((u) => u.user.toString());
 
       // Broadcast to everyone *except* the one who toggled
       for (const participantId of participantIds) {
-        if (participantId === userId.toString()) continue;
+        if (participantId === userId.toString()) {continue;}
 
         const socketId = await getSocketId(participantId);
         if (socketId) {
@@ -131,13 +131,13 @@ export default async function onCallHandlers(socket, io) {
     try {
       // Get chat participants
       const chat = await ChatDB.findById(chatId).lean();
-      if (!chat || !Array.isArray(chat.users)) return;
+      if (!chat || !Array.isArray(chat.users)) {return;}
 
       const participantIds = chat.users.map((u) => u.user.toString());
 
       // Broadcast to everyone *except* the one who toggled
       for (const participantId of participantIds) {
-        if (participantId === userId.toString()) continue;
+        if (participantId === userId.toString()) {continue;}
 
         const socketId = await getSocketId(participantId);
         if (socketId) {
@@ -158,13 +158,13 @@ export default async function onCallHandlers(socket, io) {
     try {
       // Get chat participants
       const chat = await ChatDB.findById(chatId).lean();
-      if (!chat || !Array.isArray(chat.users)) return;
+      if (!chat || !Array.isArray(chat.users)) {return;}
 
       const participantIds = chat.users.map((u) => u.user.toString());
 
       // Broadcast to everyone *except* the one who toggled
       for (const participantId of participantIds) {
-        if (participantId === userId.toString()) continue;
+        if (participantId === userId.toString()) {continue;}
 
         const socketId = await getSocketId(participantId);
         if (socketId) {
@@ -212,14 +212,14 @@ export default async function onCallHandlers(socket, io) {
   async function getOtherParticipantSocketIds(chatId, excludeUserId) {
     try {
       const chat = await ChatDB.findById(chatId).lean();
-      if (!chat || !Array.isArray(chat.users)) return [];
+      if (!chat || !Array.isArray(chat.users)) {return [];}
       const others = chat.users
         .map((u) => u.user.toString())
         .filter((id) => id !== excludeUserId);
       const socketIds = [];
       for (const uid of others) {
         const sid = await getSocketId(uid);
-        if (sid) socketIds.push(sid);
+        if (sid) {socketIds.push(sid);}
       }
       return socketIds;
     } catch {

@@ -8,10 +8,13 @@ const changePassword = async (req, res, next) => {
     const userId = req.userId;
     const { oldPassword, newPassword } = req.body;
     const user = await UserDB.findById(userId);
-    if (!user) throw resError(401, "Authenticated user not found!");
+    if (!user) {
+      throw resError(401, "Authenticated user not found!");
+    }
 
-    if (!Encoder.compare(oldPassword, user.password))
+    if (!Encoder.compare(oldPassword, user.password)) {
       throw resError(401, "Incorrect old password!");
+    }
 
     // Password Encryption
     const newHashedPassword = Encoder.encode(newPassword);

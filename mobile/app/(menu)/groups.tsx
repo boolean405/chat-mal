@@ -40,6 +40,7 @@ export default function Groups() {
   const sortOptions = ["Active", "A-Z", "Z-A", "New", "Popular"] as const;
 
   const user = useAuthStore((state) => state.user);
+  const { setChats, getChatById } = useChatStore();
 
   // Zustand state and actions
   const {
@@ -58,8 +59,6 @@ export default function Groups() {
     fetchGroups,
   } = useGroupChatStore();
 
-  const { setChats, getChatById } = useChatStore();
-
   const debouncedKeyword = useDebounce(keyword, 300);
 
   useEffect(() => {
@@ -69,9 +68,9 @@ export default function Groups() {
   }, [exit]);
 
   useEffect(() => {
-    reset(); // reset data on filter or keyword change
+    // reset(); // reset data on filter or keyword change
     fetchGroups(true); // fetch first page
-  }, [selectedType, debouncedKeyword, selectedSort, reset, fetchGroups]);
+  }, [selectedType, selectedSort, debouncedKeyword, reset, fetchGroups]);
 
   // Handler when user selects a sort option
   const onSelectSort = (option: (typeof sortOptions)[number]) => {
@@ -268,7 +267,7 @@ export default function Groups() {
           <TouchableOpacity
             key={option}
             onPress={() => onSelectSort(option)}
-            style={{ padding: 10, minWidth: 120 }}
+            style={{ padding: 5, minWidth: 80, alignItems: "center" }}
           >
             <ThemedText
               style={{

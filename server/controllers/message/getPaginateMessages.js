@@ -9,14 +9,14 @@ export default async function getPaginateMessages(req, res, next) {
     const chatId = req.params.chatId;
     const page = parseInt(req.params.pageNum);
 
-    if (isNaN(page)) throw resError(400, "Page number must be a valid number!");
-    if (page <= 0) throw resError(400, "Page number must be greater than 0!");
+    if (isNaN(page)) {throw resError(400, "Page number must be a valid number!");}
+    if (page <= 0) {throw resError(400, "Page number must be greater than 0!");}
 
     const limit = Number(process.env.PAGINATE_LIMIT) || 15;
     const skipCount = limit * (page - 1);
 
     const dbChat = await ChatDB.findById(chatId);
-    if (!dbChat) throw resError(404, "Chat not found!");
+    if (!dbChat) {throw resError(404, "Chat not found!");}
 
     // Find deletedAt for this user in this chat
     const deletedEntry = dbChat.deletedInfos?.find(

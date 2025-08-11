@@ -8,25 +8,35 @@ const editProfile = async (req, res, next) => {
     const userId = req.userId;
     const body = req.body;
     // const files = req.files;
-    if (!body) throw resError(400, "Need to edit something!");
+    if (!body) {
+      throw resError(400, "Need to edit something!");
+    }
 
     const currentUser = await UserDB.findById(userId);
-    if (!currentUser) throw resError(401, "Authenticated user not found!");
+    if (!currentUser) {
+      throw resError(401, "Authenticated user not found!");
+    }
 
     const name = body.name;
     const username = body.username;
     // const profilePhoto = files.profilePhoto;
     // const coverPhoto = files.coverPhoto;
 
-    if (username && username !== currentUser.username)
-      if (await UserDB.findOne({ username }))
+    if (username && username !== currentUser.username) {
+      if (await UserDB.findOne({ username })) {
         throw resError(409, "Username already exist!");
+      }
+    }
 
     const editedUser = {};
 
     // update currentUser
-    if (name) editedUser.name = name;
-    if (username) editedUser.username = username;
+    if (name) {
+      editedUser.name = name;
+    }
+    if (username) {
+      editedUser.username = username;
+    }
 
     // if (profilePhoto) {
     //   editedUser.profilePhoto = await uploadImage(

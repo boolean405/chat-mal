@@ -18,7 +18,7 @@ export const Migrator = {
         return;
       }
       data.users.forEach(async (user) => {
-        let existUser = await UserDB.findOne({ username: user.username });
+        const existUser = await UserDB.findOne({ username: user.username });
         if (existUser) {
           console.log(
             `=> Skipped migrate, ${user.name} user is already exist.`
@@ -35,7 +35,7 @@ export const Migrator = {
   backup: async () => {
     if (process.env.BACKUP_ENABLED === "true") {
       const users = await UserDB.find();
-      if (!users) return;
+      if (!users) {return;}
       fs.mkdirSync("./migrations/backups", { recursive: true });
       fs.writeFileSync(
         "./migrations/backups/users.json",

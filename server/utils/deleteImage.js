@@ -15,7 +15,9 @@ const uploadImage = async (user, type) => {
     // Remove old image if it's hosted on Cloudinary
     if (oldImageUrl && oldImageUrl.includes("cloudinary")) {
       const publicId = getPublicIdFromUrl(oldImageUrl);
-      if (!publicId) throw resError(400, "Failed to parse public ID!");
+      if (!publicId) {
+        throw resError(400, "Failed to parse public ID!");
+      }
       await cloudinary.uploader.destroy(publicId);
       return true;
     }

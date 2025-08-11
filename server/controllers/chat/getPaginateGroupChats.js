@@ -5,18 +5,17 @@ import resError from "../../utils/resError.js";
 export default async function getPaginatedGroupChats(req, res, next) {
   try {
     const userId = req.user._id;
-    const type = req.params.type; // 'all' or 'my'
-    const sort = req.params.sort; // 'popular' or 'new'
-    const page = parseInt(req.params.pageNum, 10);
     const keyword = req.query.keyword;
+    const { type, sort, pageNum } = req.params;
+    const page = parseInt(pageNum, 10);
 
-    if (isNaN(page)) throw resError(400, "Page number must be a valid number!");
-    if (page <= 0) throw resError(400, "Page number must be greater than 0!");
+    if (isNaN(page)) {throw resError(400, "Page number must be a valid number!");}
+    if (page <= 0) {throw resError(400, "Page number must be greater than 0!");}
 
     const limit = Number(process.env.PAGINATE_LIMIT) || 15;
     const skipCount = limit * (page - 1);
 
-    let filter = { isGroupChat: true };
+    const filter = { isGroupChat: true };
 
     if (keyword && keyword.trim() !== "") {
       filter.name = { $regex: keyword.trim(), $options: "i" };
@@ -32,40 +31,19 @@ export default async function getPaginatedGroupChats(req, res, next) {
     }
 
     // Set sort order based on the 'sort' param
-    let sortOrder = {};
 
-    switch (sort) {
-      case "popular":
-        sortOrder = { "users.length": -1, updatedAt: -1 };
-        break;
-
-      case "new":
-        // Sort by newest updated
-        sortOrder = { createdAt: -1 };
-        break;
-
-      case "a-z":
-        // Sort by name ascending
-        sortOrder = { name: 1 };
-        break;
-
-      case "z-a":
-        // Sort by name descending
-        sortOrder = { name: -1 };
-        break;
-
-      case "active":
-        // Sort by name descending
-        sortOrder = { updatedAt: -1 };
-        break;
-
-      default:
-        // Default fallback
-        sortOrder = { updatedAt: -1 };
-    }
+    // sort mapping
+    const sortMap = {
+      "a-z": { name: 1 },
+      "z-a": { name: -1 },
+      new: { createdAt: -1 },
+      active: { updatedAt: -1 },
+      popular: { "users.length": -1, updatedAt: -1 },
+    };
+    const sortObj = sortMap[sort] || sortMap.active;
 
     const groupChats = await ChatDB.find(filter)
-      .sort(sortOrder)
+      .sort(sortObj)
       .skip(skipCount)
       .limit(limit)
       .populate("latestMessage")

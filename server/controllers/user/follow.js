@@ -13,7 +13,9 @@ export async function follow(req, res, next) {
     }
 
     const targetUser = await UserDB.findById(targetUserId);
-    if (!targetUser) throw resError(404, "Target user not found!");
+    if (!targetUser) {
+      throw resError(404, "Target user not found!");
+    }
 
     const alreadyFollowing = await FollowDB.exists({
       follower: currentUserId,
@@ -46,7 +48,9 @@ export async function unfollow(req, res, next) {
     }
 
     const targetUser = await UserDB.findById(targetUserId);
-    if (!targetUser) throw resError(404, "Target user not found!");
+    if (!targetUser) {
+      throw resError(404, "Target user not found!");
+    }
 
     const existingFollow = await FollowDB.findOneAndDelete({
       follower: currentUserId,
@@ -79,7 +83,9 @@ export async function isFollowing(req, res, next) {
       }),
     ]);
 
-    if (!targetUserExists) throw resError(404, "Target user not found!");
+    if (!targetUserExists) {
+      throw resError(404, "Target user not found!");
+    }
 
     return resJson(
       res,
@@ -95,9 +101,10 @@ export async function isFollowing(req, res, next) {
 export async function getPaginatedFollowUsers(req, res, next) {
   try {
     const userId = req.userId;
-    const type = req.params.type;
-    const page = parseInt(req.params.pageNum, 10);
     const keyword = req.query.keyword?.trim() || "";
+    const { type, sort, pageNum } = req.params;
+
+    const page = parseInt(pageNum, 10);
 
     const safeKeyword = keyword ? escapeRegex(keyword) : "";
 
@@ -138,11 +145,21 @@ export async function getPaginatedFollowUsers(req, res, next) {
       }),
     };
 
+    const sortMap = {
+      "a-z": { name: 1 },
+      "z-a": { name: -1 },
+      online: { isOnline: -1 },
+      oldest: { createdAt: 1 },
+      newest: { createdAt: -1 },
+    };
+
+    const sortObj = sortMap[sort] || sortMap.online;
+
     const totalCount = await UserDB.countDocuments(query);
     const users = await UserDB.find(query)
       .skip(skip)
       .limit(limit)
-      .sort({ name: 1 })
+      .sort(sortObj)
       .select("-password")
       .lean();
 

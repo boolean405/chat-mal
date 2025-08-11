@@ -7,7 +7,9 @@ export default async function deletePhoto(req, res, next) {
   try {
     const userId = req.userId;
     const body = req.body;
-    if (!body) throw resError(400, "Photo is required to delete!");
+    if (!body) {
+      throw resError(400, "Photo is required to delete!");
+    }
 
     const coverPhoto = body.coverPhoto;
     const profilePhoto = body.profilePhoto;
@@ -19,12 +21,16 @@ export default async function deletePhoto(req, res, next) {
 
     if (profilePhoto && profilePhoto === user.profilePhoto) {
       const response = await deletImage(user, "profilePhoto");
-      if (response) editedPhoto.profilePhoto = "";
+      if (response) {
+        editedPhoto.profilePhoto = "";
+      }
     }
 
     if (coverPhoto && coverPhoto === user.coverPhoto) {
       const response = await deletImage(user, "coverPhoto");
-      if (response) editedPhoto.coverPhoto = "";
+      if (response) {
+        editedPhoto.coverPhoto = "";
+      }
     }
 
     await UserDB.findByIdAndUpdate(user._id, editedPhoto);

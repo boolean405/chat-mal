@@ -8,7 +8,7 @@ export default async function leaveGroup(req, res, next) {
     const groupId = req.body.groupId;
 
     const dbGroup = await ChatDB.findById(groupId);
-    if (!dbGroup) throw resError(404, "Group chat not found!");
+    if (!dbGroup) {throw resError(404, "Group chat not found!");}
 
     const userIdStr = user._id.toString();
 
@@ -16,7 +16,7 @@ export default async function leaveGroup(req, res, next) {
     const userEntry = dbGroup.users.find(
       (u) => u.user.toString() === userIdStr
     );
-    if (!userEntry) throw resError(403, "You are not a member of this group!");
+    if (!userEntry) {throw resError(403, "You are not a member of this group!");}
 
     const isLeader = userEntry.role === "leader";
     const isAdmin = userEntry.role === "admin";

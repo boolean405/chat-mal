@@ -144,6 +144,12 @@ export const UserSchema = {
         .default("Friends")
         .required(),
     }),
+    sort: Joi.object({
+      sort: Joi.string()
+        .valid("online", "a-z", "z-a", "newest", "oldest")
+        .default("online")
+        .required(),
+    }),
   },
 };
 

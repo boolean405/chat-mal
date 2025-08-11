@@ -9,10 +9,13 @@ const deleteAccount = async (req, res, next) => {
     const userId = req.userId;
     const password = req.body.password;
     const user = await UserDB.findById(userId);
-    if (!user) throw resError(404, "User not found!");
+    if (!user) {
+      throw resError(404, "User not found!");
+    }
 
-    if (!Encoder.compare(password, user.password))
+    if (!Encoder.compare(password, user.password)) {
       throw resError(401, "Incorrect password to delete account!");
+    }
 
     await UserDB.findByIdAndDelete(user._id);
 

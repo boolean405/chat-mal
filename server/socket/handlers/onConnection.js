@@ -9,18 +9,22 @@ import onDisconnect from "./onDisconnect.js";
 import syncUserChats from "./syncUserChats.js";
 import onCallHandlers from "./onCall.js";
 import onReadChat from "./onReadChat.js";
+import { markUserOnline } from "../utils/userOnlineStatus.js";
 
 export default async function onConnection(socket, io) {
   const user = socket.user;
   const userId = user._id.toString();
 
+  // User online
   await addUserOnline(userId, socket.id);
+  await markUserOnline(userId);
   const onlineUserIds = await getOnlineUsers();
   io.emit("online-users", onlineUserIds);
 
-  // ✅ Sync chats/messages on connect
+  // Sync chats/messages on connect
   await syncUserChats(socket, io);
 
+  // Call handlers
   await onCallHandlers(socket, io);
 
   socket.on("join-chat", (chatId) => onJoinChat(socket, io, chatId));

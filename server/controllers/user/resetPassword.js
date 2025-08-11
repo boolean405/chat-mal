@@ -16,7 +16,9 @@ export default async function resetPassword(req, res, next) {
     const { email, newPassword } = req.body;
 
     const user = await UserDB.findOne({ email });
-    if (!user) throw resError(404, "User not found!");
+    if (!user) {
+      throw resError(404, "User not found!");
+    }
 
     // Password Encryption
     const newHashedPassword = Encoder.encode(newPassword);
@@ -38,7 +40,7 @@ export default async function resetPassword(req, res, next) {
     // Send verified email
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
-    let htmlFile = fs.readFileSync(
+    const htmlFile = fs.readFileSync(
       path.join(__dirname, "../../assets/html/successResetPassword.html"),
       "utf8"
     );

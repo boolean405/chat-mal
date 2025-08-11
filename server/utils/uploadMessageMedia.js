@@ -22,7 +22,9 @@ export default async function uploadMessageMedia(
       public_id,
       resource_type: type,
     });
-    if (!result) throw resError(400, "Cloudinary upload failed!");
+    if (!result) {
+      throw resError(400, "Cloudinary upload failed!");
+    }
 
     return result.secure_url;
   } catch (err) {

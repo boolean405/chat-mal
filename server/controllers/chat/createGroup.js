@@ -15,12 +15,12 @@ export default async function createGroup(req, res, next) {
     arrayUserIds = [...new Set(arrayUserIds.map((id) => id.toString()))];
 
     if (!arrayUserIds.includes(user._id.toString()))
-      arrayUserIds.push(user._id.toString());
+      {arrayUserIds.push(user._id.toString());}
 
     // Validate users exist
     const users = await UserDB.find({ _id: { $in: arrayUserIds } });
     if (users.length !== arrayUserIds.length)
-      throw resError(404, "One or more users not found!");
+      {throw resError(404, "One or more users not found!");}
 
     // Auto-generate group name if not provided
     if (!name) {
@@ -61,7 +61,7 @@ export default async function createGroup(req, res, next) {
     await Promise.all(
       groupChat.users.map(async (member) => {
         const memberId = member.user._id.toString();
-        if (memberId === user._id.toString()) return;
+        if (memberId === user._id.toString()) {return;}
 
         const socketId = await Redis.hGet("onlineUsers", memberId);
         if (socketId) {

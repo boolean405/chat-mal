@@ -8,15 +8,15 @@ export default async function removeAdminFromGroup(req, res, next) {
     const { groupId, userId: targetUserId } = req.body;
 
     const dbChat = await ChatDB.findById(groupId);
-    if (!dbChat) throw resError(404, "Group chat not found!");
+    if (!dbChat) {throw resError(404, "Group chat not found!");}
 
     const targetUser = dbChat.users.find((u) => u.user.equals(targetUserId));
     if (!targetUser)
-      throw resError(404, "Target user is not a member of this group chat!");
+      {throw resError(404, "Target user is not a member of this group chat!");}
 
     const authUser = dbChat.users.find((u) => u.user.equals(authUserId));
     if (!authUser)
-      throw resError(403, "You are not a member of this group chat.");
+      {throw resError(403, "You are not a member of this group chat.");}
 
     if (authUser.role !== "leader") {
       throw resError(403, "Only group leader can remove an admin.");

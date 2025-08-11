@@ -12,11 +12,11 @@ export default async function getPaginateChats(req, res, next) {
     const skipCount = limit * (page - 1);
 
     const user = await UserDB.findById(userId);
-    if (!user) throw resError(401, "Authenticated user not found!");
+    if (!user) {throw resError(401, "Authenticated user not found!");}
 
-    if (isNaN(page)) throw resError(400, "Page number must be a valid number!");
+    if (isNaN(page)) {throw resError(400, "Page number must be a valid number!");}
 
-    if (page <= 0) throw resError(400, "Page number must be greater than 0!");
+    if (page <= 0) {throw resError(400, "Page number must be greater than 0!");}
 
     // Step 1: Base match
     const baseMatch = {

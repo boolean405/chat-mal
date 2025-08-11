@@ -15,14 +15,18 @@ import { APP_NAME } from "../../constants/index.js";
 export default async function registerVerify(req, res, next) {
   try {
     const { email, code } = req.body;
-    if (!(await VerifyDB.findOne({ email })))
+    if (!(await VerifyDB.findOne({ email }))) {
       throw resError(400, "Invalid email!");
+    }
 
     const record = await VerifyDB.findOne({ code });
-    if (!record) throw resError(400, "Invalid verification code!");
+    if (!record) {
+      throw resError(400, "Invalid verification code!");
+    }
 
-    if (record.expiresAt < new Date())
+    if (record.expiresAt < new Date()) {
       throw resError(410, "Expired verification code!");
+    }
 
     const newUser = await UserDB.create({
       name: record.name,
@@ -30,7 +34,9 @@ export default async function registerVerify(req, res, next) {
       email: record.email,
       password: record.password,
     });
-    if (newUser) await UserPrivacyDB.create({ user: newUser._id });
+    if (newUser) {
+      await UserPrivacyDB.create({ user: newUser._id });
+    }
 
     const refreshToken = Token.makeRefreshToken({
       id: newUser._id.toString(),
@@ -50,7 +56,7 @@ export default async function registerVerify(req, res, next) {
     // Send verified email
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
-    let htmlFile = fs.readFileSync(
+    const htmlFile = fs.readFileSync(
       path.join(__dirname, "../../assets/html/successSignup.html"),
       "utf8"
     );

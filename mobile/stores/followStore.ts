@@ -3,17 +3,23 @@ import { User } from "@/types";
 import { getPaginatedFollowUsers } from "@/api/user";
 
 type FollowType = "Followers" | "Following" | "Friends";
+type SortType = "Online" | "A-Z" | "Z-A" | "Newest" | "Oldest";
 
 interface FollowState {
   users: User[];
   page: number;
+  keyword: string;
   totalPage: number;
   isLoading: boolean;
   hasMore: boolean;
   selectedType: FollowType;
-  fetchUsers: (isNextPage?: boolean, keyword?: string) => Promise<void>;
-  setSelectedType: (type: FollowType) => void;
+  selectedSort: SortType;
   reset: () => void;
+  exit: () => void;
+  setKeyword: (keyword: string) => void;
+  setSelectedSort: (sort: SortType) => void;
+  setSelectedType: (type: FollowType) => void;
+  fetchUsers: (isNextPage?: boolean) => Promise<void>;
 }
 
 export const useFollowStore = create<FollowState>((set, get) => ({
@@ -22,10 +28,22 @@ export const useFollowStore = create<FollowState>((set, get) => ({
   totalPage: 1,
   isLoading: false,
   hasMore: true,
+  keyword: "",
   selectedType: "Friends",
+  selectedSort: "Online",
 
-  fetchUsers: async (isNextPage = false, keyword = "") => {
-    const { page, selectedType, users, isLoading, totalPage } = get();
+  setKeyword: (keyword) => set({ keyword }),
+
+  fetchUsers: async (isNextPage = false) => {
+    const {
+      page,
+      selectedType,
+      users,
+      isLoading,
+      selectedSort,
+      keyword,
+      totalPage,
+    } = get();
 
     if (isLoading) return;
 
@@ -37,6 +55,7 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       const data = await getPaginatedFollowUsers({
         pageNum: nextPage,
         type: selectedType.toLowerCase(),
+        sort: selectedSort.toLowerCase(),
         keyword,
       });
 
@@ -63,6 +82,8 @@ export const useFollowStore = create<FollowState>((set, get) => ({
     }
   },
 
+  setSelectedSort: (sort) => set({ selectedSort: sort }),
+
   setSelectedType: (type) => {
     set({
       selectedType: type,
@@ -81,4 +102,15 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       hasMore: true,
     });
   },
+
+  exit: () =>
+    set({
+      users: [],
+      page: 1,
+      keyword: "",
+      hasMore: true,
+      isLoading: false,
+      selectedSort: "Online",
+      selectedType: "Friends",
+    }),
 }));

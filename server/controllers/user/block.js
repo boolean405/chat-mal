@@ -13,7 +13,9 @@ export async function block(req, res, next) {
     }
 
     const targetUser = await UserDB.findById(blockedId);
-    if (!targetUser) throw resError(404, "User not found.");
+    if (!targetUser) {
+      throw resError(404, "User not found.");
+    }
 
     const existingBlock = await BlockDB.findOne({
       blocker: blockerId,

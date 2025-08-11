@@ -7,7 +7,7 @@ export async function updateAndEmitMessages({
   socket,
   io,
 }) {
-  if (!unreadInfo?.count) return [];
+  if (!unreadInfo?.count) {return [];}
 
   const deletedInfo = chat.deletedInfos?.find(
     (info) => info.user.toString() === userId

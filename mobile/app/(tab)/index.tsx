@@ -133,11 +133,8 @@ export default function Home() {
 
     // Online users
     socket.on("online-users", async (userIds: string[]) => {
-      console.log("🟢 Online user count:", userIds.length);
+      console.log("🟢 Online user count:", userIds.length, user.name);
       setOnlineUserIds(userIds);
-
-      // Request all new
-      // socket.emit("fetch-all", () => {});
     });
 
     // Listen for latestMessage updates
@@ -176,7 +173,8 @@ export default function Home() {
 
     // User offline
     socket.on("user-went-offline", ({ userId, lastOnlineAt }) => {
-      useChatStore.getState().updateUserLastOnlineAt(userId, lastOnlineAt);
+      const store = useChatStore.getState();
+      store.updateUserLastOnlineAt(userId, lastOnlineAt);
     });
 
     // Listen for new chat creation

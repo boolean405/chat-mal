@@ -15,7 +15,9 @@ export default async function uploadUserPhoto(user, type, imageBase64, folder) {
     // Remove old imageBase64 if it's hosted on Cloudinary
     if (oldImageUrl && oldImageUrl.includes("cloudinary")) {
       const publicId = getPublicIdFromUrl(oldImageUrl);
-      if (!publicId) throw resError(400, "Failed to parse public ID!");
+      if (!publicId) {
+        throw resError(400, "Failed to parse public ID!");
+      }
       await cloudinary.uploader.destroy(publicId);
     }
 
@@ -27,7 +29,9 @@ export default async function uploadUserPhoto(user, type, imageBase64, folder) {
       folder,
       public_id,
     });
-    if (!result) throw resError(400, "Cloudinary upload failed!");
+    if (!result) {
+      throw resError(400, "Cloudinary upload failed!");
+    }
 
     return result.secure_url;
   } catch (err) {

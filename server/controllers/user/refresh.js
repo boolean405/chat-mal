@@ -8,7 +8,9 @@ export default async function refresh(req, res, next) {
   try {
     const userId = req.decodedId;
     const user = await UserDB.exists({ _id: userId });
-    if (!user) throw resError(401, "Authenticated user not found!");
+    if (!user) {
+      throw resError(401, "Authenticated user not found!");
+    }
 
     const accessToken = Token.makeAccessToken({
       id: userId,

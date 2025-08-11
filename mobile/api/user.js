@@ -454,11 +454,12 @@ export async function checkIsFollowing(userId) {
 export async function getPaginatedFollowUsers({
   pageNum,
   type = "friends",
+  sort = "online",
   keyword = "",
 }) {
   try {
     const response = await api.get(
-      `/api/user/paginate/follow/${type.toLowerCase()}/${pageNum}?keyword=${keyword.trim()}`
+      `/api/user/paginate/follow/${type}/${sort}/${pageNum}?keyword=${keyword.trim()}`
     );
     return response.data;
   } catch (error) {

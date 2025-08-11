@@ -18,7 +18,7 @@ import {
 
 import { UserSchema } from "../utils/schema.js";
 import register from "../controllers/user/register.js";
-import login from "../controllers/user/login.js";
+import { login, loginGoogle } from "../controllers/user/login.js";
 import refresh from "../controllers/user/refresh.js";
 import logout from "../controllers/user/logout.js";
 import deleteAccount from "../controllers/user/deleteAccount.js";
@@ -36,7 +36,6 @@ import deletePhoto from "../controllers/user/deletePhoto.js";
 import forgotPasswordVerify from "../controllers/user/forgotPasswrodVerify.js";
 
 import updatePushToken from "../controllers/user/updaetPushToken.js";
-import loginGoogle from "../controllers/user/loginGoogle.js";
 import getMe from "../controllers/user/getMe.js";
 import { block, isBlocked, unblock } from "../controllers/user/block.js";
 import getPaginatedUsers from "../controllers/user/getPaginatedUsers.js";
@@ -163,10 +162,11 @@ router.get(
   isFollowing
 );
 router.get(
-  "/paginate/follow/:type/:pageNum",
+  "/paginate/follow/:type/:sort/:pageNum",
   validateToken(),
   validateParam(UserSchema.params.pageNum, "pageNum"),
   validateParam(UserSchema.params.type, "type"),
+  validateParam(UserSchema.params.sort, "sort"),
   getPaginatedFollowUsers
 );
 

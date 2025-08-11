@@ -298,7 +298,7 @@ export default function Member() {
 
     // Api call
     try {
-      const response = await createOrOpen({userId: user._id});
+      const response = await createOrOpen({ userId: user._id });
       const chat = response.data.result;
 
       if (response.status === 200 && !getChatById(chat._id)) {
@@ -402,6 +402,7 @@ export default function Member() {
             renderItem={({ item }) => (
               <SelectableUserItem
                 user={item}
+                isOnline={onlineUserIds.includes(item._id) || item.isOnline}
                 selected={selectedUsers.some((u) => u._id === item._id)}
                 onSelect={() => {
                   setSelectedUsers((prev) =>

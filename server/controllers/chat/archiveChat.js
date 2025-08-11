@@ -9,7 +9,7 @@ export default async function archiveChat(req, res, next) {
 
     const chat = await ChatDB.findById(chatId);
 
-    if (!chat) throw resError(404, "Chat not found!");
+    if (!chat) {throw resError(404, "Chat not found!");}
 
     const isArchived = chat.archivedInfos.some(
       (info) => info.user.toString() === user._id.toString()

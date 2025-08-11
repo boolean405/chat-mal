@@ -22,7 +22,9 @@ export default async function uploadAuthPhoto({
       public_id,
       resource_type: "image",
     });
-    if (!result) throw resError(400, "Cloudinary upload failed!");
+    if (!result) {
+      throw resError(400, "Cloudinary upload failed!");
+    }
 
     return result.secure_url;
   } catch (err) {

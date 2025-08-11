@@ -26,6 +26,7 @@ import { block, checkIsFollowing, follow, unfollow } from "@/api/user";
 import UserPopoverMenu from "@/components/UserPopoverMenu";
 import { useFollowStore } from "@/stores/followStore";
 import { ThemedButton } from "@/components/ThemedButton";
+import Popover from "react-native-popover-view";
 
 export default function Friends() {
   const router = useRouter();
@@ -34,30 +35,45 @@ export default function Friends() {
   const color = Colors[colorScheme ?? "light"];
 
   const [loading, setLoading] = useState(false);
-  const [keyword, setKeyword] = useState("");
-  const debouncedKeyword = useDebounce(keyword, 400);
+  const filterIconRef = useRef<any>(null); // ADD
+  const [isSortPopoverVisible, setSortPopoverVisible] = useState(false);
+
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [popoverUser, setPopoverUser] = useState<User | null>(null);
   const moreButtonRefs = useRef<{ [key: string]: React.RefObject<any> }>({});
 
   const isNavigatingRef = useRef(false);
   const filters = ["Friends", "Followers", "Following"] as const;
+  const sortOptions = ["Online", "A-Z", "Z-A", "Newest", "Oldest"] as const;
 
   const user = useAuthStore((state) => state.user);
   const { setChats, getChatById, onlineUserIds } = useChatStore();
 
   const {
     users,
-    selectedType,
-    setSelectedType,
-    fetchUsers,
-    isLoading,
     hasMore,
+    isLoading,
+    selectedType,
+    selectedSort,
+    keyword,
+    exit,
+    setKeyword,
+    fetchUsers,
+    setSelectedSort,
+    setSelectedType,
   } = useFollowStore();
 
+  const debouncedKeyword = useDebounce(keyword, 300);
+
   useEffect(() => {
-    fetchUsers(false, debouncedKeyword);
-  }, [debouncedKeyword, fetchUsers, selectedType]);
+    return () => {
+      exit();
+    };
+  }, [exit]);
+
+  useEffect(() => {
+    fetchUsers(false);
+  }, [debouncedKeyword, fetchUsers, selectedType, selectedSort]);
 
   // Check following or not
   useEffect(() => {
@@ -81,7 +97,7 @@ export default function Friends() {
     setLoading(true);
 
     try {
-      const response = await createOrOpen({userId: user._id});
+      const response = await createOrOpen({ userId: user._id });
       const chat = response.data.result;
 
       if (response.status === 200 && !getChatById(chat._id)) {
@@ -106,7 +122,7 @@ export default function Friends() {
 
   const handleLoadMore = () => {
     if (hasMore && !isLoading) {
-      fetchUsers(true, debouncedKeyword);
+      fetchUsers(true);
     }
   };
 
@@ -116,6 +132,12 @@ export default function Friends() {
     useFollowStore.setState((state) => ({
       users: state.users.filter((u) => u._id !== userId),
     }));
+  };
+
+  const onSelectSort = (option: (typeof sortOptions)[number]) => {
+    // ADD
+    setSelectedSort(option);
+    setSortPopoverVisible(false);
   };
 
   if (!user) return null;
@@ -178,6 +200,18 @@ export default function Friends() {
               placeholderTextColor="gray"
               style={[styles.textInput, { color: color.primaryText }]}
             />
+
+            {/* FILTER ICON */}
+            <TouchableOpacity
+              ref={filterIconRef}
+              onPress={() => setSortPopoverVisible(true)}
+            >
+              <Ionicons
+                name="filter-outline"
+                size={22}
+                color={color.primaryIcon}
+              />
+            </TouchableOpacity>
           </ThemedView>
         </ThemedView>
       </ThemedView>
@@ -221,7 +255,7 @@ export default function Friends() {
         data={users}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => {
-          const isOnline = onlineUserIds.includes(item._id);
+          const isOnline = onlineUserIds.includes(item._id) || item.isOnline;
           return (
             <UserItem
               user={item}
@@ -253,6 +287,34 @@ export default function Friends() {
           ) : null
         }
       />
+
+      {/* Sort Popover */}
+      <Popover
+        isVisible={isSortPopoverVisible}
+        from={filterIconRef}
+        onRequestClose={() => setSortPopoverVisible(false)}
+        popoverStyle={{
+          backgroundColor: color.secondaryBackground,
+          paddingVertical: 5,
+        }}
+      >
+        {sortOptions.map((option) => (
+          <TouchableOpacity
+            key={option}
+            onPress={() => onSelectSort(option)}
+            style={{ padding: 5, minWidth: 80, alignItems: "center" }}
+          >
+            <ThemedText
+              style={{
+                color: selectedSort === option ? color.primaryText : "gray",
+                fontWeight: selectedSort === option ? "bold" : "normal",
+              }}
+            >
+              {option}
+            </ThemedText>
+          </TouchableOpacity>
+        ))}
+      </Popover>
 
       {/* Popover */}
       <UserPopoverMenu
