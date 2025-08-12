@@ -1,4 +1,10 @@
-import { BottomSheetOption, DetailItem, MenuItem, SettingItem } from "@/types";
+import {
+  BottomSheetOption,
+  DetailItem,
+  MenuItem,
+  SettingItem,
+  SettingMenuItem,
+} from "@/types";
 
 export const DetailsData: (DetailItem & {
   showFor: "all" | "group" | "chat";
@@ -161,4 +167,56 @@ export const MENUS: MenuItem[] = [
   },
   // { id: "5", label: "Events", iconName: "calendar-outline", path: "/events" },
   // { id: "6", label: "Memories", iconName: "time-outline", path: "/memories" },
+];
+
+export const SETTINGS_MENUS: SettingMenuItem[] = [
+  {
+    id: "1",
+    title: "Profile",
+    desc: "Names, username, profile photo, and more",
+    iconName: "person-outline",
+    path: "/settings/account",
+  },
+  {
+    id: "2",
+    title: "Account",
+    desc: "Password, and more",
+    iconName: "key-outline",
+    path: "/settings/account",
+  },
+  {
+    id: "3",
+    title: "Privacy",
+    desc: "User privacy, and more",
+    iconName: "lock-closed-outline",
+    path: "/settings/privacy",
+  },
+  {
+    id: "4",
+    title: "Security",
+    desc: "Email, 2FA, and more",
+    iconName: "shield-outline",
+    path: "/settings/privacy",
+  },
+  {
+    id: "5",
+    title: "Notifications",
+    desc: "Notifications, sounds, and more",
+    iconName: "notifications-outline",
+    path: "/settings/notifications",
+  },
+  {
+    id: "6",
+    title: "System",
+    desc: "Theme, language, and more",
+    iconName: "cog-outline",
+    path: "/settings/theme",
+  },
+  {
+    id: "7",
+    title: "About",
+    desc: "Pravicy policy, terms of service, and more",
+    iconName: "information-circle-outline",
+    path: "/settings/help",
+  },
 ];

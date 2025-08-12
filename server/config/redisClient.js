@@ -7,7 +7,7 @@ if (!url) {
   process.exit(1);
 }
 
-const Redis = createClient({ url });
+export const Redis = createClient({ url });
 
 Redis.on("error", (error) => {
   console.log("=> ❌ Redis connection error: ", error.message);
@@ -18,10 +18,6 @@ Redis.on("ready", () => {
   console.log("=> ✅ Successfully connected to Redis.");
 });
 
-const connectRedis = async () => {
-  if (!Redis.isOpen) {
-    await Redis.connect();
-  }
+export const connectRedis = async () => {
+  if (!Redis.isOpen) await Redis.connect();
 };
-
-export { Redis, connectRedis };

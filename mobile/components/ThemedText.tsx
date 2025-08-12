@@ -75,6 +75,8 @@ const styles = StyleSheet.create({
   },
   largest: {
     fontSize: 20,
+    fontWeight: "bold",
+    lineHeight: 30,
   },
   larger: {
     fontSize: 18,

@@ -16,7 +16,6 @@ import {
   useMicrophonePermissions,
 } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
-import * as ImagePicker from "expo-image-picker";
 import Modal from "react-native-modal";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemedText } from "./ThemedText"; // Assuming ThemedText is available
@@ -52,7 +51,6 @@ export default function CameraModal({
   const [mediaPermission, requestMediaPermission] =
     MediaLibrary.usePermissions();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [permissionDeniedCount, setPermissionDeniedCount] = useState(0);
   const cameraRef = useRef<CameraView>(null);
   const [recordingStartTime, setRecordingStartTime] = useState<number | null>(
     null
@@ -75,14 +73,11 @@ export default function CameraModal({
   useEffect(() => {
     const checkPermissions = async () => {
       if (isVisible) {
-        setPermissionDeniedCount(0); // Reset count on modal open
-
         // Request camera permission
         if (!permission?.granted) {
           const cameraStatus = await requestPermission();
           if (!cameraStatus.granted) {
-            setPermissionDeniedCount((prev) => prev + 1);
-            return;
+            await requestPermission();
           }
         }
 
@@ -90,8 +85,7 @@ export default function CameraModal({
         if (!mediaPermission?.granted) {
           const mediaStatus = await requestMediaPermission();
           if (!mediaStatus.granted) {
-            setPermissionDeniedCount((prev) => prev + 1);
-            return;
+            await requestMediaPermission();
           }
         }
 
@@ -107,36 +101,6 @@ export default function CameraModal({
     requestPermission,
     requestMediaPermission,
   ]);
-
-  // Effect to handle permission denial feedback
-  useEffect(() => {
-    if (permissionDeniedCount === 1) {
-      ToastAndroid.show(
-        "Camera and Media Library permissions are required to use this feature",
-        ToastAndroid.SHORT
-      );
-      onClose();
-    } else if (permissionDeniedCount >= 2) {
-      Alert.alert(
-        "Permission Required",
-        "Camera and Media Library access is needed to capture media. Please enable them in app settings.",
-        [
-          {
-            text: "Cancel",
-            style: "cancel",
-            onPress: () => onClose(),
-          },
-          {
-            text: "Open Settings",
-            onPress: () => {
-              Linking.openSettings();
-              onClose();
-            },
-          },
-        ]
-      );
-    }
-  }, [permissionDeniedCount, onClose]);
 
   // Function to capture photo or start/stop video recording
   const captureMedia = async () => {
@@ -423,14 +387,8 @@ export default function CameraModal({
             <Button
               title="Grant Permission"
               onPress={async () => {
-                const cameraStatus = await requestPermission();
-                const mediaStatus = await requestMediaPermission();
-
-                if (cameraStatus.granted && mediaStatus.granted) {
-                  setHasPermission(true);
-                } else {
-                  setPermissionDeniedCount((prev) => prev + 1);
-                }
+                await requestPermission();
+                await requestMediaPermission();
               }}
             />
           </ThemedView>

@@ -6,7 +6,7 @@ import { Server } from "socket.io";
 import app from "./app.js";
 import connectDB from "./config/connectDB.js";
 import connectSocket from "./socket/index.js";
-import { Migrator } from "./migrations/migrator.js";
+// import { Migrator } from "./migrations/migrator.js";
 import { connectRedis } from "./config/redisClient.js";
 import allowedOrigins from "./config/allowedOrigins.js";
 

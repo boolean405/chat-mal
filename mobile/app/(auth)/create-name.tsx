@@ -22,7 +22,7 @@ export default function CreateName() {
   const router = useRouter();
 
   const { email } = useLocalSearchParams();
-  
+
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [isInvalidName, setIsInvalidName] = useState(false);
@@ -35,11 +35,11 @@ export default function CreateName() {
     const validName = (str: string) => /^[A-Za-z ]{1,20}$/.test(str);
     const validUsername = (str: string) => /^[a-z0-9]{5,20}$/.test(str);
 
-    validName(name) ? setIsInvalidName(false) : setIsInvalidName(true);
+    if (validName(name)) setIsInvalidName(false);
+    else setIsInvalidName(true);
 
-    validUsername(username)
-      ? setIsInvalidUsername(false)
-      : setIsInvalidUsername(true);
+    if (validUsername(username)) setIsInvalidUsername(false);
+    else setIsInvalidUsername(true);
   }, [name, username]);
 
   const handleContinue = async () => {

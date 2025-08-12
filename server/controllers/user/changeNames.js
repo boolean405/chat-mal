@@ -4,15 +4,10 @@ import resError from "../../utils/resError.js";
 
 const changeNames = async (req, res, next) => {
   try {
-    const userId = req.userId;
+    const currentUser = req.user;
     const body = req.body;
     if (!body) {
       throw resError(400, "Need to edit something!");
-    }
-
-    const currentUser = await UserDB.findById(userId);
-    if (!currentUser) {
-      throw resError(401, "Authenticated user not found!");
     }
 
     const name = body.name;

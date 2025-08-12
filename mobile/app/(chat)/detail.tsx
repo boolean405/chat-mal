@@ -184,7 +184,7 @@ export default function Detail() {
 
           <ThemedView style={styles.bottomContainer}>
             <ThemedText
-              type="headerTitle"
+              type="largest"
               style={styles.nameText}
               numberOfLines={1}
             >

@@ -54,6 +54,7 @@ export default function EditProfile() {
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [canChange, setCanChange] = useState(false);
+  const NAME_RE = /^(?=.{1,20}$)[\p{L}\p{M} ]+$/u;
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -80,11 +81,11 @@ export default function EditProfile() {
         setCanChange(false);
       }
 
-      setIsInvalidName(!/^[A-Za-z0-9 ]{1,20}$/.test(name));
+      setIsInvalidName(!NAME_RE.test(name));
       setIsInvalidUsername(!/^[a-z0-9]{5,20}$/.test(username));
     };
     validateInputs();
-  }, [name, user?.name, user?.username, username]);
+  }, [name, user?.name, user?.username, username, NAME_RE]);
 
   useEffect(() => {
     const requestPermission = async () => {
@@ -372,10 +373,10 @@ export default function EditProfile() {
 
             {/* Inputs and Button */}
             <ThemedView style={styles.bottomContainer}>
-              <ThemedText type="title">{name}</ThemedText>
-              <ThemedText type="subtitle">
-                {username && `@${username}`}
+              <ThemedText numberOfLines={1} type="largest">
+                {name}
               </ThemedText>
+              <ThemedText type="large">{username && `@${username}`}</ThemedText>
 
               <ThemedText type="large" style={styles.nameText}>
                 Edit your profile
@@ -407,7 +408,8 @@ export default function EditProfile() {
                     setIsError(false);
                     const sanitized = text
                       .replace(/^\s+/, "") // Remove leading spaces
-                      .replace(/[^A-Za-z\s]/g, ""); // Remove all non-letter characters
+                      .replace(/[^\p{L}\p{M}\s]/gu, "");
+
                     setName(sanitized);
                   }}
                 />
@@ -500,7 +502,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingBottom: 60,
   },
-
   addPhotoText: {
     position: "absolute",
     bottom: 0,
@@ -533,7 +534,6 @@ const styles = StyleSheet.create({
     width: "80%",
     marginTop: 10,
   },
-
   coverPhotoContainer: {
     width: screenWidth * 0.9,
     height: 180,

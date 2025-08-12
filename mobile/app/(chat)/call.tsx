@@ -94,8 +94,6 @@ export default function CallScreen() {
     (s) => s.remoteFacingStatus[otherUser?._id ?? "unknown"]
   );
 
-  // audio hooks
-
   // For calling duration
   useEffect(() => {
     let timer: NodeJS.Timeout | number;
@@ -339,7 +337,7 @@ export default function CallScreen() {
             </View>
 
             <ThemedText
-              type="headerTitle"
+              type="largest"
               style={styles.headerTitle}
               numberOfLines={1}
             >
@@ -436,7 +434,7 @@ export default function CallScreen() {
             </ThemedView>
             {/* Chat name and call status */}
             <ThemedText
-              type="headerTitle"
+              type="largest"
               style={styles.headerTitle}
               numberOfLines={1}
             >
@@ -496,7 +494,7 @@ export default function CallScreen() {
             </ThemedView>
             {/* Chat name and call status */}
             <ThemedText
-              type="headerTitle"
+              type="largest"
               style={styles.headerTitle}
               numberOfLines={1}
             >

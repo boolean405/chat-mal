@@ -169,6 +169,7 @@ export default function Friends() {
         {/* Right side: Create button */}
         <ThemedButton
           style={styles.findButton}
+          onPress={() => router.push("/(chat)/search")}
           title={
             <ThemedText type="small" style={{ color: color.primaryBackground }}>
               Find

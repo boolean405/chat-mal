@@ -73,7 +73,7 @@ export const UserSchema = {
 
   changeNames: Joi.object({
     name: Joi.string()
-      .pattern(/^[A-Za-z ]+$/)
+      .pattern(/^[\p{L}\p{M} ]+$/u)
       .min(1)
       .max(20),
     username: Joi.string()

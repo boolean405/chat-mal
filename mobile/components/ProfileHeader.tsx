@@ -62,12 +62,7 @@ export const ProfileHeader: React.FC<Props> = ({
       <ThemedView style={styles.profileInfo}>
         <ThemedView style={styles.profileHeader}>
           <ThemedView style={{ flex: 1 }}>
-            <ThemedText
-              type="subtitle"
-              style={[styles.name, { color: color.primaryText }]}
-            >
-              {name}
-            </ThemedText>
+            <ThemedText type="largest">{name}</ThemedText>
             <ThemedView style={styles.usernameRow}>
               <ThemedText style={[{ color: color.primaryIcon }]}>
                 @{username}
@@ -141,10 +136,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     justifyContent: "space-between",
-  },
-  name: {
-    marginBottom: 2,
-    fontWeight: "bold",
   },
   usernameRow: {
     flexDirection: "row",

@@ -23,6 +23,7 @@ import { FloatingCall } from "@/components/FloatingCall";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useOAuth } from "@/hooks/useOAuth";
 import { useNetworkListener } from "@/hooks/useNetworkListener";
+import usePermissions from "@/hooks/usePermissions";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -35,6 +36,7 @@ export default function RootLayout() {
   useOAuth();
   useNotifications();
   useNetworkListener();
+  usePermissions();
 
   const colorScheme = useColorScheme();
 

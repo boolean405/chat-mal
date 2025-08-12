@@ -96,3 +96,11 @@ export type SettingItem = {
   iconName: keyof typeof Ionicons.glyphMap;
   path: string;
 };
+
+export type SettingMenuItem = {
+  id: string;
+  title: string;
+  desc: string;
+  iconName: keyof typeof Ionicons.glyphMap;
+  path: string;
+};
