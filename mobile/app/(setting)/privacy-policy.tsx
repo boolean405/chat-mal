@@ -11,6 +11,7 @@ import { Colors } from "@/constants/colors";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedButton } from "@/components/ThemedButton";
+import { CS_EMAIL } from "@/constants";
 
 export default function PrivacyPolicy() {
   const colorScheme = useColorScheme();
@@ -125,19 +126,7 @@ export default function PrivacyPolicy() {
 
           <Section title="11. Contact Us">
             If you have any questions or concerns about this policy, please
-            reach out to us at{" "}
-            <TouchableOpacity
-              onPress={() =>
-                Linking.openURL(
-                  "mailto:info.chatmal@gmail.com?subject=Privacy Policy Inquiry"
-                )
-              }
-            >
-              <ThemedText style={styles.link} type="link">
-                info.chatmal@gmail.com
-              </ThemedText>
-            </TouchableOpacity>
-            .
+            reach out to us.
           </Section>
 
           {/* Contact Button */}
@@ -147,7 +136,7 @@ export default function PrivacyPolicy() {
             style={styles.button}
             onPress={() =>
               Linking.openURL(
-                "mailto:info.chatmal@gmail.com?subject=Privacy Support Request"
+                `mailto:${CS_EMAIL}?subject=Support%20Request&body=Describe%20your%20issue...`
               )
             }
           />

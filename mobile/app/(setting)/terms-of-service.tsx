@@ -11,6 +11,7 @@ import { Colors } from "@/constants/colors";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedButton } from "@/components/ThemedButton";
+import { CS_EMAIL } from "@/constants";
 
 export default function TermsOfService() {
   const colorScheme = useColorScheme();
@@ -108,19 +109,7 @@ export default function TermsOfService() {
           </Section>
 
           <Section title="9. Contact Us">
-            If you have questions or concerns, contact us at{" "}
-            <TouchableOpacity
-              onPress={() =>
-                Linking.openURL(
-                  "mailto:info.chatmal@gmail.com?subject=Terms of Service Inquiry"
-                )
-              }
-            >
-              <ThemedText style={styles.link} type="link">
-                info.chatmal@gmail.com
-              </ThemedText>
-            </TouchableOpacity>
-            .
+            If you have questions or concerns, contact us.
           </Section>
 
           {/* Contact Button */}
@@ -130,7 +119,7 @@ export default function TermsOfService() {
             style={styles.button}
             onPress={() =>
               Linking.openURL(
-                "mailto:info.chatmal@gmail.com?subject=Terms of Service Inquiry"
+                `mailto:${CS_EMAIL}?subject=Support%20Request&body=Describe%20your%20issue...`
               )
             }
           />

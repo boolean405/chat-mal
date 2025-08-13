@@ -124,7 +124,11 @@ export default function Menu() {
           data={SETTINGS}
           disabled={isLoading}
           onItemPress={(item) => {
-            router.push(`/(menu)${item.path}` as any);
+            if (item.path === "/terms-of-service")
+              router.push(`/(setting)${item.path}` as any);
+            else if (item.path === "/privacy-policy")
+              router.push(`/(setting)${item.path}` as any);
+            else router.push(`/(menu)${item.path}` as any);
           }}
         />
 

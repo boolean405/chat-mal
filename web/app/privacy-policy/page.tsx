@@ -134,7 +134,7 @@ export default function PrivacyPolicyPage() {
                 href="mailto:support@chatmal.app"
                 className="text-purple-400 hover:underline"
               >
-                info.chatmal@gmail.com
+                chatmalapp@gmail.com
               </a>
               .
             </p>

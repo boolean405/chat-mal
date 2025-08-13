@@ -50,7 +50,10 @@ export default function ChatMessage() {
   const flatListRef = useRef<FlatList>(null);
 
   const user = useAuthStore((state) => state.user);
-  const { chatId } = useLocalSearchParams() as { chatId: string };
+  const { chatId, prevChatId } = useLocalSearchParams() as {
+    chatId: string;
+    prevChatId: string;
+  };
   const networkInfo = useNetworkStore((state) => state.networkInfo);
 
   // Get chat and messages from stores
@@ -96,14 +99,29 @@ export default function ChatMessage() {
 
   // Set current chat when screen mounts
   useEffect(() => {
-    if (chatId) {
-      const chat = getChatById(chatId);
-      if (chat) setCurrentChat(chat);
-      else setCurrentChat(null);
-    }
+    if (!chatId) return;
 
-    return () => setCurrentChat(null);
-  }, [chatId, getChatById, setCurrentChat]);
+    const chat = getChatById(chatId);
+    if (chat) {
+      setCurrentChat(chat);
+      setActiveChatId(chatId);
+    } else setCurrentChat(null);
+
+    // Unmount chat
+    return () => {
+      if (!prevChatId) {
+        setCurrentChat(null);
+        setActiveChatId(null);
+        return;
+      }
+
+      const chat = getChatById(prevChatId);
+      if (chat) {
+        setCurrentChat(chat);
+        setActiveChatId(prevChatId);
+      } else setCurrentChat(null);
+    };
+  }, [chatId, getChatById, prevChatId, setActiveChatId, setCurrentChat]);
 
   // Pagination handling
   const {
@@ -147,11 +165,6 @@ export default function ChatMessage() {
   //     setChats(newChats);
   //   }
   // }, [newChats, clearAllChats, setChats, isFetching]);
-
-  useEffect(() => {
-    setActiveChatId(chatId); // when entering
-    return () => setActiveChatId(null); // when leaving
-  }, [chatId, setActiveChatId]);
 
   // Listening socket
   useEffect(() => {
@@ -207,13 +220,16 @@ export default function ChatMessage() {
     socket.on("received-message", handleReceiveMessage);
 
     return () => {
+      // Unmount for chat
+      if (prevChatId) socket.emit("join-chat", prevChatId);
+
       socket.off("typing", handleTyping);
       socket.off("chat-read", handleChatRead);
       socket.off("stop-typing", handleStopTyping);
       socket.off("received-message", handleReceiveMessage);
       socket.emit("leave-chat", chatId);
     };
-  }, [addMessage, chatId, markMessagesAsSeen, updateChat, user]);
+  }, [addMessage, chatId, markMessagesAsSeen, prevChatId, updateChat, user]);
 
   // Emiting socket
   useEffect(() => {

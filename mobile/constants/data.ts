@@ -134,13 +134,13 @@ export const SETTINGS: SettingItem[] = [
   {
     id: "3",
     label: "Terms of Service",
-    iconName: "newspaper-outline",
+    iconName: "document-text-outline",
     path: "/terms-of-service",
   },
   {
     id: "4",
     label: "Pravicy Policy",
-    iconName: "document-lock-outline",
+    iconName: "shield-checkmark-outline",
     path: "/privacy-policy",
   },
 ];
@@ -237,13 +237,13 @@ export const SETTINGS_MENUS: SettingMenuItem[] = [
       {
         id: "1",
         title: "Terms of Service",
-        iconName: "newspaper-outline",
+        iconName: "document-text-outline",
         path: "/terms-of-service",
       },
       {
         id: "2",
         title: "Pravicy Policy",
-        iconName: "document-lock-outline",
+        iconName: "shield-checkmark-outline",
         path: "/privacy-policy",
       },
       {

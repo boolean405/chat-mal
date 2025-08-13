@@ -39,6 +39,7 @@
       "expo-router",
       "expo-video",
       "expo-web-browser",
+      "react-native-legal",
       "react-native-compressor",
       "@config-plugins/react-native-callkeep",
       [

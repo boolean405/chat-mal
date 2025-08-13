@@ -24,13 +24,12 @@ import SectionCard from "@/components/SectionCard";
 import openLink from "@/utils/openLink";
 import {
   APP_STORE_WEB,
+  CS_EMAIL,
   PLAY_STORE_WEB,
   RATE_APP_URL,
-  TERMS_URL,
-  PRIVACY_URL,
   WEBSITE_URL,
-  LICENSES_URL,
-} from "@/utils/storeUrls";
+} from "@/constants";
+import { router } from "expo-router";
 
 export default function AppInfo() {
   const colorScheme = useColorScheme();
@@ -153,30 +152,30 @@ export default function AppInfo() {
             title="Privacy Policy"
             subtitle="How we protect your data"
             icon="shield-checkmark-outline"
-            onPress={() => openLink(PRIVACY_URL)}
+            onPress={() => router.push(`/(setting)/privacy-policy`) as any}
           />
           <InfoRow
             title="Terms of Service"
             subtitle="Legal terms for using the app"
             icon="document-text-outline"
-            onPress={() => openLink(TERMS_URL)}
+            onPress={() => router.push(`/(setting)/terms-of-service`) as any}
           />
           <InfoRow
             title="Licenses"
             subtitle="Open-source libraries we use"
             icon="reader-outline"
-            onPress={() => openLink(LICENSES_URL)}
+            onPress={() => openLink(`${WEBSITE_URL}/licenses`)}
           />
         </SectionCard>
 
         <SectionCard title="Support">
           <InfoRow
             title="Contact Support"
-            subtitle="info.chatmal@gmail.com"
+            subtitle={`${CS_EMAIL} `}
             icon="mail-outline"
             onPress={() =>
               openLink(
-                "mailto:info.chatmal@gmail.com?subject=Support%20Request&body=Describe%20your%20issue..."
+                `mailto:${CS_EMAIL}?subject=Support%20Request&body=Describe%20your%20issue...`
               )
             }
           />
@@ -228,12 +227,12 @@ export default function AppInfo() {
         </SectionCard>
 
         <ThemedButton
-          title={"Contact Support"}
+          title="Contact Support"
           isLoading={false}
           style={{ marginTop: 8, alignItems: "center" }}
           onPress={() =>
             openLink(
-              "mailto:info.chatmal@gmail.com?subject=Support%20Request&body=Describe%20your%20issue..."
+              `mailto:${CS_EMAIL}?subject=Support%20Request&body=Describe%20your%20issue...`
             )
           }
         />

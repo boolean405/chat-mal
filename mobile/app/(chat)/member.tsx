@@ -308,7 +308,7 @@ export default function Member() {
       }
       router.push({
         pathname: "/(chat)",
-        params: { chatId: chat._id },
+        params: { chatId: chat._id, prevChatId: currentChat._id },
       });
     } catch (error: any) {
       ToastAndroid.show(error.message, ToastAndroid.SHORT);
