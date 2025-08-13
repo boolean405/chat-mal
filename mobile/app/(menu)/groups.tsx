@@ -50,7 +50,7 @@ export default function Groups() {
     keyword,
     selectedType,
     selectedSort,
-    exit,
+    // exit,
     setKeyword,
     setSelectedType,
     loadMore,
@@ -61,11 +61,11 @@ export default function Groups() {
 
   const debouncedKeyword = useDebounce(keyword, 300);
 
-  useEffect(() => {
-    return () => {
-      exit();
-    };
-  }, [exit]);
+  // useEffect(() => {
+  //   return () => {
+  //     exit();
+  //   };
+  // }, [exit]);
 
   useEffect(() => {
     // reset(); // reset data on filter or keyword change

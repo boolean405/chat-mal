@@ -351,11 +351,11 @@ export async function deletePhoto(photo, type) {
 }
 
 // Search user with keyword
-export async function getPaginateUsers(PageNum, keyword, gender) {
+export async function getPaginateUsers({ PageNum, keyword, gender, sort }) {
   try {
     await refresh();
     const response = await api.get(
-      `/api/user/paginate/${PageNum}?keyword=${keyword.trim()}&gender=${gender}`
+      `/api/user/paginate/${sort}/${PageNum}?keyword=${keyword.trim()}&gender=${gender}`
     );
     return response.data;
   } catch (error) {

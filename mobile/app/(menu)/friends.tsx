@@ -47,7 +47,7 @@ export default function Friends() {
   const sortOptions = ["Online", "A-Z", "Z-A", "Newest", "Oldest"] as const;
 
   const user = useAuthStore((state) => state.user);
-  const { setChats, getChatById, onlineUserIds } = useChatStore();
+  const { setChats, getChatById } = useChatStore();
 
   const {
     users,
@@ -56,7 +56,7 @@ export default function Friends() {
     selectedType,
     selectedSort,
     keyword,
-    exit,
+    // exit,
     setKeyword,
     fetchUsers,
     setSelectedSort,
@@ -65,11 +65,11 @@ export default function Friends() {
 
   const debouncedKeyword = useDebounce(keyword, 300);
 
-  useEffect(() => {
-    return () => {
-      exit();
-    };
-  }, [exit]);
+  // useEffect(() => {
+  //   return () => {
+  //     exit();
+  //   };
+  // }, [exit]);
 
   useEffect(() => {
     fetchUsers(false);
@@ -256,7 +256,7 @@ export default function Friends() {
         data={users}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => {
-          const isOnline = onlineUserIds.includes(item._id) || item.isOnline;
+          const isOnline = item.isOnline;
           return (
             <UserItem
               user={item}

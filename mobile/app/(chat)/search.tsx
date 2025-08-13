@@ -25,6 +25,7 @@ import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
 import UserPopoverMenu from "@/components/UserPopoverMenu";
 import { block, checkIsFollowing, follow, unfollow } from "@/api/user";
+import Popover from "react-native-popover-view";
 
 export default function Search() {
   const router = useRouter();
@@ -37,18 +38,25 @@ export default function Search() {
   const [loading, setLoading] = useState(false);
   const [popoverUser, setPopoverUser] = useState<User | null>(null);
   const moreButtonRefs = useRef<{ [key: string]: React.RefObject<any> }>({});
+  const filterIconRef = useRef<any>(null);
+  const [isSortPopoverVisible, setSortPopoverVisible] = useState(false);
+
+  const sortOptions = ["Online", "A-Z", "Z-A", "Newest", "Oldest"] as const;
 
   const { user } = useAuthStore();
-  const { setChats, getChatById, onlineUserIds } = useChatStore();
+  const { setChats, getChatById } = useChatStore();
 
   const {
-    results,
+    users,
     // page,
     keyword,
     selectedFilter,
     hasMore,
     isLoading,
     isPaging,
+    selectedSort,
+    // exit,
+    setSelectedSort,
     // errorMessage,
     setKeyword,
     setSelectedFilter,
@@ -56,6 +64,12 @@ export default function Search() {
   } = useUsersSearchStore();
 
   const debouncedKeyword = useDebounce(keyword, 400);
+
+  // useEffect(() => {
+  //   return () => {
+  //     exit();
+  //   };
+  // }, [exit]);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -79,7 +93,7 @@ export default function Search() {
 
   useEffect(() => {
     fetchSearchUsers(false);
-  }, [debouncedKeyword, fetchSearchUsers, selectedFilter]);
+  }, [debouncedKeyword, selectedSort, fetchSearchUsers, selectedFilter]);
 
   const handleLoadMore = async () => {
     if (hasMore && !isPaging && !isLoading) {
@@ -119,11 +133,19 @@ export default function Search() {
 
   if (!user) return null;
 
-  const filterTypes = ["All", "Online", "Male", "Female", "Group"];
+  const filterTypes = ["All", "Male", "Female"];
   const filteredResults =
-    selectedFilter === "Online"
-      ? results.filter((u) => onlineUserIds.includes(u._id) || u.isOnline)
-      : results;
+    selectedFilter === "Online" ? users.filter((u) => u.isOnline) : users;
+  // const filteredResults =
+  //   selectedFilter === "Online"
+  //     ? users.filter((u) => onlineUserIds.includes(u._id) || u.isOnline)
+  //     : users;
+
+  const onSelectSort = (option: (typeof sortOptions)[number]) => {
+    // ADD
+    setSelectedSort(option);
+    setSortPopoverVisible(false);
+  };
 
   return (
     <KeyboardAvoidingView
@@ -154,6 +176,20 @@ export default function Search() {
               placeholderTextColor="gray"
               style={[styles.textInput, { color: color.primaryText }]}
             />
+
+            {/* FILTER ICON */}
+            <TouchableOpacity
+              ref={filterIconRef}
+              onPress={() => setSortPopoverVisible(true)}
+            >
+              <Ionicons
+                name="filter-outline"
+                size={22}
+                color={color.primaryIcon}
+                style={{ marginRight: 10 }}
+              />
+            </TouchableOpacity>
+
             <TouchableOpacity onPress={() => console.log("QR scan")}>
               <MaterialCommunityIcons
                 name="line-scan"
@@ -207,8 +243,7 @@ export default function Search() {
         renderItem={({ item }) => {
           let isOnline = false;
           const otherUserId = item._id !== user._id ? item._id : null;
-          if (otherUserId)
-            isOnline = onlineUserIds.includes(otherUserId) || item.isOnline;
+          if (otherUserId) isOnline = item.isOnline;
           return (
             <UserItem
               user={item}
@@ -236,11 +271,39 @@ export default function Search() {
         onEndReached={handleLoadMore}
         onEndReachedThreshold={1}
         ListFooterComponent={
-          hasMore && results.length > 0 && isPaging ? (
+          hasMore && users.length > 0 && isPaging ? (
             <ActivityIndicator size="small" color={color.primaryIcon} />
           ) : null
         }
       />
+
+      {/* Sort Popover */}
+      <Popover
+        isVisible={isSortPopoverVisible}
+        from={filterIconRef}
+        onRequestClose={() => setSortPopoverVisible(false)}
+        popoverStyle={{
+          backgroundColor: color.secondaryBackground,
+          paddingVertical: 5,
+        }}
+      >
+        {sortOptions.map((option) => (
+          <TouchableOpacity
+            key={option}
+            onPress={() => onSelectSort(option)}
+            style={{ padding: 5, minWidth: 80, alignItems: "center" }}
+          >
+            <ThemedText
+              style={{
+                color: selectedSort === option ? color.primaryText : "gray",
+                fontWeight: selectedSort === option ? "bold" : "normal",
+              }}
+            >
+              {option}
+            </ThemedText>
+          </TouchableOpacity>
+        ))}
+      </Popover>
 
       {/* Popover */}
       <UserPopoverMenu

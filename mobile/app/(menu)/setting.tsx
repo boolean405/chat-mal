@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -14,6 +14,7 @@ import { Colors } from "@/constants/colors";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import SettingMenuItem from "@/components/SettingMenuItem";
+import { SettingMenuItem as ParentItem, SettingMenuChildItem } from "@/types";
 
 const screenWidth = Dimensions.get("window").width;
 const CONTAINER_WIDTH = screenWidth * 0.9;
@@ -23,8 +24,32 @@ export default function Setting() {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
 
-  const [keyword, setKeyword] = React.useState("");
-  const inputRef = React.useRef<TextInput>(null);
+  const [keyword, setKeyword] = useState("");
+  const inputRef = useRef<TextInput>(null);
+
+  const filteredMenus = React.useMemo(() => {
+    if (!keyword.trim()) return SETTINGS_MENUS;
+
+    const lowerKeyword = keyword.toLowerCase();
+
+    return SETTINGS_MENUS.filter((parent: ParentItem) => {
+      // Match in parent title or desc
+      const parentMatch =
+        parent.title.toLowerCase().includes(lowerKeyword) ||
+        parent.desc?.toLowerCase().includes(lowerKeyword);
+
+      // Match in children
+      const childMatch = parent.children?.some(
+        (child: SettingMenuChildItem) =>
+          child.title.toLowerCase().includes(lowerKeyword) ||
+          child.path.toLowerCase().includes(lowerKeyword)
+      );
+
+      return parentMatch || childMatch;
+    });
+  }, [keyword]);
+
+  const isSearching = keyword.trim().length > 0;
 
   return (
     <ThemedView style={{ flex: 1, backgroundColor: color.primaryBackground }}>
@@ -72,16 +97,10 @@ export default function Setting() {
 
       {/* List */}
       <FlatList
-        data={SETTINGS_MENUS}
+        data={filteredMenus}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
-          return (
-            <SettingMenuItem
-              item={item}
-              disabled={false}
-              onPress={() => console.log("item pressed")}
-            />
-          );
+          return <SettingMenuItem item={item} forceExpand={isSearching} />;
         }}
         style={styles.container}
         showsVerticalScrollIndicator={false}
@@ -92,10 +111,8 @@ export default function Setting() {
 
 const styles = StyleSheet.create({
   container: {
-    // borderWidth: 1,
     width: CONTAINER_WIDTH,
     alignSelf: "center",
-    // paddingTop: 40,
   },
   header: {
     padding: 15,

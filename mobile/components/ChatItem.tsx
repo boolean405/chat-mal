@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   chatBottomRow: {
-    flexDirection: "row",
+    flexDirection: "row", 
     justifyContent: "space-between",
     alignItems: "center",
   },

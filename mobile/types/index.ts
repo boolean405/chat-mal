@@ -79,28 +79,35 @@ export type Message = {
 export type DetailItem = {
   id: string;
   label: string;
-  iconName: keyof typeof Ionicons.glyphMap;
   path: string;
+  iconName: keyof typeof Ionicons.glyphMap;
 };
 
 export type MenuItem = {
   id: string;
   label: string;
-  iconName: keyof typeof Ionicons.glyphMap;
   path: string;
+  iconName: keyof typeof Ionicons.glyphMap;
 };
 
 export type SettingItem = {
   id: string;
   label: string;
-  iconName: keyof typeof Ionicons.glyphMap;
   path: string;
+  iconName: keyof typeof Ionicons.glyphMap;
 };
 
 export type SettingMenuItem = {
   id: string;
   title: string;
-  desc: string;
+  desc?: string;
+  children?: SettingMenuChildItem[];
   iconName: keyof typeof Ionicons.glyphMap;
+};
+
+export type SettingMenuChildItem = {
+  id: string;
+  title: string;
   path: string;
+  iconName: keyof typeof Ionicons.glyphMap;
 };

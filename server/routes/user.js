@@ -126,9 +126,10 @@ router.patch(
 );
 
 router.get(
-  "/paginate/:pageNum",
+  "/paginate/:sort/:pageNum",
   validateToken(),
   validateParam(UserSchema.params.pageNum, "pageNum"),
+  validateParam(UserSchema.params.sort, "sort"),
   // validateQuery(UserSchema.query.keyword),
   getPaginatedUsers
 );

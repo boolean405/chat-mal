@@ -3,7 +3,7 @@ import { getPaginateUsers } from "@/api/user";
 import { User } from "@/types";
 
 interface UserSearchState {
-  results: User[];
+  users: User[];
   page: number;
   hasMore: boolean;
   isLoading: boolean;
@@ -11,7 +11,10 @@ interface UserSearchState {
   errorMessage: string;
   selectedFilter: string;
   keyword: string;
+  selectedSort: string;
 
+  exit: () => void;
+  setSelectedSort: (sort: string) => void;
   setKeyword: (keyword: string) => void;
   setSelectedFilter: (filter: string) => void;
   resetSearch: () => void;
@@ -20,7 +23,7 @@ interface UserSearchState {
 }
 
 export const useUsersSearchStore = create<UserSearchState>((set, get) => ({
-  results: [],
+  users: [],
   page: 1,
   hasMore: true,
   isLoading: false,
@@ -28,14 +31,17 @@ export const useUsersSearchStore = create<UserSearchState>((set, get) => ({
   errorMessage: "",
   selectedFilter: "All",
   keyword: "",
+  selectedSort: "Online",
+
+  setSelectedSort: (sort) => set({ selectedSort: sort }),
 
   setKeyword: (keyword) => set({ keyword }),
   setSelectedFilter: (filter) =>
-    set({ selectedFilter: filter, page: 1, results: [] }),
+    set({ selectedFilter: filter, page: 1, users: [] }),
 
   resetSearch: () =>
     set({
-      results: [],
+      users: [],
       page: 1,
       hasMore: true,
       isLoading: false,
@@ -43,10 +49,11 @@ export const useUsersSearchStore = create<UserSearchState>((set, get) => ({
       errorMessage: "",
       selectedFilter: "All",
       keyword: "",
+      selectedSort: "Online",
     }),
 
   fetchSearchUsers: async (isPaging = false) => {
-    const { page, keyword, selectedFilter, results } = get();
+    const { page, keyword, selectedFilter, users, selectedSort } = get();
     let gender = "";
 
     switch (selectedFilter) {
@@ -67,18 +74,23 @@ export const useUsersSearchStore = create<UserSearchState>((set, get) => ({
         errorMessage: "",
       });
 
-      const data = await getPaginateUsers(nextPage, keyword, gender);
+      const data = await getPaginateUsers({
+        PageNum: nextPage,
+        keyword,
+        gender,
+        sort: selectedSort.toLocaleLowerCase(),
+      });
 
       const newResults = data.result.users;
 
       const updatedResults = isPaging
         ? Array.from(
-            new Map([...results, ...newResults].map((u) => [u._id, u])).values()
+            new Map([...users, ...newResults].map((u) => [u._id, u])).values()
           )
         : newResults;
 
       set({
-        results: updatedResults,
+        users: updatedResults,
         page: nextPage,
         hasMore: nextPage < data.result.totalPage,
       });
@@ -90,4 +102,14 @@ export const useUsersSearchStore = create<UserSearchState>((set, get) => ({
       set({ isLoading: false, isPaging: false });
     }
   },
+
+  exit: () =>
+    set({
+      users: [],
+      page: 1,
+      keyword: "",
+      hasMore: true,
+      isLoading: false,
+      selectedSort: "Online",
+    }),
 }));

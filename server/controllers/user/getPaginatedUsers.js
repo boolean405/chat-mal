@@ -5,9 +5,10 @@ import resJson from "../../utils/resJson.js";
 export default async function getPaginatedUsers(req, res, next) {
   try {
     const userId = req.userId;
+    const { sort, pageNum } = req.params;
     const keyword = req.query.keyword.trim() || "";
     const gender = req.query.gender;
-    const page = parseInt(req.params.pageNum, 10);
+    const page = parseInt(pageNum, 10);
 
     if (!(await UserDB.exists({ _id: userId }))) {
       throw resError(401, "Authenticated user not found!");
@@ -47,8 +48,18 @@ export default async function getPaginatedUsers(req, res, next) {
       ];
     }
 
+    const sortMap = {
+      "a-z": { name: 1 },
+      "z-a": { name: -1 },
+      online: { isOnline: -1 },
+      oldest: { createdAt: 1 },
+      newest: { createdAt: -1 },
+    };
+
+    const sortObj = sortMap[sort] || sortMap.online;
+
     const users = await UserDB.find(filter)
-      .sort({ createdAt: -1 })
+      .sort(sortObj)
       .skip(skipCount)
       .limit(limit)
       .select("-password")

@@ -46,7 +46,6 @@ export default function ArchivedChats() {
     updateChat,
     clearChat,
     clearGroup,
-    clearAllChats,
     getChatById,
   } = useChatStore();
 

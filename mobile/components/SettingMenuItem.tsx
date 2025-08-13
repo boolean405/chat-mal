@@ -1,106 +1,179 @@
+import React, { useCallback, useEffect, useState } from "react";
 import {
-  TouchableOpacity,
   StyleSheet,
-  useColorScheme,
+  TouchableOpacity,
   View,
+  LayoutAnimation,
+  Platform,
+  UIManager,
+  useColorScheme,
 } from "react-native";
-import React from "react";
-import { ThemedView } from "./ThemedView";
-import { Ionicons } from "@expo/vector-icons";
-import { ThemedText } from "./ThemedText";
-import { SettingMenuItem as SettingItem } from "@/types";
+import { useRouter } from "expo-router";
 import { Colors } from "@/constants/colors";
+import { Ionicons } from "@expo/vector-icons";
+import { ThemedView } from "./ThemedView";
+import { ThemedText } from "./ThemedText";
+import { SettingMenuItem as ParentItem, SettingMenuChildItem } from "@/types";
 
-interface SettingMenuItemProps {
-  item: SettingItem;
-  disabled: boolean;
-  onPress: () => void;
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-export default function SettingMenuItem({
+type Props = {
+  item: ParentItem;
+  disabled?: boolean;
+  forceExpand?: boolean;
+};
+
+export default function SettingCard({
   item,
-  disabled,
-  onPress,
-}: SettingMenuItemProps) {
+  disabled = false,
+  forceExpand,
+}: Props) {
+  const router = useRouter();
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
 
+  const hasChildren = !!item.children?.length;
+  const [expanded, setExpanded] = useState<boolean>(!!forceExpand);
+
+  useEffect(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpanded(!!forceExpand);
+  }, [forceExpand]);
+
+  const toggle = useCallback(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpanded((s) => !s);
+  }, []);
+
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      disabled={disabled}
-      style={styles.container}
+    <ThemedView
+      style={[
+        styles.card,
+        {
+          backgroundColor: color.secondaryBackground,
+          // borderColor: color.primaryBorder,
+        },
+      ]}
     >
-      <ThemedView
-        style={[
-          styles.listItem,
-          {
-            backgroundColor: color.secondaryBackground,
-          },
-        ]}
+      {/* Header row (main item) */}
+      <TouchableOpacity
+        onPress={hasChildren ? toggle : undefined}
+        activeOpacity={0.7}
       >
-        <Ionicons
-          name={item.iconName}
-          size={24}
-          color={color.primaryIcon}
-          style={styles.leftIcon}
-        />
+        <View style={styles.headerRow}>
+          <Ionicons name={item.iconName} size={24} color={color.primaryIcon} />
+          <View style={styles.headerTexts}>
+            <ThemedText type="large" numberOfLines={1}>
+              {item.title}
+            </ThemedText>
+            {!!item.desc && (
+              <ThemedText numberOfLines={1} style={{ color: "gray" }}>
+                {item.desc}
+              </ThemedText>
+            )}
+          </View>
 
-        <View style={styles.textContainer}>
-          <ThemedText
-            type="large"
-            style={styles.titleText}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {item.title}
-          </ThemedText>
-          <ThemedText style={styles.descText} numberOfLines={1}>
-            {item.desc}
-          </ThemedText>
+          {hasChildren && (
+            <Ionicons
+              name={expanded ? "chevron-up-outline" : "chevron-down-outline"}
+              size={22}
+              color={color.primaryIcon}
+            />
+          )}
         </View>
+      </TouchableOpacity>
 
-        <Ionicons
-          name="chevron-down-outline"
-          size={24}
-          color={color.primaryIcon}
-          style={styles.rightIcon}
-        />
-      </ThemedView>
-    </TouchableOpacity>
+      {/* Children inside the SAME card */}
+      {expanded && hasChildren && (
+        <View style={styles.childrenBlock}>
+          {/* top divider */}
+          <View
+            style={[
+              styles.divider,
+              // { backgroundColor: color.primaryBorder }
+            ]}
+          />
+
+          {/* Add index if need divider */}
+          {item.children!.map((child: SettingMenuChildItem) => (
+            <TouchableOpacity
+              key={child.id}
+              onPress={() =>
+                router.push({
+                  pathname: `/(setting)/${child.path}`,
+                } as any)
+              }
+              disabled={disabled}
+              activeOpacity={0.7}
+            >
+              <View style={styles.childRow}>
+                <Ionicons
+                  name={child.iconName}
+                  size={20}
+                  color={color.primaryIcon}
+                  style={{ marginRight: 12 }}
+                />
+                <ThemedText numberOfLines={1} style={{ flex: 1 }}>
+                  {child.title}
+                </ThemedText>
+                <Ionicons
+                  name="chevron-forward-outline"
+                  size={18}
+                  color={color.primaryIcon}
+                />
+              </View>
+              {/* divider between child rows */}
+              {/* {childrenIndex !== item.children!.length - 1 && (
+                <View
+                  style={[
+                    styles.divider,
+                    // { backgroundColor: color.primaryBorder },
+                  ]}
+                />
+              )} */}
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    width: "100%", // ensure parent width is full
+  card: {
+    borderRadius: 10,
+    marginVertical: 6,
+    overflow: "hidden", // keeps child dividers/rows neatly clipped
   },
-  listItem: {
-    width: "100%", // row fills available width
+  headerRow: {
+    minHeight: 56,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
-    marginVertical: 5,
-    // borderWidth: 0.2,
-    borderRadius: 10,
+    gap: 12,
+  },
+  headerTexts: {
+    flex: 1,
+    marginRight: 8,
+  },
+  childrenBlock: {
+    paddingVertical: 4,
+  },
+  childRow: {
+    minHeight: 44,
     paddingHorizontal: 15,
+    flexDirection: "row",
+    alignItems: "center",
   },
-  leftIcon: {
-    flexShrink: 0, // icons should NOT shrink
-  },
-  textContainer: {
-    flex: 1, // take remaining space
-    flexShrink: 1, // allow shrinking so chevron stays visible
-    marginHorizontal: 15,
-    overflow: "hidden", // ensures ellipsis works cleanly
-  },
-  titleText: {
-    // keep title to one line; remove numberOfLines if you want wrapping
-  },
-  descText: {
-    color: "gray",
-  },
-  rightIcon: {
-    flexShrink: 0, // keep chevron visible
+  divider: {
+    // height: StyleSheet.hairlineWidth,
+    // marginHorizontal: 15,
+    // marginLeft: 15 + 24 + 12, // align under child icon area
   },
 });

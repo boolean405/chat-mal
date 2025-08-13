@@ -61,7 +61,7 @@ export default function Member() {
   } = useChatStore();
 
   const {
-    results,
+    users,
     // page,
     keyword,
     selectedFilter,
@@ -88,8 +88,8 @@ export default function Member() {
     const existingUserIds = new Set(
       currentChat?.users?.map((u) => u.user._id) ?? []
     );
-    return results.filter((user) => !existingUserIds.has(user._id));
-  }, [results, currentChat]);
+    return users.filter((user) => !existingUserIds.has(user._id));
+  }, [users, currentChat]);
 
   const filterByKeyword = (
     users: {
@@ -435,7 +435,7 @@ export default function Member() {
             onEndReached={handleLoadMore}
             onEndReachedThreshold={0.1}
             ListFooterComponent={
-              hasMore && results.length > 0 && isPaging ? (
+              hasMore && users.length > 0 && isPaging ? (
                 <ActivityIndicator size="small" color={color.primaryIcon} />
               ) : null
             }
