@@ -92,10 +92,7 @@ export default function SettingCard({
         <View style={styles.childrenBlock}>
           {/* top divider */}
           <View
-            style={[
-              styles.divider,
-              { backgroundColor: color.primaryBorder }
-            ]}
+            style={[styles.divider, { backgroundColor: color.primaryBorder }]}
           />
 
           {/* Add index if need divider */}

@@ -184,7 +184,7 @@ export default function MessageRequest() {
     <ThemedView style={styles.container}>
       {/* Header */}
       <ScreenHeader
-        title="Message requests"
+        title="Message Requests"
         rightButton="cog-outline"
         onRightPress={() => console.log("settings")}
       />

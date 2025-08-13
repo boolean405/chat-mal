@@ -65,7 +65,6 @@ export const useGroupChatStore = create<GroupChatStore>((set, get) => ({
         Explore: "all",
       };
       const type = typeMap[selectedType] || "all";
-      console.log(selectedSort);
 
       // Pass selectedSort as sort param to your API
       const data = await getPaginateGroupChats({

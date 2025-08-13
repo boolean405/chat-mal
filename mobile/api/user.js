@@ -251,7 +251,6 @@ export async function refresh() {
         const data = response.data;
         if (data.status) {
           setUser(data.result.user, data.result.accessToken);
-          console.log("new accessToken", data.result.accessToken, "new");
           return data.result.accessToken;
         } else throw new Error(data.message || "Failed to refresh token!");
       }

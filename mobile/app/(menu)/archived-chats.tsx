@@ -5,6 +5,7 @@ import {
   useColorScheme,
   ActivityIndicator,
   ToastAndroid,
+  TouchableOpacity,
 } from "react-native";
 
 import { Chat } from "@/types";
@@ -22,6 +23,7 @@ import { useBottomSheetActions } from "@/hooks/useBottomSheetActions";
 import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
 import { useMessageStore } from "@/stores/messageStore";
 import ScreenHeader from "@/components/ScreenHeader";
+import { ThemedText } from "@/components/ThemedText";
 
 export default function ArchivedChats() {
   // Hard coded render
@@ -202,7 +204,11 @@ export default function ArchivedChats() {
   return (
     <ThemedView style={styles.container}>
       {/* Header */}
-      <ScreenHeader title="Archived chats" />
+      <ScreenHeader
+        title="Archived Chats"
+        rightButton="cog-outline"
+        onRightPress={() => console.log("settings")}
+      />
 
       {/* Chats */}
       <FlatList
@@ -236,6 +242,19 @@ export default function ArchivedChats() {
             />
           );
         }}
+        ListHeaderComponent={
+          <ThemedView style={styles.headerContainer}>
+            <ThemedText>
+              Archived chats are hidden from your main list but keep all
+              messages and still receive new ones.
+            </ThemedText>
+            <TouchableOpacity>
+              <ThemedText type="link" style={{ fontSize: 14 }}>
+                Click here to change archived chats visibility settings.
+              </ThemedText>
+            </TouchableOpacity>
+          </ThemedView>
+        }
         ListFooterComponent={
           hasMore && chats.length > 0 && isPaging ? (
             <ActivityIndicator size="small" color={color.primaryIcon} />
@@ -269,5 +288,11 @@ const styles = StyleSheet.create({
   separator: {
     height: 1,
     marginLeft: 78,
+  },
+  headerContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 5,
+    // flexDirection: "row",
+    // alignItems: "center",
   },
 });

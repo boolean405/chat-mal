@@ -230,8 +230,34 @@ export const SETTINGS_MENUS: SettingMenuItem[] = [
   },
   {
     id: "6",
-    title: "About",
-    desc: "Pravicy policy, terms of service, and about",
-    iconName: "information-circle-outline",
+    title: "Help",
+    desc: "Pravicy policy, terms of service, and app info",
+    iconName: "help-circle-outline",
+    children: [
+      {
+        id: "1",
+        title: "Terms of Service",
+        iconName: "newspaper-outline",
+        path: "/terms-of-service",
+      },
+      {
+        id: "2",
+        title: "Pravicy Policy",
+        iconName: "document-lock-outline",
+        path: "/privacy-policy",
+      },
+      {
+        id: "3",
+        title: "Help Center",
+        iconName: "help-circle-outline",
+        path: "/help-center",
+      },
+      {
+        id: "4",
+        title: "App Info",
+        iconName: "information-circle-outline",
+        path: "/app-info",
+      },
+    ],
   },
 ];
