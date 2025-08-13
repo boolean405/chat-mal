@@ -56,7 +56,6 @@ export default function SettingCard({
         styles.card,
         {
           backgroundColor: color.secondaryBackground,
-          // borderColor: color.primaryBorder,
         },
       ]}
     >
@@ -95,7 +94,7 @@ export default function SettingCard({
           <View
             style={[
               styles.divider,
-              // { backgroundColor: color.primaryBorder }
+              { backgroundColor: color.primaryBorder }
             ]}
           />
 
@@ -172,8 +171,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   divider: {
-    // height: StyleSheet.hairlineWidth,
-    // marginHorizontal: 15,
+    height: 0.4,
+    marginHorizontal: 15,
     // marginLeft: 15 + 24 + 12, // align under child icon area
   },
 });

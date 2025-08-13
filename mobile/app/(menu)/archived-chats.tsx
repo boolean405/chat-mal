@@ -4,14 +4,12 @@ import {
   StyleSheet,
   useColorScheme,
   ActivityIndicator,
-  TouchableOpacity,
   ToastAndroid,
 } from "react-native";
 
 import { Chat } from "@/types";
 import { Colors } from "@/constants/colors";
 import ChatItem from "@/components/ChatItem";
-import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useRouter } from "expo-router";
 import BottomSheetAction from "@/components/BottomSheetActions";
@@ -20,10 +18,10 @@ import ChatEmpty from "@/components/ChatEmpty";
 import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
 import usePaginatedData from "@/hooks/usePaginateData";
-import { Ionicons } from "@expo/vector-icons";
 import { useBottomSheetActions } from "@/hooks/useBottomSheetActions";
 import useTimeTickWhenFocused from "@/hooks/useTimeTickWhenFocused";
 import { useMessageStore } from "@/stores/messageStore";
+import ScreenHeader from "@/components/ScreenHeader";
 
 export default function ArchivedChats() {
   // Hard coded render
@@ -204,23 +202,7 @@ export default function ArchivedChats() {
   return (
     <ThemedView style={styles.container}>
       {/* Header */}
-      <ThemedView
-        style={[styles.header, { borderBottomColor: color.primaryBorder }]}
-      >
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons
-            name="chevron-back-outline"
-            size={22}
-            color={color.primaryIcon}
-          />
-        </TouchableOpacity>
-        <ThemedView style={styles.headerTitleContainer}>
-          <ThemedText type="headerTitle">Archived Chats</ThemedText>
-        </ThemedView>
-        {/* <TouchableOpacity onPress={() => console.log("setting")}>
-          <Ionicons name="cog-outline" size={22} color={color.primaryIcon} />
-        </TouchableOpacity> */}
-      </ThemedView>
+      <ScreenHeader title="Archived chats" />
 
       {/* Chats */}
       <FlatList
@@ -284,61 +266,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-
-  // Header
-  header: {
-    padding: 15,
-    // paddingRight: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    borderBottomWidth: 0.4,
-  },
-  headerTitleContainer: {
-    flex: 1,
-    alignItems: "center",
-    marginRight: 22,
-  },
-
   separator: {
     height: 1,
     marginLeft: 78,
-  },
-
-  storyItem: {
-    width: 70,
-    alignItems: "center",
-    marginRight: 12,
-  },
-  storyAvatarWrapper: {
-    borderRadius: 40,
-    padding: 2,
-  },
-  storyAvatarBorder: {
-    borderWidth: 2,
-    // borderColor: "#25D366",
-  },
-  storyAvatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#ccc",
-  },
-  storyName: {
-    marginTop: 4,
-    fontSize: 12,
-    maxWidth: 70,
-    textAlign: "center",
-  },
-
-  // My Story (+ icon)
-  myStoryAvatarWrapper: {
-    borderWidth: 0,
-    position: "relative",
-  },
-  plusIconWrapper: {
-    position: "absolute",
-    bottom: -2,
-    right: -2,
-    borderRadius: 11,
   },
 });

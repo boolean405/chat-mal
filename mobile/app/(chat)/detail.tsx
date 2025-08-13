@@ -24,6 +24,7 @@ import { useCallStore } from "@/stores/callStore";
 import { ListSection } from "@/components/ListSection";
 import { useMessageStore } from "@/stores/messageStore";
 import { createGroup, deleteChat, leaveGroup } from "@/api/chat";
+import ScreenHeader from "@/components/ScreenHeader";
 
 export default function Detail() {
   const router = useRouter();
@@ -151,21 +152,7 @@ export default function Detail() {
   return (
     <ThemedView style={{ flex: 1, backgroundColor: color.primaryBackground }}>
       {/* Header */}
-      <ThemedView
-        style={[styles.header, { borderBottomColor: color.primaryBorder }]}
-      >
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons
-            name="chevron-back-outline"
-            size={22}
-            color={color.primaryIcon}
-          />
-        </TouchableOpacity>
-        <ThemedView style={styles.HeaderTitleContainer}>
-          <ThemedText type="headerTitle">Details</ThemedText>
-        </ThemedView>
-      </ThemedView>
-
+      <ScreenHeader title="Details" />
       <ScrollView
         contentContainerStyle={[styles.scrollContainer]}
         keyboardShouldPersistTaps="handled"
@@ -250,17 +237,6 @@ const styles = StyleSheet.create({
     paddingBottom: 50,
     paddingTop: 50,
   },
-  header: {
-    padding: 15,
-    flexDirection: "row",
-    alignItems: "center",
-    borderBottomWidth: 0.4,
-  },
-  HeaderTitleContainer: {
-    flex: 1,
-    alignItems: "center",
-    marginRight: 20,
-  },
   scrollContainer: {
     flexGrow: 1,
   },
@@ -278,13 +254,6 @@ const styles = StyleSheet.create({
     height: "100%",
     borderRadius: 60,
     backgroundColor: "#e9e9e9",
-  },
-  profilePlaceholder: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 60,
-    justifyContent: "center",
-    alignItems: "center",
   },
   nameText: {
     marginHorizontal: 30,

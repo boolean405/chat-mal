@@ -25,8 +25,8 @@ import { useAuthStore } from "@/stores/authStore";
 import { block, checkIsFollowing, follow, unfollow } from "@/api/user";
 import UserPopoverMenu from "@/components/UserPopoverMenu";
 import { useFollowStore } from "@/stores/followStore";
-import { ThemedButton } from "@/components/ThemedButton";
 import Popover from "react-native-popover-view";
+import ScreenHeader from "@/components/ScreenHeader";
 
 export default function Friends() {
   const router = useRouter();
@@ -149,35 +149,11 @@ export default function Friends() {
       keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
     >
       {/* Header */}
-      <ThemedView
-        style={[styles.header, { borderBottomColor: color.primaryBorder }]}
-      >
-        {/* Left side: back icon (touchable) and Friend text (not touchable) */}
-        <ThemedView style={styles.leftContainer}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons
-              name="chevron-back-outline"
-              size={22}
-              color={color.primaryIcon}
-            />
-          </TouchableOpacity>
-          <ThemedText type="headerTitle" style={styles.backText}>
-            Friends
-          </ThemedText>
-        </ThemedView>
-
-        {/* Right side: Create button */}
-        <ThemedButton
-          style={styles.findButton}
-          onPress={() => router.push("/(chat)/search")}
-          title={
-            <ThemedText type="small" style={{ color: color.primaryBackground }}>
-              Find
-            </ThemedText>
-          }
-          isLoading={false}
-        />
-      </ThemedView>
+      <ScreenHeader
+        title="Friends"
+        rightButton="Find"
+        onRightPress={() => router.push("/(chat)/search")}
+      />
 
       {/* Search Input */}
       <ThemedView style={styles.headerInputContainer}>
@@ -401,31 +377,6 @@ export default function Friends() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  headerTitleContainer: {
-    flex: 1,
-    alignItems: "center",
-    // marginRight: 22,
-  },
-  header: {
-    padding: 15,
-    flexDirection: "row",
-    alignItems: "center",
-    borderBottomWidth: 0.4,
-    justifyContent: "space-between",
-  },
-  leftContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  backText: {
-    marginLeft: 8,
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  findButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 15,
-  },
   headerInputContainer: {
     paddingVertical: 20,
     flexDirection: "row",

@@ -15,6 +15,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import SettingMenuItem from "@/components/SettingMenuItem";
 import { SettingMenuItem as ParentItem, SettingMenuChildItem } from "@/types";
+import ScreenHeader from "@/components/ScreenHeader";
 
 const screenWidth = Dimensions.get("window").width;
 const CONTAINER_WIDTH = screenWidth * 0.9;
@@ -54,20 +55,7 @@ export default function Setting() {
   return (
     <ThemedView style={{ flex: 1, backgroundColor: color.primaryBackground }}>
       {/* Header */}
-      <ThemedView
-        style={[styles.header, { borderBottomColor: color.primaryBorder }]}
-      >
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons
-            name="chevron-back-outline"
-            size={22}
-            color={color.primaryIcon}
-          />
-        </TouchableOpacity>
-        <ThemedView style={styles.HeaderTitleContainer}>
-          <ThemedText type="headerTitle">Settings</ThemedText>
-        </ThemedView>
-      </ThemedView>
+      <ScreenHeader title="Settings" />
 
       {/* Search Input */}
       <ThemedView style={styles.headerInputContainer}>
@@ -113,17 +101,6 @@ const styles = StyleSheet.create({
   container: {
     width: CONTAINER_WIDTH,
     alignSelf: "center",
-  },
-  header: {
-    padding: 15,
-    flexDirection: "row",
-    alignItems: "center",
-    borderBottomWidth: 0.4,
-  },
-  HeaderTitleContainer: {
-    flex: 1,
-    alignItems: "center",
-    marginRight: 20,
   },
   headerInputContainer: {
     paddingVertical: 20,

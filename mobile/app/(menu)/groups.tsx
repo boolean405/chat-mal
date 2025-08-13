@@ -17,13 +17,12 @@ import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "@/stores/authStore";
-import { ThemedButton } from "@/components/ThemedButton";
 import ChatItem from "@/components/ChatItem";
 import { useGroupChatStore } from "@/stores/groupChatStore";
 import Popover from "react-native-popover-view";
-import { Chat } from "@/types";
 import { createOrOpen } from "@/api/chat";
 import { useChatStore } from "@/stores/chatStore";
+import ScreenHeader from "@/components/ScreenHeader";
 
 export default function Groups() {
   const router = useRouter();
@@ -117,34 +116,11 @@ export default function Groups() {
       keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
     >
       {/* Header */}
-      <ThemedView
-        style={[styles.header, { borderBottomColor: color.primaryBorder }]}
-      >
-        {/* Left side: back icon (touchable) and Groups text (not touchable) */}
-        <ThemedView style={styles.leftContainer}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons
-              name="chevron-back-outline"
-              size={22}
-              color={color.primaryIcon}
-            />
-          </TouchableOpacity>
-          <ThemedText type="headerTitle" style={styles.backText}>
-            Groups
-          </ThemedText>
-        </ThemedView>
-
-        {/* Right side: Create button */}
-        <ThemedButton
-          style={styles.createButton}
-          title={
-            <ThemedText type="small" style={{ color: color.primaryBackground }}>
-              Create
-            </ThemedText>
-          }
-          isLoading={false}
-        />
-      </ThemedView>
+      <ScreenHeader
+        title="Groups"
+        rightButton="Create"
+        onRightPress={() => console.log("Create group clicked")}
+      />
 
       {/* Search Input */}
       <ThemedView style={styles.headerInputContainer}>
@@ -286,31 +262,6 @@ export default function Groups() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  headerTitleContainer: {
-    flex: 1,
-    alignItems: "center",
-    // marginRight: 22,
-  },
-  header: {
-    padding: 15,
-    flexDirection: "row",
-    alignItems: "center",
-    borderBottomWidth: 0.4,
-    justifyContent: "space-between",
-  },
-  leftContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  backText: {
-    marginLeft: 8,
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  createButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 15,
-  },
   headerInputContainer: {
     paddingVertical: 20,
     flexDirection: "row",
