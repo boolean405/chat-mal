@@ -163,7 +163,7 @@ export default function Detail() {
           <TouchableOpacity
             style={[
               styles.profileImageWrapper,
-              { borderColor: color.secondaryBorder },
+              // { borderColor: color.secondaryBorder },
             ]}
           >
             <Image source={{ uri: chatPhoto }} style={styles.profilePhoto} />
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     marginTop: -30,
     borderRadius: 60,
     alignSelf: "center",
-    borderWidth: 2,
+    // borderWidth: 2,
     overflow: "hidden",
   },
   profilePhoto: {

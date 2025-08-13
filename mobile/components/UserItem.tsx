@@ -73,7 +73,7 @@ const UserItem: React.FC<Props> = ({
                 style={[
                   styles.onlineIndicator,
                   {
-                    borderColor: color.secondaryBorder,
+                    borderColor: color.offlineBorder,
                     backgroundColor: color.offlineBackground,
                   },
                 ]}
@@ -83,8 +83,9 @@ const UserItem: React.FC<Props> = ({
                 style={[
                   styles.lastOnlineText,
                   {
-                    backgroundColor: color.offlineBackground,
                     color: color.primaryBackground,
+                    borderColor: color.offlineBorder,
+                    backgroundColor: color.offlineBackground,
                   },
                 ]}
               >
@@ -165,9 +166,9 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     right: 15,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
     borderWidth: 1.5,
   },
   lastOnlineText: {
@@ -175,10 +176,13 @@ const styles = StyleSheet.create({
     bottom: 0,
     right: 15,
     fontWeight: "bold",
-    width: 12,
-    height: 10,
-    borderRadius: 5,
-    fontSize: 5,
+    // width: 12,
+    // height: 10,
+    paddingHorizontal: 2,
+    borderWidth: 1.5,
+    paddingVertical: 1,
+    borderRadius: 8,
+    fontSize: 6,
     textAlign: "center",
     textAlignVertical: "center",
   },

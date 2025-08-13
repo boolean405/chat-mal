@@ -149,22 +149,22 @@ export default function AppInfo() {
             onPress={() => openLink(WEBSITE_URL)}
           />
           <InfoRow
-            title="Privacy Policy"
-            subtitle="How we protect your data"
-            icon="shield-checkmark-outline"
-            onPress={() => router.push(`/(setting)/privacy-policy`) as any}
-          />
-          <InfoRow
             title="Terms of Service"
             subtitle="Legal terms for using the app"
             icon="document-text-outline"
             onPress={() => router.push(`/(setting)/terms-of-service`) as any}
           />
           <InfoRow
+            title="Privacy Policy"
+            subtitle="How we protect your data"
+            icon="shield-checkmark-outline"
+            onPress={() => router.push(`/(setting)/privacy-policy`) as any}
+          />
+          <InfoRow
             title="Licenses"
             subtitle="Open-source libraries we use"
             icon="reader-outline"
-            onPress={() => openLink(`${WEBSITE_URL}/licenses`)}
+            onPress={() => router.push(`/(setting)/license`) as any}
           />
         </SectionCard>
 

@@ -82,7 +82,7 @@ export default function ChatItem({
                   style={[
                     styles.onlineIndicator,
                     {
-                      borderColor: color.secondaryBorder,
+                      borderColor: color.onlineBorder,
                       backgroundColor: color.offlineBackground,
                     },
                   ]}
@@ -94,6 +94,7 @@ export default function ChatItem({
                     {
                       color: color.secondaryBackground,
                       backgroundColor: color.offlineBackground,
+                      borderColor: color.onlineBorder,
                     },
                   ]}
                 >
@@ -227,7 +228,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   chatBottomRow: {
-    flexDirection: "row", 
+    flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
@@ -251,26 +252,28 @@ const styles = StyleSheet.create({
   },
   onlineIndicator: {
     position: "absolute",
-    bottom: 0,
-    right: 15,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    borderWidth: 2,
+    bottom: 1,
+    right: 12,
+    width: 14,
+    height: 14,
+    borderRadius: 8,
+    borderWidth: 1.5,
     // or use theme background
   },
   lastOnlineText: {
     position: "absolute",
-    bottom: 0,
-    right: 15,
-    width: 14,
-    height: 12,
-    borderRadius: 6,
+    bottom: 1,
+    right: 12,
+    // width: 14,
+    // height: 12,
+    borderRadius: 10,
     fontWeight: "bold",
-    fontSize: 6,
+    fontSize: 8,
     textAlign: "center",
     textAlignVertical: "center",
-    // borderWidth: 1,
+    paddingVertical: 1,
+    paddingHorizontal: 2,
+    borderWidth: 1.5,
   },
   unreadImage: {
     width: 20,

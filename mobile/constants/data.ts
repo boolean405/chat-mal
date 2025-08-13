@@ -254,6 +254,12 @@ export const SETTINGS_MENUS: SettingMenuItem[] = [
       },
       {
         id: "4",
+        title: "License",
+        iconName: "ribbon-outline",
+        path: "/license",
+      },
+      {
+        id: "5",
         title: "App Info",
         iconName: "information-circle-outline",
         path: "/app-info",

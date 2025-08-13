@@ -39,8 +39,8 @@ export const Colors = {
     tertiaryIcon: "#333333",
 
     // Online offline status
-    onlineBorder: "#23AFAF4D",
-    offlineBorder: "#FF81AE",
+    onlineBorder: "#ffffff",
+    offlineBorder: "#ffffff",
     onlineBackground: "limegreen",
     offlineBackground: "#A9A9A9",
     offlineText: "#dddddd",
@@ -84,8 +84,8 @@ export const Colors = {
     tertiaryIcon: "#cccccc",
 
     // Online offline status
-    onlineBorder: "#23AFAF4D",
-    offlineBorder: "#FF81AE",
+    onlineBorder: "#000000",
+    offlineBorder: "#000000",
     onlineBackground: "limegreen",
     offlineBackground: "#A9A9A9",
     offlineText: "#222222",

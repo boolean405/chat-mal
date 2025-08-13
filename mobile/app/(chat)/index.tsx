@@ -1,19 +1,21 @@
 import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-
 import {
   ActivityIndicator,
   Alert,
   FlatList,
-  KeyboardAvoidingView,
   Platform,
+  StatusBar,
   StyleSheet,
   TextInput,
   ToastAndroid,
   TouchableOpacity,
   useColorScheme,
 } from "react-native";
+
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import { useHeaderHeight } from "@react-navigation/elements";
 
 import { Message, User } from "@/types";
 import { Colors } from "@/constants/colors";
@@ -47,6 +49,8 @@ export default function ChatMessage() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
+  const headerHeight = useHeaderHeight() + (StatusBar.currentHeight ?? 0);
+
   const flatListRef = useRef<FlatList>(null);
 
   const user = useAuthStore((state) => state.user);
@@ -552,12 +556,10 @@ export default function ChatMessage() {
   }
 
   return (
-    <KeyboardAvoidingView
+    <ThemedView
       style={[styles.container, { backgroundColor: color.primaryBackground }]}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
     >
-      {/* Header */}
+      {/* Header stays fixed, not affected by keyboard */}
       <ThemedView
         style={[styles.header, { borderBottomColor: color.primaryBorder }]}
       >
@@ -656,148 +658,158 @@ export default function ChatMessage() {
         ) : null}
       </ThemedView>
 
-      {/* Messages */}
-      <FlatList
-        keyboardShouldPersistTaps="handled"
-        ref={flatListRef}
-        data={currentMessages}
-        style={styles.chatList}
-        contentContainerStyle={{ padding: 10 }}
-        showsVerticalScrollIndicator={false}
-        refreshing={isRefreshing}
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.1}
-        inverted={true}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item, index }) => (
-          <MessageItem
-            item={item}
-            index={index}
-            messages={currentMessages}
-            user={user}
-          />
-        )}
-        ListFooterComponent={
-          hasMore && isPaging ? (
-            <ActivityIndicator size="small" color={color.primaryIcon} />
-          ) : null
-        }
-      />
-      {isTyping && typingUser && (
-        <ThemedView style={styles.typingIndicatorContainer}>
-          <Image
-            source={{ uri: typingUser.profilePhoto }}
-            style={styles.typingAvatar}
-          />
-          <ThemedText type="small" style={{ fontStyle: "italic" }}>
-            Typing...
-          </ThemedText>
-        </ThemedView>
-      )}
-
-      {/* Input Area and requset icon*/}
-      {isPendingChat ? (
-        <ThemedView style={styles.pendingButtonContainer}>
-          <TouchableOpacity
-            disabled={isLoading}
-            style={[
-              styles.pendingButton,
-              { backgroundColor: color.secondaryBackground },
-            ]}
-            onPress={() => console.log("Block User")}
-          >
-            <ThemedText type="defaultBold" style={styles.blockText}>
-              Block
-            </ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity
-            disabled={isLoading}
-            style={[
-              styles.pendingButton,
-              { backgroundColor: color.secondaryBackground },
-            ]}
-            onPress={handleDelete}
-          >
-            <ThemedText type="defaultBold" style={styles.deleteText}>
-              Delete
-            </ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity
-            disabled={isLoading}
-            style={[
-              styles.pendingButton,
-              { backgroundColor: color.secondaryBackground },
-            ]}
-            onPress={handleAccept}
-          >
-            <ThemedText type="defaultBold" style={styles.acceptText}>
-              Accept
-            </ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
-      ) : (
-        // Input container
-        <ThemedView style={[styles.inputContainer]}>
-          <ThemedView
-            style={[
-              styles.inputTextContainer,
-              { backgroundColor: color.secondaryBackground },
-            ]}
-          >
-            <TouchableOpacity style={styles.imageButton}>
-              <Ionicons
-                name="add-circle-outline"
-                size={22}
-                color={color.primaryIcon}
-              />
-            </TouchableOpacity>
-            <TextInput
-              value={newMessage}
-              onChangeText={setNewMessage}
-              style={[styles.textInput, { color: color.primaryText }]}
-              placeholder="Type a message"
-              placeholderTextColor="gray"
-              multiline
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "translate-with-padding"}
+        keyboardVerticalOffset={headerHeight}
+      >
+        {/* Messages */}
+        <FlatList
+          keyboardShouldPersistTaps="handled"
+          ref={flatListRef}
+          data={currentMessages}
+          style={styles.chatList}
+          contentContainerStyle={{ padding: 10 }}
+          showsVerticalScrollIndicator={false}
+          refreshing={isRefreshing}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.1}
+          inverted={true}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item, index }) => (
+            <MessageItem
+              item={item}
+              index={index}
+              messages={currentMessages}
+              user={user}
             />
+          )}
+          ListFooterComponent={
+            hasMore && isPaging ? (
+              <ActivityIndicator size="small" color={color.primaryIcon} />
+            ) : null
+          }
+        />
+        {isTyping && typingUser && (
+          <ThemedView style={styles.typingIndicatorContainer}>
+            <Image
+              source={{ uri: typingUser.profilePhoto }}
+              style={styles.typingAvatar}
+            />
+            <ThemedText type="small" style={{ fontStyle: "italic" }}>
+              Typing...
+            </ThemedText>
+          </ThemedView>
+        )}
+
+        {/* Input Area and requset icon*/}
+        {isPendingChat ? (
+          <ThemedView style={styles.pendingButtonContainer}>
             <TouchableOpacity
-              onPress={handlePressMedia}
-              style={styles.imageButton}
+              disabled={isLoading}
+              style={[
+                styles.pendingButton,
+                { backgroundColor: color.secondaryBackground },
+              ]}
+              onPress={() => console.log("Block User")}
             >
-              <Ionicons
-                name="image-outline"
-                size={22}
-                color={color.primaryIcon}
-              />
+              <ThemedText type="defaultBold" style={styles.blockText}>
+                Block
+              </ThemedText>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => setIsCameraVisible(true)}
-              style={styles.imageButton}
+              disabled={isLoading}
+              style={[
+                styles.pendingButton,
+                { backgroundColor: color.secondaryBackground },
+              ]}
+              onPress={handleDelete}
             >
-              <Ionicons
-                name="camera-outline"
-                size={22}
-                color={color.primaryIcon}
-              />
+              <ThemedText type="defaultBold" style={styles.deleteText}>
+                Delete
+              </ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              disabled={isLoading}
+              style={[
+                styles.pendingButton,
+                { backgroundColor: color.secondaryBackground },
+              ]}
+              onPress={handleAccept}
+            >
+              <ThemedText type="defaultBold" style={styles.acceptText}>
+                Accept
+              </ThemedText>
             </TouchableOpacity>
           </ThemedView>
-          <TouchableOpacity
-            style={[
-              styles.sendButton,
-              { backgroundColor: color.messageBackground },
-            ]}
-            disabled={newMessage.length === 0}
-            onPress={handleSendMessage}
-          >
-            <Ionicons name="send-outline" size={22} color={color.primaryIcon} />
-          </TouchableOpacity>
-          <CameraModal
-            isVisible={isCameraVisible}
-            onClose={() => setIsCameraVisible(false)}
-            onMediaCaptured={handleMediaTaken}
-          />
-        </ThemedView>
-      )}
-    </KeyboardAvoidingView>
+        ) : (
+          // Input container
+          <ThemedView style={[styles.inputContainer]}>
+            <ThemedView
+              style={[
+                styles.inputTextContainer,
+                { backgroundColor: color.secondaryBackground },
+              ]}
+            >
+              <TouchableOpacity style={styles.imageButton}>
+                <Ionicons
+                  name="add-circle-outline"
+                  size={22}
+                  color={color.primaryIcon}
+                />
+              </TouchableOpacity>
+              <TextInput
+                value={newMessage}
+                onChangeText={setNewMessage}
+                style={[styles.textInput, { color: color.primaryText }]}
+                placeholder="Type a message"
+                placeholderTextColor="gray"
+                multiline
+              />
+              <TouchableOpacity
+                onPress={handlePressMedia}
+                style={styles.imageButton}
+              >
+                <Ionicons
+                  name="image-outline"
+                  size={22}
+                  color={color.primaryIcon}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setIsCameraVisible(true)}
+                style={styles.imageButton}
+              >
+                <Ionicons
+                  name="camera-outline"
+                  size={22}
+                  color={color.primaryIcon}
+                />
+              </TouchableOpacity>
+            </ThemedView>
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                { backgroundColor: color.messageBackground },
+              ]}
+              disabled={newMessage.length === 0}
+              onPress={handleSendMessage}
+            >
+              <Ionicons
+                name="send-outline"
+                size={22}
+                color={color.primaryIcon}
+              />
+            </TouchableOpacity>
+            <CameraModal
+              isVisible={isCameraVisible}
+              onClose={() => setIsCameraVisible(false)}
+              onMediaCaptured={handleMediaTaken}
+            />
+          </ThemedView>
+        )}
+      </KeyboardAvoidingView>
+    </ThemedView>
   );
 }
 
@@ -811,6 +823,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderBottomWidth: 0.4,
+    zIndex: 1, // to show header
   },
   chatName: { flex: 1, marginLeft: 10 },
   headerIcons: { flexDirection: "row" },
@@ -823,8 +836,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
 
-    paddingBottom: 35,
-    paddingTop: 5,
+    paddingVertical: 5,
   },
   inputTextContainer: {
     height: 40,
