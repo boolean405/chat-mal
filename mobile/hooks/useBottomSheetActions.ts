@@ -164,6 +164,7 @@ export function useBottomSheetActions({
 
       try {
         setIsLoadingAction(true);
+         closeSheet();
 
         switch (selectedOption.path) {
           case "/delete":

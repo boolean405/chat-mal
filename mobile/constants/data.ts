@@ -10,13 +10,6 @@ export const DetailsData: (DetailItem & {
   showFor: "all" | "group" | "chat";
 })[] = [
   {
-    id: "1",
-    label: "Search in chat",
-    iconName: "search-outline",
-    path: "/search",
-    showFor: "all",
-  },
-  {
     id: "2",
     label: "Archive",
     iconName: "archive-outline",

@@ -37,6 +37,7 @@ export default function RootLayout() {
   useNotifications();
   useNetworkListener();
   usePermissions();
+  
 
   const colorScheme = useColorScheme();
 

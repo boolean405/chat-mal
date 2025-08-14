@@ -10,7 +10,7 @@ import {
   Alert,
 } from "react-native";
 
-import { DetailItem } from "@/types";
+import { Chat, DetailItem } from "@/types";
 import { Colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { DetailsData } from "@/constants/data";
@@ -23,7 +23,7 @@ import { useChatStore } from "@/stores/chatStore";
 import { useCallStore } from "@/stores/callStore";
 import { ListSection } from "@/components/ListSection";
 import { useMessageStore } from "@/stores/messageStore";
-import { createGroup, deleteChat, leaveGroup } from "@/api/chat";
+import { archiveChat, createGroup, deleteChat, leaveGroup } from "@/api/chat";
 import ScreenHeader from "@/components/ScreenHeader";
 
 export default function Detail() {
@@ -34,7 +34,7 @@ export default function Detail() {
   const user = useAuthStore((state) => state.user);
   const { clearMessages } = useMessageStore();
   const { setRequestCall, isCallActive, callData } = useCallStore();
-  const { currentChat, setChats, clearChat } = useChatStore();
+  const { currentChat, setChats, clearChat, updateChat } = useChatStore();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -63,6 +63,17 @@ export default function Detail() {
           chatId: currentChat._id,
         },
       });
+    // Archive chat
+    else if (item.path === "/archive") {
+      try {
+        router.replace("/(tab)");
+        const data = await archiveChat(currentChat._id);
+        ToastAndroid.show(data.message, ToastAndroid.SHORT);
+        updateChat(data.result);
+      } catch (error: any) {
+        ToastAndroid.show(error.message, ToastAndroid.SHORT);
+      }
+    }
     // Create group
     else if (item.path === "/create-group") {
       try {
@@ -71,12 +82,7 @@ export default function Detail() {
         if (data.status) {
           ToastAndroid.show(data.message, ToastAndroid.SHORT);
           setChats([data.result]);
-          router.replace({
-            pathname: "/(tab)",
-            params: {
-              chatId: data.result._id,
-            },
-          });
+          router.replace("/(tab)");
         }
       } catch (error: any) {
         ToastAndroid.show(error.message, ToastAndroid.SHORT);
@@ -148,6 +154,8 @@ export default function Detail() {
       params: { chatId: currentChat._id },
     });
   };
+
+  const handleArchiveChat = async (chat: Chat) => {};
 
   return (
     <ThemedView style={{ flex: 1, backgroundColor: color.primaryBackground }}>

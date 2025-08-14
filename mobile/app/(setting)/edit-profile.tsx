@@ -108,8 +108,6 @@ export default function EditProfile() {
     setIsLoading(true);
     try {
       const data = await changeNames(name, username);
-      console.log(data.result.user);
-
       setUserOnly(data.result.user);
 
       Alert.alert("Success", data.message);

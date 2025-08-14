@@ -82,7 +82,7 @@ export default function ChatItem({
                   style={[
                     styles.onlineIndicator,
                     {
-                      borderColor: color.onlineBorder,
+                      borderColor: color.offlineBorder,
                       backgroundColor: color.offlineBackground,
                     },
                   ]}
@@ -93,8 +93,8 @@ export default function ChatItem({
                     styles.lastOnlineText,
                     {
                       color: color.secondaryBackground,
+                      borderColor: color.offlineBorder,
                       backgroundColor: color.offlineBackground,
-                      borderColor: color.onlineBorder,
                     },
                   ]}
                 >
@@ -253,19 +253,16 @@ const styles = StyleSheet.create({
   onlineIndicator: {
     position: "absolute",
     bottom: 1,
-    right: 12,
+    right: 13,
     width: 14,
     height: 14,
     borderRadius: 8,
     borderWidth: 1.5,
-    // or use theme background
   },
   lastOnlineText: {
     position: "absolute",
     bottom: 1,
     right: 12,
-    // width: 14,
-    // height: 12,
     borderRadius: 10,
     fontWeight: "bold",
     fontSize: 8,

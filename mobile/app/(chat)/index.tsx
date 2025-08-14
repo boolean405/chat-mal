@@ -598,7 +598,7 @@ export default function ChatMessage() {
                     style={[
                       styles.onlineIndicator,
                       {
-                        borderColor: color.secondaryBorder,
+                        borderColor: color.offlineBorder,
                         backgroundColor: color.offlineBackground,
                       },
                     ]}
@@ -609,6 +609,7 @@ export default function ChatMessage() {
                       styles.lastOnlineText,
                       {
                         color: color.secondaryBackground,
+                        borderColor: color.offlineBorder,
                         backgroundColor: color.offlineBackground,
                       },
                     ]}
@@ -660,7 +661,11 @@ export default function ChatMessage() {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "translate-with-padding"}
+        behavior={
+          Platform.OS === "ios"
+            ? "translate-with-padding"
+            : "translate-with-padding"
+        }
         keyboardVerticalOffset={headerHeight}
       >
         {/* Messages */}
@@ -952,24 +957,48 @@ const styles = StyleSheet.create({
     position: "relative",
     marginLeft: 10,
   },
+  // onlineIndicator: {
+  //   position: "absolute",
+  //   bottom: 0,
+  //   right: 1,
+  //   // width: 10,
+  //   // height: 10,
+  //   borderRadius: 5,
+  //   borderWidth: 1.5,
+  // },
+  // lastOnlineText: {
+  //   bottom: 0,
+  //   right: 1,
+  //   width: 12,
+  //   height: 10,
+  //   fontSize: 5,
+  //   borderRadius: 5,
+  //   fontWeight: "bold",
+  //   position: "absolute",
+  //   textAlign: "center",
+  //   textAlignVertical: "center",
+  // },
   onlineIndicator: {
     position: "absolute",
     bottom: 0,
-    right: 1,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    right: 0,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
     borderWidth: 1.5,
   },
   lastOnlineText: {
-    bottom: 0,
-    right: 1,
-    width: 12,
-    height: 10,
-    fontSize: 5,
-    borderRadius: 5,
-    fontWeight: "bold",
     position: "absolute",
+    bottom: 0,
+    right: 0,
+    fontWeight: "bold",
+    // width: 12,
+    // height: 10,
+    paddingHorizontal: 2,
+    borderWidth: 1.5,
+    paddingVertical: 1,
+    borderRadius: 10,
+    fontSize: 6,
     textAlign: "center",
     textAlignVertical: "center",
   },

@@ -161,7 +161,6 @@ const styles = StyleSheet.create({
     position: "relative",
     // marginRight: 15,
   },
-
   onlineIndicator: {
     position: "absolute",
     bottom: 0,
@@ -181,7 +180,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
     borderWidth: 1.5,
     paddingVertical: 1,
-    borderRadius: 8,
+    borderRadius: 10,
     fontSize: 6,
     textAlign: "center",
     textAlignVertical: "center",
