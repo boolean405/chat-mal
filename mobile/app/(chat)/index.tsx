@@ -787,20 +787,40 @@ export default function ChatMessage() {
                 />
               </TouchableOpacity>
             </ThemedView>
-            <TouchableOpacity
-              style={[
-                styles.sendButton,
-                { backgroundColor: color.messageBackground },
-              ]}
-              disabled={newMessage.length === 0}
-              onPress={handleSendMessage}
-            >
-              <Ionicons
-                name="send-outline"
-                size={22}
-                color={color.primaryIcon}
-              />
-            </TouchableOpacity>
+
+            {/* Send button */}
+            {newMessage.trim().length === 0 ? (
+              // Show record icon if no message typed
+              <TouchableOpacity
+                style={[
+                  styles.sendButton,
+                  { backgroundColor: color.messageBackground },
+                ]}
+                onLongPress={() => console.log("Start recording")} // Replace with your recording logic
+              >
+                <Ionicons
+                  name="mic-outline"
+                  size={22}
+                  color={color.primaryIcon}
+                />
+              </TouchableOpacity>
+            ) : (
+              // Show send icon if message typed
+              <TouchableOpacity
+                style={[
+                  styles.sendButton,
+                  { backgroundColor: color.messageBackground },
+                ]}
+                onPress={handleSendMessage}
+              >
+                <Ionicons
+                  name="send-outline"
+                  size={22}
+                  color={color.primaryIcon}
+                />
+              </TouchableOpacity>
+            )}
+
             <CameraModal
               isVisible={isCameraVisible}
               onClose={() => setIsCameraVisible(false)}

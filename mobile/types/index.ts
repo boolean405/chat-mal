@@ -7,8 +7,6 @@ export type User = {
   email: string;
   profilePhoto: string;
   coverPhoto?: string;
-  followers: string[];
-  following: string[];
   isOnline: boolean;
   gender?: "male" | "female";
   birthday?: Date;
@@ -68,7 +66,7 @@ export type BottomSheetOption = {
 export type Message = {
   _id: string;
   sender: User;
-  type: "text" | "image" | "video";
+  type: "text" | "image" | "video" | "call";
   content: string;
   chat: Chat;
   status: "pending" | "sent" | "delivered" | "seen" | "failed";

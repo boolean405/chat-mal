@@ -55,7 +55,7 @@ export default async function onSendMessage(socket, io, { chatId, message }) {
         message.type === "text"
           ? message.content
           : message.type === "image"
-          ? "Recieved an new photo"
+          ? "Recieved a new photo"
           : message.type === "video"
           ? "Recieved a new video"
           : message.type === "audio"

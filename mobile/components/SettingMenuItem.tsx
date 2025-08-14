@@ -15,9 +15,13 @@ import { ThemedView } from "./ThemedView";
 import { ThemedText } from "./ThemedText";
 import { SettingMenuItem as ParentItem, SettingMenuChildItem } from "@/types";
 
+// Enable Android LayoutAnimation only on the old architecture
+const isFabric = !!(global as any).nativeFabricUIManager;
+
 if (
   Platform.OS === "android" &&
-  UIManager.setLayoutAnimationEnabledExperimental
+  UIManager.setLayoutAnimationEnabledExperimental &&
+  !isFabric
 ) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }

@@ -155,18 +155,18 @@ export function useNotifications() {
       },
     ]);
 
-    Notifications.setNotificationCategoryAsync("call", [
-      {
-        identifier: "ACCEPT",
-        buttonTitle: "Accept",
-        options: { opensAppToForeground: true },
-      },
-      {
-        identifier: "DECLINE",
-        buttonTitle: "Decline",
-        options: { isDestructive: true },
-      },
-    ]);
+    // Notifications.setNotificationCategoryAsync("call", [
+    //   {
+    //     identifier: "ACCEPT",
+    //     buttonTitle: "Accept",
+    //     options: { opensAppToForeground: true },
+    //   },
+    //   {
+    //     identifier: "DECLINE",
+    //     buttonTitle: "Decline",
+    //     options: { isDestructive: true },
+    //   },
+    // ]);
 
     requestPermissions();
     registerForPushNotifications();

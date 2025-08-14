@@ -66,7 +66,7 @@ export default function MessageItem({
         style={[
           styles.messageContainer,
           isMe
-            ? [styles.myMessage, { backgroundColor: color.primary }]
+            ? [styles.myMessage, { backgroundColor: color.messageBackground }]
             : [
                 styles.otherMessage,
                 { backgroundColor: color.secondaryBackground },
@@ -116,7 +116,13 @@ export default function MessageItem({
         <View
           style={[
             styles.timeStatusContainer,
-            { alignSelf: isMe ? "flex-end" : "flex-start" },
+            {
+              alignSelf: isMe ? "flex-end" : "flex-start",
+              paddingHorizontal:
+                !isMe && (item.type === "image" || item.type === "video")
+                  ? 8
+                  : 0,
+            },
           ]}
         >
           <ThemedText type="smallest" style={styles.timeText}>

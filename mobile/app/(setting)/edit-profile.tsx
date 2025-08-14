@@ -29,6 +29,7 @@ import { useAuthStore } from "@/stores/authStore";
 import ScreenHeader from "@/components/ScreenHeader";
 
 const screenWidth = Dimensions.get("window").width;
+const NAME_RE = /^(?=.{1,20}$)[\p{L}\p{M} ]+$/u;
 
 export default function EditProfile() {
   const colorScheme = useColorScheme();
@@ -54,7 +55,6 @@ export default function EditProfile() {
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [canChange, setCanChange] = useState(false);
-  const NAME_RE = /^(?=.{1,20}$)[\p{L}\p{M} ]+$/u;
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -377,9 +377,9 @@ export default function EditProfile() {
             </ThemedText>
             <ThemedText type="large">{username && `@${username}`}</ThemedText>
 
-            <ThemedText type="large" style={styles.nameText}>
+            {/* <ThemedText type="large" style={styles.nameText}>
               Edit your profile
-            </ThemedText>
+            </ThemedText> */}
 
             {/* Name Input */}
             <ThemedView
@@ -516,7 +516,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderRadius: 10,
-    borderWidth: 1,
+    // borderWidth: 0.5,
+    borderBottomWidth: 1,
     width: "80%",
     paddingHorizontal: 10,
     marginVertical: 10,
@@ -583,9 +584,6 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     justifyContent: "center",
     alignItems: "center",
-  },
-  nameText: {
-    marginTop: 20,
   },
   profileUploadingIcon: {
     ...StyleSheet.absoluteFillObject,

@@ -51,3 +51,24 @@ export async function messageDelivered(chatId) {
     throw customError;
   }
 }
+
+// Delivered message
+export async function createCallLog({ chatId, payload }) {
+  try {
+    await refresh();
+    const response = await api.post("/api/message", {
+      chatId,
+      type: "call",
+      content: "",
+      call: payload,
+    });
+    const data = response.data;
+    return data;
+  } catch (error) {
+    const message =
+      error.response?.data?.message || "Failed to create call log!";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}
