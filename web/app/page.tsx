@@ -33,7 +33,7 @@ export default function Home() {
           {/* Download Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center mb-12 px-2">
             <a
-              href="https://play.google.com"
+              href="https://apkpure.com/p/com.chat.mal"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-3 bg-green-600 hover:bg-green-700 transition rounded-xl px-6 py-3 text-sm font-semibold shadow-md w-full sm:w-auto"

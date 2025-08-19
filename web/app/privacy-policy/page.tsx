@@ -1,154 +1,152 @@
+// app/privacy-policy/page.tsx
+import type { Metadata } from "next";
+import Section from "@/components/legal/Section";
+import {
+  APP_NAME,
+  CS_EMAIL,
+  PRIVACY_EFFECTIVE_DATE,
+  PRIVACY_LAST_UPDATED,
+} from "@/lib/constants";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description:
+    "How Chat Mal collects, uses, and protects your information across messaging, calls, payments, and stories.",
+  alternates: { canonical: "/privacy-policy" },
+  openGraph: {
+    title: "Privacy Policy",
+    description:
+      "How Chat Mal collects, uses, and protects your information across messaging, calls, payments, and stories.",
+    type: "article",
+    url: "/privacy-policy",
+  },
+  robots: { index: true, follow: true },
+};
+
 export default function PrivacyPolicyPage() {
   return (
-    <main className="min-h-screen bg-[#0e0e10] text-white px-6 py-16 font-sans">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <header className="text-center mb-14">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent">
-            Privacy Policy
-          </h1>
-          <p className="text-sm text-gray-500 mt-2">
-            Last updated: Feb 1, 2025
+    <main className="mx-auto max-w-3xl px-4 py-10">
+      {/* Header */}
+      <header className="text-center mb-8">
+        <h1 className="text-2xl font-bold tracking-tight">Privacy Policy</h1>
+        <p className="mt-1 text-sm text-neutral-500">
+          Effective {PRIVACY_EFFECTIVE_DATE}
+        </p>
+      </header>
+
+      {/* Card */}
+      <article className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+        <p className="text-base leading-7 text-neutral-700 dark:text-neutral-200">
+          Welcome to <span className="font-medium">{APP_NAME}</span>, your
+          secure place for messaging, video calling, payments, and sharing
+          stories. Here’s how we protect your data.
+        </p>
+
+        <Section title="1. What We Collect">
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Name, email, and profile photo</li>
+            <li>Messages, calls, and story uploads</li>
+            <li>Device information (model, OS, identifiers)</li>
+            <li>Payment-related data (tokenized, never stored)</li>
+            <li>Location (only with your permission)</li>
+          </ul>
+        </Section>
+
+        <Section title="2. Why We Collect It">
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Enable chat, calls, and content sharing</li>
+            <li>Improve app performance and personalization</li>
+            <li>Detect and prevent fraud and abuse</li>
+            <li>Provide support and respond to inquiries</li>
+            <li>Comply with legal and payment regulations</li>
+          </ul>
+        </Section>
+
+        <Section title="3. Your Choices">
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Access, update, or delete personal data in settings</li>
+            <li>
+              Disable camera, mic, or location access via device permissions
+            </li>
+            <li>Contact us anytime to delete or update your data</li>
+          </ul>
+        </Section>
+
+        <Section title="4. Security">
+          <ul className="list-disc pl-5 space-y-1">
+            <li>End-to-end encryption for chats and calls</li>
+            <li>TLS/SSL for all network traffic</li>
+            <li>Restricted access to data for authorized personnel only</li>
+          </ul>
+        </Section>
+
+        <Section title="5. Payment Information">
+          <ul className="list-disc pl-5 space-y-1">
+            <li>
+              Payments processed by trusted third parties (e.g., Stripe, PayPal)
+            </li>
+            <li>We do not store credit card or banking information</li>
+            <li>
+              Transaction history retained for legal and support purposes
+            </li>
+          </ul>
+        </Section>
+
+        <Section title="6. Stories & Media Content">
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Stories are visible to your selected audience</li>
+            <li>You can delete your stories at any time</li>
+            <li>Media content is encrypted and stored securely</li>
+          </ul>
+        </Section>
+
+        <Section title="7. Data Retention">
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Messages and call logs are retained unless deleted by you</li>
+            <li>Inactive accounts may be removed after extended inactivity</li>
+            <li>Some data may be retained for legal or regulatory compliance</li>
+          </ul>
+        </Section>
+
+        <Section title="8. External Services">
+          <ul className="list-disc pl-5 space-y-1">
+            <li>We integrate with Firebase and third-party APIs</li>
+            <li>Those services have their own privacy policies to review</li>
+          </ul>
+        </Section>
+
+        <Section title="9. Children’s Privacy">
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Not intended for users under 13</li>
+            <li>No knowing collection from children without parental consent</li>
+          </ul>
+        </Section>
+
+        <Section title="10. Policy Updates">
+          <p>
+            We may update this policy. Major changes will be communicated in-app
+            or via email. Continued use of {APP_NAME} indicates acceptance of
+            the new policy.
           </p>
-        </header>
+        </Section>
 
-        {/* Sections */}
-        <section className="space-y-12 text-gray-300 text-base leading-relaxed">
-          {/* Introduction */}
-          <div>
-            <h2 className="text-xl font-semibold text-white mb-2">
-              1. Introduction
-            </h2>
-            <p>
-              Welcome to <strong>Chat Mal</strong>. This Privacy Policy explains
-              how we collect, use, and protect your information when you use our
-              services. We are committed to protecting your privacy and ensuring
-              transparency.
-            </p>
-          </div>
+        <Section title="11. Contact Us">
+          <p>
+            Questions or concerns? Email{" "}
+            <a
+              className="underline underline-offset-4 hover:opacity-80"
+              href={`mailto:${CS_EMAIL}?subject=Support%20Request&body=Describe%20your%20issue...`}
+            >
+              {CS_EMAIL}
+            </a>
+            .
+          </p>
+        </Section>
 
-          {/* Data We Collect */}
-          <div>
-            <h2 className="text-xl font-semibold text-white mb-2">
-              2. Data We Collect
-            </h2>
-            <ul className="list-disc list-inside ml-4 space-y-1">
-              <li>Email address for account setup</li>
-              <li>Encrypted message metadata (not content)</li>
-              <li>Diagnostic and crash logs</li>
-              <li>Device type and OS version</li>
-              <li>Optional profile photo and display name</li>
-            </ul>
-          </div>
-
-          {/* Use of Information */}
-          <div>
-            <h2 className="text-xl font-semibold text-white mb-2">
-              3. How We Use Your Information
-            </h2>
-            <p>We use your data strictly for:</p>
-            <ul className="list-disc list-inside ml-4 mt-2 space-y-1">
-              <li>Providing secure messaging</li>
-              <li>Improving app performance</li>
-              <li>Sending service-related notifications</li>
-            </ul>
-          </div>
-
-          {/* Encryption */}
-          <div>
-            <h2 className="text-xl font-semibold text-white mb-2">
-              4. End-to-End Encryption
-            </h2>
-            <p>
-              Messages sent via Chat Mal are fully end-to-end encrypted. This
-              means only you and the recipient can read them — not even we can
-              access your messages.
-            </p>
-          </div>
-
-          {/* Sharing Policy */}
-          <div>
-            <h2 className="text-xl font-semibold text-white mb-2">
-              5. Data Sharing
-            </h2>
-            <p>
-              We do <strong>not</strong> sell, trade, or rent your data. We may
-              share anonymized usage data to improve performance or comply with
-              legal obligations.
-            </p>
-          </div>
-
-          {/* Your Rights */}
-          <div>
-            <h2 className="text-xl font-semibold text-white mb-2">
-              6. Your Rights & Choices
-            </h2>
-            <ul className="list-disc list-inside ml-4 space-y-1">
-              <li>Access your data</li>
-              <li>Request deletion of your account</li>
-              <li>Withdraw consent at any time</li>
-            </ul>
-          </div>
-
-          {/* Cookies */}
-          <div>
-            <h2 className="text-xl font-semibold text-white mb-2">
-              7. Cookies
-            </h2>
-            <p>
-              We use minimal cookies to store settings and preferences. No
-              tracking cookies are used.
-            </p>
-          </div>
-
-          {/* Children's Privacy */}
-          <div>
-            <h2 className="text-xl font-semibold text-white mb-2">
-              8. Children’s Privacy
-            </h2>
-            <p>
-              Chat Mal is not intended for users under 13. We do not knowingly
-              collect data from children.
-            </p>
-          </div>
-
-          {/* Changes */}
-          <div>
-            <h2 className="text-xl font-semibold text-white mb-2">
-              9. Updates to This Policy
-            </h2>
-            <p>
-              We may occasionally update this policy. We will notify you of
-              major changes in-app or on our website.
-            </p>
-          </div>
-
-          {/* Contact */}
-          <div>
-            <h2 className="text-xl font-semibold text-white mb-2">
-              10. Contact Us
-            </h2>
-            <p>
-              For questions or concerns, contact us at{" "}
-              <a
-                href="mailto:support@chatmal.app"
-                className="text-purple-400 hover:underline"
-              >
-                chatmalapp@gmail.com
-              </a>
-              .
-            </p>
-          </div>
-        </section>
-
-        {/* Divider */}
-        <div className="my-16 border-t border-gray-800"></div>
-
-        {/* Footer */}
-        <footer className="text-center text-sm text-gray-500">
-          &copy; {new Date().getFullYear()} Chat Mal. All rights reserved.
+        <footer className="mt-8 text-center text-xs text-neutral-500">
+          Last updated: {PRIVACY_LAST_UPDATED}
         </footer>
-      </div>
+      </article>
     </main>
   );
 }
