@@ -63,7 +63,7 @@ const userSchema = new Schema(
         _id: false,
         provider: {
           type: String,
-          enum: ["google", "facebook"],
+          enum: ["google", "facebook", "local"],
           required: true,
         },
         providerId: {

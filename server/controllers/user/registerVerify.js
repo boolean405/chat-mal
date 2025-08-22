@@ -48,7 +48,15 @@ export default async function registerVerify(req, res, next) {
     // Update and get user in one step
     const user = await UserDB.findByIdAndUpdate(
       newUser._id,
-      { refreshToken },
+      {
+        refreshToken,
+        $addToSet: {
+          authProviders: {
+            provider: "local",
+            providerId: newUser._id,
+          },
+        },
+      },
       { new: true, select: "-password" }
     );
 

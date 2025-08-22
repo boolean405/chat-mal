@@ -22,7 +22,6 @@ import { login, loginGoogle } from "../controllers/user/login.js";
 import refresh from "../controllers/user/refresh.js";
 import logout from "../controllers/user/logout.js";
 import deleteAccount from "../controllers/user/deleteAccount.js";
-import changePassword from "../controllers/user/changePassword.js";
 import changeName from "../controllers/user/changeName.js";
 import changeUsername from "../controllers/user/changeUsername.js";
 import uploadPhoto from "../controllers/user/uploadPhoto.js";
@@ -39,6 +38,8 @@ import updatePushToken from "../controllers/user/updaetPushToken.js";
 import getMe from "../controllers/user/getMe.js";
 import { block, isBlocked, unblock } from "../controllers/user/block.js";
 import getPaginatedUsers from "../controllers/user/getPaginatedUsers.js";
+import { changePassword } from "../controllers/user/changePassword.js";
+import { createLocalPassword } from "../controllers/user/createLocalPassword.js";
 
 router.get("/exist-email", validateQuery(UserSchema.existEmail), existEmail);
 router.get(
@@ -84,6 +85,13 @@ router.patch(
   validateToken(),
   validateBody(UserSchema.changePassword),
   changePassword
+);
+
+router.patch(
+  "/create-local-password",
+  validateToken(),
+  validateBody(UserSchema.createLocalPassword),
+  createLocalPassword
 );
 
 router.patch(

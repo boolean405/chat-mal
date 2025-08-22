@@ -3,7 +3,7 @@ import Encoder from "../../utils/encoder.js";
 import resJson from "../../utils/resJson.js";
 import resError from "../../utils/resError.js";
 
-const changePassword = async (req, res, next) => {
+export const changePassword = async (req, res, next) => {
   try {
     const userId = req.userId;
     const { oldPassword, newPassword } = req.body;
@@ -24,10 +24,10 @@ const changePassword = async (req, res, next) => {
 
     const updatedUser = await UserDB.findById(user._id).select("-password");
 
-    resJson(res, 200, "Success changed password.", updatedUser);
+    return resJson(res, 200, "Success changed password.", {
+      user: updatedUser,
+    });
   } catch (error) {
     next(error);
   }
 };
-
-export default changePassword;

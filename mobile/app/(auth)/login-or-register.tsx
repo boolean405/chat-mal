@@ -18,9 +18,9 @@ import {
 
 import {
   Keyboard,
-  KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -37,10 +37,14 @@ import { ThemedView } from "@/components/ThemedView";
 import { APP_NAME, APP_TAGLINE } from "@/constants";
 import { useAuthStore } from "@/stores/authStore";
 import { Colors } from "@/constants/colors";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import { useHeaderHeight } from "@react-navigation/elements";
 
 export default function LoginOrRegister() {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
+  const headerHeight = useHeaderHeight() + (StatusBar.currentHeight ?? 0);
+
   const { setUser } = useAuthStore();
 
   const router = useRouter();
@@ -185,8 +189,8 @@ export default function LoginOrRegister() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+      behavior={Platform.OS === "ios" ? "padding" : "padding"}
+      keyboardVerticalOffset={headerHeight} // Adjust this value based on your header height and status bar
     >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
@@ -316,7 +320,7 @@ export default function LoginOrRegister() {
             }}
           >
             <TouchableOpacity
-              onPress={() => router.push("/(menu)/terms-of-service")}
+              onPress={() => router.push("/(setting)/terms-of-service")}
             >
               <ThemedText type="link" style={{ fontWeight: "400" }}>
                 Terms of Service
@@ -324,7 +328,7 @@ export default function LoginOrRegister() {
             </TouchableOpacity>
             <ThemedText style={{ fontWeight: "200" }}>{" and "}</ThemedText>
             <TouchableOpacity
-              onPress={() => router.push("/(menu)/privacy-policy")}
+              onPress={() => router.push("/(setting)/privacy-policy")}
             >
               <ThemedText type="link" style={{ fontWeight: "400" }}>
                 Privacy Policy

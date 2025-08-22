@@ -175,12 +175,12 @@ export const SETTINGS_MENUS: SettingMenuItem[] = [
         iconName: "person-outline",
         path: "/edit-profile",
       },
-      {
-        id: "1-2",
-        title: "Change Birthday",
-        iconName: "calendar-outline",
-        path: "/security",
-      },
+      // {
+      //   id: "1-2",
+      //   title: "Change Birthday",
+      //   iconName: "calendar-outline",
+      //   path: "/security",
+      // },
     ],
   },
   {
@@ -189,12 +189,12 @@ export const SETTINGS_MENUS: SettingMenuItem[] = [
     desc: "Email, password, and more",
     iconName: "shield-outline",
     children: [
-      {
-        id: "2-1",
-        title: "Change Email",
-        iconName: "mail-outline",
-        path: "/change-email",
-      },
+      // {
+      //   id: "2-1",
+      //   title: "Change Email",
+      //   iconName: "mail-outline",
+      //   path: "/change-email",
+      // },
       {
         id: "2-2",
         title: "Change Password",

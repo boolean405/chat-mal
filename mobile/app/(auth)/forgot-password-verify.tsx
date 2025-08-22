@@ -116,9 +116,9 @@ export default function VerifyEmailScreen() {
           <ThemedText style={styles.titleText}>
             Enter verify code, check in your email
           </ThemedText>
-          <ThemedText>"{email}"</ThemedText>
+          <ThemedText>{email}</ThemedText>
           <ThemedText style={styles.checkSpamText}>
-            Don't forget to check also in your spam folder
+            Don&apos;t forget to check also in your spam folder
           </ThemedText>
 
           <ThemedView style={styles.inputContainer}>

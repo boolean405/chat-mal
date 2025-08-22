@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
-  KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   TextInput,
   Keyboard,
   useColorScheme,
+  StatusBar,
 } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
@@ -15,11 +15,14 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedButton } from "@/components/ThemedButton";
 import { existUsername } from "@/api/user";
+import { useHeaderHeight } from "@react-navigation/elements";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 
 export default function CreateName() {
   const colorScheme = useColorScheme();
   const color = colorScheme === "dark" ? "white" : "black";
   const router = useRouter();
+  const headerHeight = useHeaderHeight() + (StatusBar.currentHeight ?? 0);
 
   const { email } = useLocalSearchParams();
 
@@ -69,7 +72,8 @@ export default function CreateName() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : "padding"}
+      keyboardVerticalOffset={headerHeight}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}

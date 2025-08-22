@@ -13,6 +13,10 @@ export type User = {
   bio?: string;
   verified: "verified" | "unverified" | "pending";
   lastOnlineAt: Date;
+  authProviders: {
+    provider: "google" | "facebook" | "local";
+    providerId: string;
+  }[];
   createdAt: Date;
   updatedAt: Date;
   accessToken?: string;

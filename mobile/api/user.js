@@ -298,6 +298,42 @@ export async function changeNames(name, username) {
     throw customError;
   }
 }
+
+// Change password
+export async function changePassword({ oldPassword, newPassword }) {
+  try {
+    await refresh();
+
+    const response = await api.patch("/api/user/change-password", {
+      oldPassword,
+      newPassword,
+    });
+
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Something went wrong";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}
+
+// Creatte local password
+export async function createLocalPassword({ newPassword }) {
+  try {
+    await refresh();
+    const response = await api.patch("/api/user/create-local-password", {
+      newPassword,
+    });
+
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Something went wrong";
+    const customError = new Error(message);
+    customError.status = error.response?.status;
+    throw customError;
+  }
+}
 // export async function editProfile(name, username, profilePhoto, coverPhoto) {
 //   try {
 //     const user = await getUserData();

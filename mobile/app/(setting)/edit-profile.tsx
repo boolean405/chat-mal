@@ -7,9 +7,9 @@ import {
   Dimensions,
   Image,
   Keyboard,
-  KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
   StyleSheet,
   TextInput,
   ToastAndroid,
@@ -27,14 +27,18 @@ import { ThemedButton } from "@/components/ThemedButton";
 import getImageMimeType from "@/utils/getImageMimeType";
 import { useAuthStore } from "@/stores/authStore";
 import ScreenHeader from "@/components/ScreenHeader";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import { useHeaderHeight } from "@react-navigation/elements";
 
 const screenWidth = Dimensions.get("window").width;
 const NAME_RE = /^(?=.{1,20}$)[\p{L}\p{M} ]+$/u;
 
 export default function EditProfile() {
-  const colorScheme = useColorScheme();
-  const color = Colors[colorScheme ?? "light"];
   const router = useRouter();
+  const colorScheme = useColorScheme();
+  const headerHeight = useHeaderHeight() + (StatusBar.currentHeight ?? 0);
+
+  const color = Colors[colorScheme ?? "light"];
   const { user, setUserOnly } = useAuthStore();
 
   const [name, setName] = useState("");
@@ -253,8 +257,8 @@ export default function EditProfile() {
   return (
     <KeyboardAvoidingView
       style={[{ flex: 1 }]}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+      behavior={"padding"}
+      keyboardVerticalOffset={headerHeight}
     >
       {/* Header */}
       <ScreenHeader title="Edit Profile" />
@@ -535,6 +539,7 @@ const styles = StyleSheet.create({
     width: screenWidth * 0.9,
     height: 180,
     overflow: "hidden",
+    paddingTop: 10,
   },
   coverPhoto: {
     width: "100%",

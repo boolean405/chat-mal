@@ -2,9 +2,9 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Keyboard,
-  KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
   StyleSheet,
   TextInput,
   TouchableOpacity,
@@ -18,11 +18,14 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "@/stores/authStore";
+import { useHeaderHeight } from "@react-navigation/elements";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 
 export default function LoginPassword() {
   const colorScheme = useColorScheme();
   const router = useRouter();
   const color = colorScheme === "dark" ? "white" : "black";
+  const headerHeight = useHeaderHeight() + (StatusBar.currentHeight ?? 0);
 
   const { setUser } = useAuthStore();
 
@@ -79,8 +82,8 @@ export default function LoginPassword() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+      behavior={Platform.OS === "ios" ? "padding" : "padding"}
+      keyboardVerticalOffset={headerHeight}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}

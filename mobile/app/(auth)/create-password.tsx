@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
-  KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   TextInput,
   Keyboard,
   useColorScheme,
+  StatusBar,
 } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
@@ -15,11 +15,14 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedButton } from "@/components/ThemedButton";
 import { register } from "@/api/user";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import { useHeaderHeight } from "@react-navigation/elements";
 
 export default function CreatePassword() {
   const colorScheme = useColorScheme();
   const color = colorScheme === "dark" ? "white" : "black";
   const router = useRouter();
+  const headerHeight = useHeaderHeight() + (StatusBar.currentHeight ?? 0);
 
   const { name, username, email } = useLocalSearchParams();
   const [password, setPassword] = useState("");
@@ -32,9 +35,9 @@ export default function CreatePassword() {
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    password.length < 8 || confirmPassword.length < 8
-      ? setIsInvalidPassword(true)
-      : setIsInvalidPassword(false);
+    if (password.length < 8 || confirmPassword.length < 8)
+      setIsInvalidPassword(true);
+    else setIsInvalidPassword(false);
   }, [password, confirmPassword]);
 
   const handleContinue = async () => {
@@ -67,7 +70,8 @@ export default function CreatePassword() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : "padding"}
+      keyboardVerticalOffset={headerHeight}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}

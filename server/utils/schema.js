@@ -50,6 +50,12 @@ export const UserSchema = {
       .required(),
   }),
 
+  createLocalPassword: Joi.object({
+    newPassword: Joi.string()
+      .pattern(new RegExp('^[a-zA-Z0-9!@#$%^&*()_+={}|:"<>?\\,-.]{8,30}$'))
+      .required(),
+  }),
+
   deleteAccount: Joi.object({
     password: Joi.string()
       .pattern(new RegExp('^[a-zA-Z0-9!@#$%^&*()_+={}|:"<>?\\,-.]{8,30}$'))

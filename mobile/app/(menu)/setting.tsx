@@ -88,7 +88,13 @@ export default function Setting() {
         data={filteredMenus}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
-          return <SettingMenuItem item={item} forceExpand={isSearching} />;
+          return (
+            <SettingMenuItem
+              item={item}
+              forceExpand={isSearching}
+              onPress={() => {}}
+            />
+          );
         }}
         style={styles.container}
         showsVerticalScrollIndicator={false}

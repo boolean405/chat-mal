@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
   StyleSheet,
   TextInput,
   TouchableOpacity,
@@ -15,12 +16,14 @@ import { register, registerVerify } from "@/api/user";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useAuthStore } from "@/stores/authStore";
+import { useHeaderHeight } from "@react-navigation/elements";
 
 export default function VerifyEmailScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const color = colorScheme === "dark" ? "white" : "black";
   const { setUser } = useAuthStore();
+  const headerHeight = useHeaderHeight() + (StatusBar.currentHeight ?? 0);
 
   const { name, username, email, password } = useLocalSearchParams();
 
@@ -104,7 +107,8 @@ export default function VerifyEmailScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : "padding"}
+      keyboardVerticalOffset={headerHeight}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
@@ -115,12 +119,12 @@ export default function VerifyEmailScreen() {
           <ThemedText style={styles.titleText}>
             Enter verify code, check in your email
           </ThemedText>
-          <ThemedText>"{email}"</ThemedText>
+          <ThemedText>{email}</ThemedText>
           <ThemedText
             type="defaultItalic"
             style={{ marginBottom: 20, marginTop: 5 }}
           >
-            Don't forget to check also in your spam folder
+            Don&apos;t forget to check also in your spam folder
           </ThemedText>
 
           <ThemedView style={styles.inputContainer}>

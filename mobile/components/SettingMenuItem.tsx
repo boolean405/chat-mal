@@ -30,12 +30,14 @@ type Props = {
   item: ParentItem;
   disabled?: boolean;
   forceExpand?: boolean;
+  onPress?: () => void;
 };
 
 export default function SettingCard({
   item,
   disabled = false,
   forceExpand,
+  onPress,
 }: Props) {
   const router = useRouter();
   const colorScheme = useColorScheme();
@@ -65,7 +67,7 @@ export default function SettingCard({
     >
       {/* Header row (main item) */}
       <TouchableOpacity
-        onPress={hasChildren ? toggle : undefined}
+        onPress={hasChildren ? toggle : onPress}
         activeOpacity={0.7}
       >
         <View style={styles.headerRow}>
