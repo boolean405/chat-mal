@@ -189,7 +189,7 @@ export default function LoginOrRegister() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "padding"}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={headerHeight} // Adjust this value based on your header height and status bar
     >
       <ScrollView

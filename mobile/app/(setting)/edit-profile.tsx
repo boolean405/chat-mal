@@ -257,7 +257,7 @@ export default function EditProfile() {
   return (
     <KeyboardAvoidingView
       style={[{ flex: 1 }]}
-      behavior={"padding"}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={headerHeight}
     >
       {/* Header */}

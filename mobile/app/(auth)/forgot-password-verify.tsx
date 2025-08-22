@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
   StyleSheet,
   TextInput,
   TouchableOpacity,
@@ -14,11 +15,13 @@ import {
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { forgotPassword, forgotPasswordVerify } from "@/api/user";
+import { useHeaderHeight } from "@react-navigation/elements";
 
 export default function VerifyEmailScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const color = colorScheme === "dark" ? "white" : "black";
+  const headerHeight = useHeaderHeight() + (StatusBar.currentHeight ?? 0);
   const inputs = useRef<Array<TextInput | null>>([]);
   const { email } = useLocalSearchParams();
 
@@ -106,6 +109,7 @@ export default function VerifyEmailScreen() {
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={headerHeight}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
