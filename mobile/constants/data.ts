@@ -2,6 +2,7 @@ import {
   BottomSheetOption,
   DetailItem,
   MenuItem,
+  ServiceItem,
   SettingItem,
   SettingMenuItem,
 } from "@/types";
@@ -158,8 +159,44 @@ export const MENUS: MenuItem[] = [
     iconName: "archive-outline",
     path: "/archived-chats",
   },
-  // { id: "5", label: "Events", iconName: "calendar-outline", path: "/events" },
+  {
+    id: "5",
+    label: "Services",
+    iconName: "layers-outline",
+    path: "/services",
+  },
   // { id: "6", label: "Memories", iconName: "time-outline", path: "/memories" },
+];
+
+export const SERVICE_MENUS: ServiceItem[] = [
+  {
+    id: "1",
+    label: "Couples Diary",
+    iconName: "book-outline",
+    color: "cyan",
+    path: "/couple-diary",
+  },
+  {
+    id: "2",
+    label: "Dating",
+    iconName: "heart-outline",
+    color: "pink",
+    path: "/dating",
+  },
+  {
+    id: "3",
+    label: "Couples Diary",
+    iconName: "book-outline",
+    color: "cyan",
+    path: "/couple-diary",
+  },
+  {
+    id: "4",
+    label: "Dating",
+    iconName: "heart-outline",
+    color: "pink",
+    path: "/dating",
+  },
 ];
 
 export const SETTINGS_MENUS: SettingMenuItem[] = [

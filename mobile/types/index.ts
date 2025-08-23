@@ -92,6 +92,14 @@ export type MenuItem = {
   iconName: keyof typeof Ionicons.glyphMap;
 };
 
+export type ServiceItem = {
+  id: string;
+  label: string;
+  path: string;
+  color: string;
+  iconName: keyof typeof Ionicons.glyphMap;
+};
+
 export type SettingItem = {
   id: string;
   label: string;
