@@ -16,7 +16,7 @@ import { Colors } from "@/constants/colors";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import ChatItem from "@/components/ChatItem";
-import { APP_NAME } from "@/constants";
+import { APP_NAME, SERVER_URL } from "@/constants";
 import ChatEmpty from "@/components/ChatEmpty";
 import ChatHeader from "@/components/ChatHeader";
 import { useAuthStore } from "@/stores/authStore";
@@ -39,7 +39,7 @@ const stories: Story[] = [
   {
     _id: "s2",
     name: "John Doe",
-    storyUri: `${process.env.EXPO_PUBLIC_SERVER_URL}/image/profile-photo`,
+    storyUri: `${SERVER_URL}/image/profile-photo`,
     hasStory: true,
   },
   // ... other stories

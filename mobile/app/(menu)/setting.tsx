@@ -1,7 +1,6 @@
 import React, { useRef, useState } from "react";
 import {
   StyleSheet,
-  TouchableOpacity,
   useColorScheme,
   FlatList,
   Dimensions,
@@ -12,7 +11,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { SETTINGS_MENUS } from "@/constants/data";
 import { Colors } from "@/constants/colors";
 import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
 import SettingMenuItem from "@/components/SettingMenuItem";
 import { SettingMenuItem as ParentItem, SettingMenuChildItem } from "@/types";
 import ScreenHeader from "@/components/ScreenHeader";

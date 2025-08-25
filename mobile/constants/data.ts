@@ -171,30 +171,16 @@ export const MENUS: MenuItem[] = [
 export const SERVICE_MENUS: ServiceItem[] = [
   {
     id: "1",
-    label: "Couples Diary",
-    iconName: "book-outline",
-    color: "cyan",
-    path: "/couple-diary",
+    label: "Been Together",
+    iconName: "heart",
+    color: "#f7028e",
+    path: "/been-together",
   },
   {
     id: "2",
-    label: "Dating",
-    iconName: "heart-outline",
-    color: "pink",
-    path: "/dating",
-  },
-  {
-    id: "3",
-    label: "Couples Diary",
-    iconName: "book-outline",
-    color: "cyan",
-    path: "/couple-diary",
-  },
-  {
-    id: "4",
-    label: "Dating",
-    iconName: "heart-outline",
-    color: "pink",
+    label: "BMI Calculator",
+    iconName: "scale",
+    color: "#32e3e3",
     path: "/dating",
   },
 ];

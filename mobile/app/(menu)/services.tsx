@@ -3,7 +3,6 @@ import React, { useRef, useState } from "react";
 import {
   TextInput,
   FlatList,
-  KeyboardAvoidingView,
   Platform,
   StyleSheet,
   useColorScheme,
@@ -14,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import ScreenHeader from "@/components/ScreenHeader";
 import { SERVICE_MENUS } from "@/constants/data";
 import ServiceItem from "@/components/ServiceItem";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 
 export default function Services() {
   const router = useRouter();
@@ -69,7 +69,11 @@ export default function Services() {
           return (
             <ServiceItem
               item={item}
-              onPress={() => router.push(`/(menu)/services${item.path}` as any)}
+              onPress={() => {
+                if (item.path === "/been-together") {
+                  router.push(`/(menu)/services${item.path}` as any);
+                }
+              }}
             />
           );
         }}

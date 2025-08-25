@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useAuthStore } from "@/stores/authStore";
-const SERVER_URL = process.env.EXPO_PUBLIC_SERVER_URL;
+import { SERVER_URL } from "@/constants";
 
 const api = axios.create({
   baseURL: SERVER_URL,

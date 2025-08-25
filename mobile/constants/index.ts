@@ -1,13 +1,21 @@
 import { Platform } from "react-native";
+import Constants from "expo-constants";
 
 export const APP_NAME = "Chat Mal";
 export const APP_TAGLINE = "Explore the World";
 export const CS_EMAIL = "chatmalapp@gmail.com";
 export const WEBSITE_URL = "https://chatmal.com";
 
-// Replace with your real store URLs / IDs
+// Envionment variables
+export const SERVER_URL = process.env.EXPO_PUBLIC_SERVER_URL;
+export const GOOGLE_IOS_CLIENT_ID =
+  process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+export const GOOGLE_WEB_CLIENT_ID =
+  process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+
+// App Store IDs
 const IOS_STORE_ID = "1234567890";
-const ANDROID_PACKAGE = "com.chat.mal";
+const ANDROID_PACKAGE = Constants.expoConfig?.android?.package;
 
 export const RATE_APP_URL =
   Platform.OS === "ios"

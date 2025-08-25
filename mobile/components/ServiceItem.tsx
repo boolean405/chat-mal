@@ -30,9 +30,11 @@ export default function ServiceItem({
       style={[styles.container, { backgroundColor: color.secondaryBackground }]}
       onPress={onPress}
     >
-      <View style={styles.card}>
+      <View style={styles.cardContainer}>
         <Ionicons name={item.iconName} size={24} color={item.color} />
-        <ThemedText numberOfLines={1}>{item.label}</ThemedText>
+        <View style={styles.card}>
+          <ThemedText numberOfLines={1}>{item.label}</ThemedText>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -48,10 +50,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 10,
   },
+  cardContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+  },
   card: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 10,
+    paddingLeft: 5,
   },
 });
