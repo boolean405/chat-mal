@@ -847,7 +847,7 @@ const styles = StyleSheet.create({
     // paddingRight: 20,
     flexDirection: "row",
     alignItems: "center",
-    borderBottomWidth: 0.4,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     zIndex: 1, // to show header
   },
   chatName: { flex: 1, marginLeft: 10 },

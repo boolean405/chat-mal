@@ -15,6 +15,7 @@ import publicRoute from "./routes/public.js";
 import imageRoute from "./routes/image.js";
 import chatRoute from "./routes/chat.js";
 import messageRoute from "./routes/message.js";
+import beenTogetherRoute from "./routes/beenTogether.js";
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use("/api/user", userRoute);
 app.use("/api/public", publicRoute);
 app.use("/api/chat", chatRoute);
 app.use("/api/message", messageRoute);
+app.use("/api/been-together", beenTogetherRoute);
 app.use("/image", imageRoute);
 
 // Error handling

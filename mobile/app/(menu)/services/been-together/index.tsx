@@ -1,227 +1,210 @@
-// app/been-together.tsx (your parent)
-import React, { useState } from "react";
-import {
-  Modal,
-  TextInput,
-  View,
-  TouchableOpacity,
-  Platform,
-  StyleSheet,
-  useColorScheme,
-} from "react-native";
+// app/been-together.tsx
+import React, { useEffect, useMemo, useState } from "react";
+import { StyleSheet, useColorScheme, ScrollView, Alert } from "react-native";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-
 import DaysTogetherPill from "@/components/been-together/DaysTogetherPill";
 import UserAvatarCard from "@/components/been-together/UserAvatarCard";
 import ScreenHeader from "@/components/ScreenHeader";
 import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
-import { SERVER_URL } from "@/constants";
 import { Ionicons } from "@expo/vector-icons";
-import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { Colors } from "@/constants/colors";
+import { UPCOMING_EVENTS } from "@/constants/data";
+import UpcomingEventsList from "@/components/been-together/UpcomingEventsList";
+import EditRelationshipModal from "@/components/been-together/EditRelationshipModal";
+import { useAuthStore } from "@/stores/authStore";
+import { User } from "@/types";
+import SelectUserModal from "@/components/been-together/SelectUserModal";
+import { useBeenTogetherStore } from "@/stores/beenTogetherStore";
+import { toDate } from "@/utils/dates";
 import { format } from "date-fns";
+import { useNetworkStore } from "@/stores/useNetworkStore";
 
 export default function BeenTogether() {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
 
-  const [title, setTitle] = useState("Falling in Love");
+  const user = useAuthStore((s) => s.user);
+  const networkInfo = useNetworkStore((state) => state.networkInfo);
+
+  const {
+    title,
+    partner,
+    isLoading,
+    lovedAt,
+    eventsDayCount,
+    fetchData,
+    updateData,
+  } = useBeenTogetherStore();
+
+  // normalize store date once for this render
+  const startDateSafe = useMemo(() => toDate(lovedAt), [lovedAt]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
   const [titleDraft, setTitleDraft] = useState(title);
   const [isEditing, setIsEditing] = useState(false);
-
+  const [lovedAtDraft, setLovedAtDraft] = useState<Date>(startDateSafe);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [startDate, setStartDate] = useState(
-    new Date("2025-08-05T00:00:00.000Z")
-  );
-  const [startDateDraft, setStartDateDraft] = useState(startDate);
 
-  // Title edit handlers
+  const [events, setEvents] = useState(UPCOMING_EVENTS);
+  const [eventsDayCountDraft, setEventsDayCountDraft] =
+    useState(eventsDayCount);
+
+  const [showSelectUserModal, setShowSelectUserModal] = useState(false);
+
+  // keep drafts in sync when store changes (e.g., after API load)
+  useEffect(() => {
+    setTitleDraft(title);
+    setLovedAtDraft(startDateSafe);
+    setEventsDayCountDraft(eventsDayCount);
+  }, [title, startDateSafe, eventsDayCount]);
+
   const openEditor = () => {
     setTitleDraft(title);
+    setLovedAtDraft(startDateSafe); // ensure Date
+    setEventsDayCountDraft(eventsDayCount);
     setIsEditing(true);
   };
-  const saveData = () => {
-    const next = titleDraft.trim();
-    setStartDate(startDateDraft);
-    if (next) setTitle(next);
+
+  // Handle select partner
+  const handleSelectedPartner = (partner: User) => {
+    if (!networkInfo?.isConnected) {
+      Alert.alert(
+        "No internet connection",
+        "Please check your internet connection and try again."
+      );
+      return;
+    }
+
+    updateData({ partner });
+    setShowSelectUserModal(false);
+  };
+
+  // Handle remove partner
+  const handleRemovePartner = () => {
+    updateData({ partner: null });
+  };
+
+  // Handle save data
+  const handleSaveData = () => {
+    if (!networkInfo?.isConnected) {
+      Alert.alert(
+        "No internet connection",
+        "Please check your internet connection and try again."
+      );
+      return;
+    }
+
+    const nextTitle = titleDraft.trim();
+    updateData({
+      title: nextTitle,
+      lovedAt: lovedAtDraft,
+      eventsDayCount: eventsDayCountDraft,
+    });
     setIsEditing(false);
   };
 
-  // Date edit handlers
   const onChangeDate = (event: DateTimePickerEvent, selectedDate?: Date) => {
     setShowDatePicker(false);
     if (event.type === "set" && selectedDate) {
-      setStartDateDraft(selectedDate);
-      console.log("start date draft:", startDateDraft);
-      console.log("startDate:       ", startDate);
-
-      console.log("Selected date:   ", selectedDate);
+      setLovedAtDraft(selectedDate);
     }
   };
+
+  const isUnchanged =
+    titleDraft === title &&
+    lovedAtDraft.getTime() === startDateSafe.getTime() &&
+    eventsDayCountDraft === eventsDayCount;
+
+  if (!user) return null;
 
   return (
     <ThemedView style={{ flex: 1 }}>
       <ScreenHeader title="Been Together" />
 
-      <ThemedView style={{ paddingHorizontal: 20 }}>
-        <DaysTogetherPill
-          startDateISO={startDate.toISOString().split("T")[0]}
-          title={title}
-          onEdit={openEditor}
-        />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <ThemedView style={{ paddingHorizontal: 20 }}>
+          <DaysTogetherPill
+            startDateISO={format(startDateSafe, "yyyy-MM-dd")}
+            title={title}
+            onEdit={openEditor}
+          />
 
-        {/* Avatars + center heart */}
-        <ThemedView style={styles.row}>
-          <ThemedView style={styles.sideCol}>
-            <UserAvatarCard
-              name="Boolean"
-              age={25}
-              gender="male"
-              zodiac="aries"
-              imageUri={`${SERVER_URL}/image/profile-photo`}
-            />
-          </ThemedView>
+          {/* User */}
+          <ThemedView style={styles.row}>
+            <ThemedView style={styles.sideCol}>
+              <UserAvatarCard user={user} disabled={true} />
+            </ThemedView>
 
-          <ThemedView style={styles.centerCol}>
-            <Ionicons name="heart" size={52} color={"#f7028e"} />
-          </ThemedView>
+            <ThemedView style={styles.centerCol}>
+              <Ionicons name="heart" size={52} color={"#f7028e"} />
+            </ThemedView>
 
-          <ThemedView style={styles.sideCol}>
-            <UserAvatarCard
-              name="Khay"
-              age={24}
-              gender="female"
-              zodiac="leo"
-              imageUri={`${SERVER_URL}/image/profile-photo`}
-            />
+            {/* Partner */}
+            <ThemedView style={styles.sideCol}>
+              <UserAvatarCard
+                user={partner ? partner : undefined}
+                disabled={isLoading}
+                onPress={() => setShowSelectUserModal(true)}
+              />
+            </ThemedView>
           </ThemedView>
         </ThemedView>
-      </ThemedView>
 
-      {/* Edit modal */}
-      <Modal
-        transparent
+        <UpcomingEventsList
+          events={events}
+          eventsDayCount={eventsDayCount}
+          onPressEvent={(event) => console.log("Pressed event:", event._id)}
+          onAddPress={() => console.log("Add event")}
+          onAllEventsPress={() => console.log("All events")}
+        />
+      </ScrollView>
+
+      <EditRelationshipModal
         visible={isEditing}
-        animationType="fade"
-        onRequestClose={() => setIsEditing(false)}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.select({ ios: "padding", android: "height" })}
-          style={modalStyles.overlay}
-        >
-          <ThemedView
-            style={[
-              modalStyles.card,
-              { backgroundColor: color.tertiaryBackground },
-            ]}
-          >
-            <ThemedText style={modalStyles.label}>Edit title</ThemedText>
+        titleDraft={titleDraft}
+        onChangeTitle={setTitleDraft}
+        lovedAtDraft={lovedAtDraft}
+        onPressPickDate={() => setShowDatePicker(true)}
+        eventsDayCountDraft={eventsDayCountDraft}
+        onDecWithin={() => setEventsDayCountDraft((d) => Math.max(1, d - 1))}
+        onIncWithin={() => setEventsDayCountDraft((d) => Math.min(30, d + 1))}
+        isUnchanged={isUnchanged}
+        onCancel={() => {
+          setTitleDraft(title);
+          setLovedAtDraft(startDateSafe);
+          setEventsDayCountDraft(eventsDayCount);
+          setIsEditing(false);
+        }}
+        isLoading={isLoading}
+        onSave={handleSaveData}
+        partner={partner}
+        onPressPartner={() => {
+          if (partner) handleRemovePartner();
+          else setShowSelectUserModal(true);
+        }}
+      />
 
-            {/* Title input with icon */}
-            <View
-              style={[
-                modalStyles.inputWrapper,
-                { borderColor: color.primaryBorder },
-              ]}
-            >
-              <Ionicons
-                name="pencil-outline"
-                size={18}
-                color={color.primaryIcon}
-              />
-              <TextInput
-                value={titleDraft}
-                onChangeText={setTitleDraft}
-                placeholder="Title"
-                placeholderTextColor="gray"
-                autoFocus
-                returnKeyType="done"
-                onSubmitEditing={saveData}
-                style={[modalStyles.input, { color: color.primaryText }]}
-              />
-            </View>
-
-            {/* Edit date */}
-            <ThemedText style={modalStyles.label}>Edit start date</ThemedText>
-
-            {/* Left: picked date */}
-            <TouchableOpacity
-              onPress={() => setShowDatePicker(true)}
-              style={[modalStyles.dateRow]}
-              activeOpacity={0.7}
-            >
-              <View
-                style={[
-                  modalStyles.dateContainer,
-                  { borderColor: color.primaryBorder },
-                ]}
-              >
-                <Ionicons
-                  name="calendar-outline"
-                  size={18}
-                  color={color.primaryIcon}
-                />
-                <ThemedText style={[modalStyles.dateValue]}>
-                  {format(startDateDraft, "PP")}
-                </ThemedText>
-              </View>
-            </TouchableOpacity>
-
-            {/* Actions */}
-            <View style={modalStyles.actions}>
-              <TouchableOpacity
-                style={[modalStyles.btn]}
-                onPress={() => {
-                  setStartDateDraft(startDate);
-                  setIsEditing(false);
-                }}
-                activeOpacity={0.7}
-              >
-                <ThemedText>Cancel</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  modalStyles.btn,
-                  {
-                    backgroundColor: color.primaryButtonBackground,
-                    opacity:
-                      !titleDraft.trim() ||
-                      (titleDraft === title &&
-                        startDateDraft.getTime() === startDate.getTime())
-                        ? 0.5
-                        : 1,
-                  },
-                ]}
-                onPress={saveData}
-                activeOpacity={0.7}
-                disabled={
-                  !titleDraft.trim() ||
-                  (titleDraft === title &&
-                    startDateDraft.getTime() === startDate.getTime())
-                }
-              >
-                <ThemedText style={{ color: color.primaryBackground }}>
-                  Save
-                </ThemedText>
-              </TouchableOpacity>
-            </View>
-          </ThemedView>
-        </KeyboardAvoidingView>
-      </Modal>
-
-      {/* Date picker */}
       {showDatePicker && (
         <DateTimePicker
-          value={startDateDraft}
+          value={lovedAtDraft}
           mode="date"
           display="default"
           onChange={onChangeDate}
-          maximumDate={new Date()} // optional: prevent picking future
+          maximumDate={new Date()}
         />
       )}
+
+      <SelectUserModal
+        visible={showSelectUserModal}
+        onClose={() => setShowSelectUserModal(false)}
+        currentUserId={user._id}
+        onSelect={(partner) => handleSelectedPartner(partner)}
+      />
     </ThemedView>
   );
 }
@@ -229,60 +212,19 @@ export default function BeenTogether() {
 const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
-    alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: 20,
     gap: 12,
   },
-  sideCol: { flex: 1, alignItems: "center" },
-  centerCol: { width: 80, alignItems: "center", justifyContent: "center" },
-});
-
-const modalStyles = StyleSheet.create({
-  overlay: {
-    flex: 1,
+  // Equal-width columns, regardless of inner content width
+  sideCol: {
+    flexGrow: 1,
+    flexBasis: 0,
+    alignItems: "center",
+  },
+  centerCol: {
+    width: 80,
+    alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 30,
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  card: { borderRadius: 16, padding: 16 },
-  label: { fontSize: 16, opacity: 0.7, marginBottom: 8 },
-  actions: {
-    marginTop: 12,
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 12,
-  },
-  btn: { paddingVertical: 7, paddingHorizontal: 14, borderRadius: 10 },
-  dateRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-  },
-  dateValue: {
-    fontWeight: "600",
-  },
-  dateContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderWidth: 0.4,
-    gap: 8,
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 0.4,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    marginBottom: 15,
-    gap: 2,
-  },
-  input: {
-    flex: 1, // so it takes the remaining space
-    paddingVertical: 8,
-    lineHeight: 22,
   },
 });

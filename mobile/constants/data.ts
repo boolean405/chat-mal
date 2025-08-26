@@ -5,6 +5,7 @@ import {
   ServiceItem,
   SettingItem,
   SettingMenuItem,
+  UpcomingEvent,
 } from "@/types";
 
 export const DetailsData: (DetailItem & {
@@ -176,13 +177,13 @@ export const SERVICE_MENUS: ServiceItem[] = [
     color: "#f7028e",
     path: "/been-together",
   },
-  {
-    id: "2",
-    label: "BMI Calculator",
-    iconName: "scale",
-    color: "#32e3e3",
-    path: "/dating",
-  },
+  // {
+  //   id: "2",
+  //   label: "BMI Calculator",
+  //   iconName: "scale",
+  //   color: "#32e3e3",
+  //   path: "/dating",
+  // },
 ];
 
 export const SETTINGS_MENUS: SettingMenuItem[] = [
@@ -281,5 +282,43 @@ export const SETTINGS_MENUS: SettingMenuItem[] = [
         path: "/app-info",
       },
     ],
+  },
+];
+
+export const UPCOMING_EVENTS: UpcomingEvent[] = [
+  {
+    _id: "evt-1",
+    title: "First Date Anniversary",
+    startAt: "2025-09-27T00:00:00.000Z",
+    description: "Dinner at the beach place 🌊",
+  },
+  {
+    _id: "evt-2",
+    title: "Birthday (Boolean)",
+    startAt: "2025-09-28T00:00:00.000Z",
+  },
+  {
+    _id: "evt-3",
+    title: "Trip to Chiang Mai",
+    startAt: "2025-08-29T00:00:00.000Z",
+    description: "3-day weekend getaway",
+  },
+  {
+    _id: "evt-4",
+    title: "Trip to Chiang Mai",
+    startAt: "2025-08-27T00:00:00.000Z",
+    description: "3-day weekend getaway",
+  },
+  {
+    _id: "evt-5",
+    title: "Trip to Chiang Mai",
+    startAt: "2025-08-28T00:00:00.000Z",
+    description: "3-day weekend getaway",
+  },
+  {
+    _id: "evt-6",
+    title: "Test event",
+    startAt: "2025-08-26T16:30:06.369Z",
+    description: "3-day weekend getaway",
   },
 ];

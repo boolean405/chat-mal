@@ -6,14 +6,16 @@ import {
   Platform,
   StyleSheet,
   useColorScheme,
+  TouchableOpacity,
 } from "react-native";
-import { ThemedView } from "@/components/ThemedView";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+
 import { Colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
-import ScreenHeader from "@/components/ScreenHeader";
 import { SERVICE_MENUS } from "@/constants/data";
-import ServiceItem from "@/components/ServiceItem";
-import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import ScreenHeader from "@/components/ScreenHeader";
+import { ThemedView } from "@/components/ThemedView";
+import ServiceItem from "@/components/service/ServiceItem";
 
 export default function Services() {
   const router = useRouter();
@@ -22,6 +24,22 @@ export default function Services() {
 
   const inputRef = useRef<TextInput>(null);
   const [keyword, setKeyword] = useState("");
+
+  // Simple filtering: case-insensitive match on label or path
+  const filteredServices = SERVICE_MENUS.filter((item) => {
+    const q = keyword.toLowerCase().trim();
+    if (!q) return true;
+    return (
+      item.label.toLowerCase().includes(q) ||
+      item.path.toLowerCase().includes(q)
+    );
+  });
+
+  // Clear input
+  const handleClear = () => {
+    setKeyword("");
+    inputRef.current?.focus();
+  };
 
   return (
     <KeyboardAvoidingView
@@ -54,12 +72,21 @@ export default function Services() {
               placeholderTextColor="gray"
               style={[styles.textInput, { color: color.primaryText }]}
             />
+            {keyword.length > 0 && (
+              <TouchableOpacity onPress={handleClear}>
+                <Ionicons
+                  name="close-circle-outline"
+                  size={18}
+                  color={color.primaryIcon}
+                />
+              </TouchableOpacity>
+            )}
           </ThemedView>
         </ThemedView>
       </ThemedView>
 
       <FlatList
-        data={SERVICE_MENUS}
+        data={filteredServices}
         keyExtractor={(item) => item.id}
         style={styles.resultList}
         showsVerticalScrollIndicator={false}
@@ -70,9 +97,7 @@ export default function Services() {
             <ServiceItem
               item={item}
               onPress={() => {
-                if (item.path === "/been-together") {
-                  router.push(`/(menu)/services${item.path}` as any);
-                }
+                router.push(`/(menu)/services${item.path}` as any);
               }}
             />
           );

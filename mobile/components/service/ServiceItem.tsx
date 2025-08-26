@@ -9,7 +9,7 @@ import React from "react";
 import { ServiceItem as ServiceItemType } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
-import { ThemedText } from "./ThemedText";
+import { ThemedText } from "../ThemedText";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - 50) / 2; // screen width minus paddings/gaps

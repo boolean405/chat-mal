@@ -48,16 +48,13 @@ export default function Search() {
 
   const {
     users,
-    // page,
     keyword,
     selectedFilter,
     hasMore,
     isLoading,
     isPaging,
     selectedSort,
-    // exit,
     setSelectedSort,
-    // errorMessage,
     setKeyword,
     setSelectedFilter,
     fetchSearchUsers,
@@ -65,11 +62,9 @@ export default function Search() {
 
   const debouncedKeyword = useDebounce(keyword, 400);
 
-  // useEffect(() => {
-  //   return () => {
-  //     exit();
-  //   };
-  // }, [exit]);
+  useEffect(() => {
+    return () => setKeyword("");
+  }, [setKeyword]);
 
   useEffect(() => {
     inputRef.current?.focus();

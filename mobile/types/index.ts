@@ -8,7 +8,7 @@ export type User = {
   profilePhoto: string;
   coverPhoto?: string;
   isOnline: boolean;
-  gender?: "male" | "female";
+  gender?: "male" | "female" | "other";
   birthday?: Date;
   bio?: string;
   verified: "verified" | "unverified" | "pending";
@@ -120,4 +120,23 @@ export type SettingMenuChildItem = {
   title: string;
   path: string;
   iconName: keyof typeof Ionicons.glyphMap;
+};
+
+export type BeenTogether = {
+  _id: string;
+  title: string;
+  withinEventsCount: number;
+  user: User;
+  partner: User;
+  lovedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type UpcomingEvent = {
+  _id: string;
+  title: string;
+  startAt: Date | string;
+  description?: string;
+  icon?: keyof typeof Ionicons.glyphMap; // optional per-row icon
 };

@@ -277,3 +277,14 @@ export const MessageSchema = {
     }),
   },
 };
+
+export const BeenTogetherSchema = {
+  edit: Joi.object({
+    lovedAt: Joi.date().optional(),
+    eventsDayCount: Joi.number().optional(),
+    title: Joi.string().min(1).max(50).optional(),
+    partner: Joi.alternatives()
+      .try(Joi.string().length(24).hex(), Joi.valid(null))
+      .optional(),
+  }),
+};

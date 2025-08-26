@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     padding: 15,
     flexDirection: "row",
     alignItems: "center",
-    borderBottomWidth: 0.4,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     justifyContent: "space-between",
   },
   leftContainer: {
