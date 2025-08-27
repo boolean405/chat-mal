@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
   TextInput,
@@ -16,9 +16,13 @@ import { SERVICE_MENUS } from "@/constants/data";
 import ScreenHeader from "@/components/ScreenHeader";
 import { ThemedView } from "@/components/ThemedView";
 import ServiceItem from "@/components/service/ServiceItem";
+import { useSafeNavigation } from "@/hooks/useSafeNavigation";
 
 export default function Services() {
   const router = useRouter();
+  const pathname = usePathname();
+  const { safePush } = useSafeNavigation();
+
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
 
@@ -97,7 +101,8 @@ export default function Services() {
             <ServiceItem
               item={item}
               onPress={() => {
-                router.push(`/(menu)/services${item.path}` as any);
+                if (pathname !== `/(menu)/services${item.path}`)
+                  safePush(`/(menu)/services${item.path}`);
               }}
             />
           );

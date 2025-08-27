@@ -10,18 +10,22 @@ import ScreenHeader from "@/components/ScreenHeader";
 import { ThemedView } from "@/components/ThemedView";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
-import { UPCOMING_EVENTS } from "@/constants/data";
-import UpcomingEventsList from "@/components/been-together/UpcomingEventsList";
+import UpcomingEventsList from "@/components/event/EventsList";
 import EditRelationshipModal from "@/components/been-together/EditRelationshipModal";
 import { useAuthStore } from "@/stores/authStore";
-import { User } from "@/types";
+import { Event, User } from "@/types";
 import SelectUserModal from "@/components/been-together/SelectUserModal";
 import { useBeenTogetherStore } from "@/stores/beenTogetherStore";
 import { toDate } from "@/utils/dates";
 import { format } from "date-fns";
 import { useNetworkStore } from "@/stores/useNetworkStore";
+import { createEvent } from "@/api/event";
+import AddEventModal from "@/components/event/AddEventModal";
+import { useEventStore } from "@/stores/eventStore";
+import { useRouter } from "expo-router";
 
 export default function BeenTogether() {
+  const router = useRouter();
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "light"];
 
@@ -38,23 +42,55 @@ export default function BeenTogether() {
     updateData,
   } = useBeenTogetherStore();
 
+  const {
+    events,
+    hasMore,
+    isPaging,
+    isLoading: isLoadingEvents,
+    fetchEvents,
+    createEvent,
+    setWithinDays,
+  } = useEventStore();
+
   // normalize store date once for this render
   const startDateSafe = useMemo(() => toDate(lovedAt), [lovedAt]);
 
+  // Unmount
+  useEffect(() => {
+    setWithinDays(eventsDayCount);
+    return () => {
+      setWithinDays(0);
+    };
+  }, [eventsDayCount, setWithinDays]);
+
+  // Fetch beentogether
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
+  // Fetch upcoming events
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents, eventsDayCount]);
+
+  const handleLoadMore = async () => {
+    if (hasMore && !isPaging && !isLoading) {
+      await fetchEvents(true);
+    }
+  };
+
   const [titleDraft, setTitleDraft] = useState(title);
-  const [isEditing, setIsEditing] = useState(false);
   const [lovedAtDraft, setLovedAtDraft] = useState<Date>(startDateSafe);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const [events, setEvents] = useState(UPCOMING_EVENTS);
   const [eventsDayCountDraft, setEventsDayCountDraft] =
     useState(eventsDayCount);
 
+  const [showEditRelationshipModal, setShowEditRelationshipModal] =
+    useState(false);
   const [showSelectUserModal, setShowSelectUserModal] = useState(false);
+  const [showAddEventModal, setShowAddEventModal] = useState(false);
+  const [isSubmittingEvent, setIsSubmittingEvent] = useState(false);
 
   // keep drafts in sync when store changes (e.g., after API load)
   useEffect(() => {
@@ -67,7 +103,7 @@ export default function BeenTogether() {
     setTitleDraft(title);
     setLovedAtDraft(startDateSafe); // ensure Date
     setEventsDayCountDraft(eventsDayCount);
-    setIsEditing(true);
+    setShowEditRelationshipModal(true);
   };
 
   // Handle select partner
@@ -105,7 +141,8 @@ export default function BeenTogether() {
       lovedAt: lovedAtDraft,
       eventsDayCount: eventsDayCountDraft,
     });
-    setIsEditing(false);
+    setWithinDays(eventsDayCountDraft);
+    setShowEditRelationshipModal(false);
   };
 
   const onChangeDate = (event: DateTimePickerEvent, selectedDate?: Date) => {
@@ -122,50 +159,80 @@ export default function BeenTogether() {
 
   if (!user) return null;
 
+  // For events
+  const handleSubmitNewEvent = async (payload: {
+    title: string;
+    startAt: Date;
+    description?: string;
+  }) => {
+    if (!networkInfo?.isConnected) {
+      Alert.alert(
+        "No internet connection",
+        "Please check your internet connection and try again."
+      );
+      return;
+    }
+    try {
+      createEvent(payload);
+      setIsSubmittingEvent(true);
+      setShowAddEventModal(false);
+    } catch (e: any) {
+      Alert.alert("Create event failed", e?.message);
+    } finally {
+      setIsSubmittingEvent(false);
+    }
+  };
+
   return (
     <ThemedView style={{ flex: 1 }}>
       <ScreenHeader title="Been Together" />
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <ThemedView style={{ paddingHorizontal: 20 }}>
-          <DaysTogetherPill
-            startDateISO={format(startDateSafe, "yyyy-MM-dd")}
-            title={title}
-            onEdit={openEditor}
-          />
+      <ThemedView style={{ paddingHorizontal: 20, marginBottom: 50 }}>
+        <DaysTogetherPill
+          startDateISO={format(startDateSafe, "yyyy-MM-dd")}
+          title={title}
+          onEdit={openEditor}
+        />
 
-          {/* User */}
-          <ThemedView style={styles.row}>
-            <ThemedView style={styles.sideCol}>
-              <UserAvatarCard user={user} disabled={true} />
-            </ThemedView>
+        {/* User */}
+        <ThemedView style={styles.row}>
+          <ThemedView style={styles.sideCol}>
+            <UserAvatarCard user={user} disabled={true} />
+          </ThemedView>
 
-            <ThemedView style={styles.centerCol}>
-              <Ionicons name="heart" size={52} color={"#f7028e"} />
-            </ThemedView>
+          <ThemedView style={styles.centerCol}>
+            <Ionicons name="heart" size={52} color={"#f7028e"} />
+          </ThemedView>
 
-            {/* Partner */}
-            <ThemedView style={styles.sideCol}>
-              <UserAvatarCard
-                user={partner ? partner : undefined}
-                disabled={isLoading}
-                onPress={() => setShowSelectUserModal(true)}
-              />
-            </ThemedView>
+          {/* Partner */}
+          <ThemedView style={styles.sideCol}>
+            <UserAvatarCard
+              user={partner ? partner : undefined}
+              disabled={isLoading}
+              onPress={() => setShowSelectUserModal(true)}
+            />
           </ThemedView>
         </ThemedView>
+      </ThemedView>
 
-        <UpcomingEventsList
-          events={events}
-          eventsDayCount={eventsDayCount}
-          onPressEvent={(event) => console.log("Pressed event:", event._id)}
-          onAddPress={() => console.log("Add event")}
-          onAllEventsPress={() => console.log("All events")}
-        />
-      </ScrollView>
+      <UpcomingEventsList
+        events={events}
+        onPressEvent={(event) => console.log("Pressed event:", event._id)}
+        onAddPress={() => setShowAddEventModal(true)}
+        onCalendarPress={() =>
+          router.push({
+            pathname: "/(menu)/services/events" as any,
+          })
+        }
+        handleLoadMore={handleLoadMore}
+        hasMore={hasMore}
+        isPaging={isPaging}
+        withinDays={eventsDayCount}
+        isLoading={isLoadingEvents}
+      />
 
       <EditRelationshipModal
-        visible={isEditing}
+        visible={showEditRelationshipModal}
         titleDraft={titleDraft}
         onChangeTitle={setTitleDraft}
         lovedAtDraft={lovedAtDraft}
@@ -178,7 +245,7 @@ export default function BeenTogether() {
           setTitleDraft(title);
           setLovedAtDraft(startDateSafe);
           setEventsDayCountDraft(eventsDayCount);
-          setIsEditing(false);
+          setShowEditRelationshipModal(false);
         }}
         isLoading={isLoading}
         onSave={handleSaveData}
@@ -189,6 +256,7 @@ export default function BeenTogether() {
         }}
       />
 
+      {/* System date picker for Start Loved At */}
       {showDatePicker && (
         <DateTimePicker
           value={lovedAtDraft}
@@ -199,11 +267,20 @@ export default function BeenTogether() {
         />
       )}
 
+      {/* Partner selection */}
       <SelectUserModal
         visible={showSelectUserModal}
         onClose={() => setShowSelectUserModal(false)}
         currentUserId={user._id}
         onSelect={(partner) => handleSelectedPartner(partner)}
+      />
+
+      {/* NEW: Add Event modal */}
+      <AddEventModal
+        visible={showAddEventModal}
+        isSubmitting={isSubmittingEvent}
+        onClose={() => setShowAddEventModal(false)}
+        onSubmit={handleSubmitNewEvent}
       />
     </ThemedView>
   );
@@ -216,7 +293,6 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     gap: 12,
   },
-  // Equal-width columns, regardless of inner content width
   sideCol: {
     flexGrow: 1,
     flexBasis: 0,

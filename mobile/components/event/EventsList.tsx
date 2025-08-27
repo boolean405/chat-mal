@@ -5,48 +5,49 @@ import {
   StyleSheet,
   TouchableOpacity,
   useColorScheme,
+  ActivityIndicator,
 } from "react-native";
 
-import { UpcomingEvent } from "@/types";
+import { Event } from "@/types";
 import { Colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import UpcomingEventItem from "./UpcomingEventItem";
+import UpcomingEventItem from "./EventItem";
 
 type Props = {
-  events: UpcomingEvent[];
-  eventsDayCount?: number;
-  onPressEvent?: (e: UpcomingEvent) => void;
+  events: Event[];
+  sort?: "upcoming" | "ended";
+  screenType?: "events" | "been-together";
+  hasMore?: boolean;
+  isPaging?: boolean;
+  withinDays?: number;
+
+  handleLoadMore?: () => void;
+  onPressEvent?: (e: Event) => void;
   onAddPress?: () => void;
-  onAllEventsPress?: () => void;
+  onCalendarPress?: () => void;
+  onPressSort?: () => void;
 };
 
-export default function UpcomingEventsList({
+export default function EventsList({
   events,
-  eventsDayCount = 5,
+  screenType = "been-together",
+  sort = "upcoming",
+  hasMore,
+  isPaging,
+  withinDays,
+
+  handleLoadMore,
   onPressEvent,
   onAddPress,
-  onAllEventsPress,
+  onCalendarPress,
+  onPressSort,
 }: Props) {
   const scheme = useColorScheme();
   const color = Colors[scheme ?? "light"];
 
-  // For upcoming events only
-  const now = new Date();
-  const fiveDaysLater = new Date();
-  fiveDaysLater.setDate(now.getDate() + eventsDayCount);
-
-  const upcomingEvents = events
-    .filter((e) => {
-      const eventDate = new Date(e.startAt);
-      return eventDate >= now && eventDate <= fiveDaysLater;
-    })
-    .sort(
-      (a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime()
-    );
-
-  const renderItem = ({ item }: { item: UpcomingEvent }) => (
+  const renderItem = ({ item }: { item: Event }) => (
     <UpcomingEventItem item={item} onPress={onPressEvent} />
   );
 
@@ -54,13 +55,23 @@ export default function UpcomingEventsList({
     <ThemedView style={[styles.container]}>
       {/* Header */}
       <View style={styles.header}>
-        <ThemedText style={styles.headerTitle}>Upcoming Events</ThemedText>
+        <ThemedText style={styles.headerTitle}>
+          {sort === "upcoming"
+            ? `Upcoming Events${
+                withinDays
+                  ? ` (within ${withinDays} ${
+                      withinDays === 1 ? "day" : "days"
+                    })`
+                  : ""
+              }`
+            : "Ended Events"}
+        </ThemedText>
         {/* Right-side group: calendar + add button */}
         <View style={styles.rightGroup}>
           {/* All events */}
           <TouchableOpacity
             // hitSlop={8}
-            onPress={onAllEventsPress}
+            onPress={onCalendarPress}
             activeOpacity={0.7}
             style={[
               styles.iconContainer,
@@ -72,8 +83,29 @@ export default function UpcomingEventsList({
               size={18}
               color={color.primaryIcon}
             />
-            <ThemedText style={[styles.addText]}>All</ThemedText>
+            {screenType === "been-together" && (
+              <ThemedText style={[styles.addText]}>All</ThemedText>
+            )}
           </TouchableOpacity>
+
+          {/* Sort */}
+          {screenType === "events" && (
+            <TouchableOpacity
+              // hitSlop={8}
+              onPress={onPressSort}
+              activeOpacity={0.7}
+              style={[
+                styles.iconContainer,
+                { backgroundColor: color.secondaryBackground },
+              ]}
+            >
+              <Ionicons
+                name="chevron-expand-outline"
+                size={18}
+                color={color.primaryIcon}
+              />
+            </TouchableOpacity>
+          )}
 
           {/* Add events */}
           <TouchableOpacity
@@ -91,18 +123,21 @@ export default function UpcomingEventsList({
               size={18}
               color={color.primaryBackground}
             />
-            <ThemedText
-              style={[styles.addText, { color: color.primaryBackground }]}
-            >
-              Add
-            </ThemedText>
+            {screenType === "been-together" && (
+              <ThemedText
+                style={[styles.addText, { color: color.primaryBackground }]}
+              >
+                Add
+              </ThemedText>
+            )}
           </TouchableOpacity>
         </View>
       </View>
 
       {/* List */}
       <FlatList
-        data={upcomingEvents}
+        data={events}
+        style={{ flex: 1 }}
         keyExtractor={(e) => e._id}
         renderItem={renderItem}
         ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
@@ -121,8 +156,14 @@ export default function UpcomingEventsList({
           </ThemedView>
         }
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        scrollEnabled={false}
+        contentContainerStyle={{ paddingBottom: 20, flexGrow: 1 }}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.1}
+        ListFooterComponent={
+          hasMore && events.length > 0 && isPaging ? (
+            <ActivityIndicator size="small" color={color.primaryIcon} />
+          ) : null
+        }
       />
     </ThemedView>
   );
@@ -130,10 +171,9 @@ export default function UpcomingEventsList({
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 50,
+    flex: 1,
     marginHorizontal: 20,
     borderRadius: 16,
-    // padding: 12,
   },
   addText: { fontWeight: "600" },
   empty: { alignItems: "center", gap: 8, paddingVertical: 16 },

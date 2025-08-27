@@ -6,7 +6,7 @@ const beenTogetherSchema = new Schema(
     title: {
       type: String,
       required: true,
-      default: "we have been together",
+      default: "We have been together",
       trim: true,
     },
     lovedAt: {
@@ -36,6 +36,6 @@ const beenTogetherSchema = new Schema(
 );
 
 export const BeenTogetherDB = mongoose.model(
-  "beenTogether",
+  "been-together",
   beenTogetherSchema
 );

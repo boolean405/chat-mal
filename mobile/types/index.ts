@@ -133,10 +133,11 @@ export type BeenTogether = {
   updatedAt: Date;
 };
 
-export type UpcomingEvent = {
+export type Event = {
   _id: string;
   title: string;
   startAt: Date | string;
   description?: string;
+  user: User;
   icon?: keyof typeof Ionicons.glyphMap; // optional per-row icon
 };

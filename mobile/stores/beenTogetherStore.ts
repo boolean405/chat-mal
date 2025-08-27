@@ -71,8 +71,6 @@ export const useBeenTogetherStore = create<BeenTogetherState>()(
           payload.partner = partner._id;
         }
 
-        console.log(JSON.stringify(payload, null, 2));
-
         try {
           const data = await edit(payload);
           set({
@@ -81,7 +79,6 @@ export const useBeenTogetherStore = create<BeenTogetherState>()(
             lovedAt: toDate(data.result.lovedAt),
             eventsDayCount: data.result.eventsDayCount,
           });
-          // console.log(JSON.stringify(data, null, 2));
         } catch (error) {
           console.log(error);
         } finally {

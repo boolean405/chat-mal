@@ -6,11 +6,14 @@ import { useMessageStore } from "@/stores/messageStore";
 import { Ionicons } from "@expo/vector-icons";
 import { Alert, StyleSheet, TouchableOpacity } from "react-native";
 import { logout as logoutApi } from "@/api/user";
+import { useEventStore } from "@/stores/eventStore";
 
 export const LogoutButton: React.FC = () => {
   const { logout } = useAuthStore();
   const { clearAllChats } = useChatStore();
   const { clearAllMessages } = useMessageStore();
+  const { clearAllEvents } = useEventStore();
+
   const handleLogout = () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
       {
@@ -28,6 +31,7 @@ export const LogoutButton: React.FC = () => {
             // Zustand storage clear all
             clearAllChats();
             clearAllMessages();
+            clearAllEvents();
             logout(); // include routing to auth
           } catch (error: any) {
             Alert.alert("Logout Failed", error.message || "Failed to logout!");

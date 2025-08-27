@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     gap: 2,
   },
-  input: { flex: 1, paddingVertical: 8, lineHeight: 22 },
+  input: { flex: 1, paddingVertical: 12, lineHeight: 15 },
   stepperRow: {
     flexDirection: "row",
     alignItems: "center",

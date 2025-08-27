@@ -288,3 +288,24 @@ export const BeenTogetherSchema = {
       .optional(),
   }),
 };
+
+export const EventSchema = {
+  create: Joi.object({
+    title: Joi.string().min(1).max(50).required(),
+    description: Joi.string().min(1).max(500).optional(),
+    startAt: Joi.date().required(),
+  }),
+
+  params: {
+    pageNum: Joi.object({
+      pageNum: Joi.string().min(1).required(),
+    }),
+    sort: Joi.object({
+      sort: Joi.string()
+        .lowercase()
+        .valid("upcoming", "ended")
+        .default("upcoming")
+        .required(),
+    }),
+  },
+};

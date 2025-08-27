@@ -1,10 +1,10 @@
 import api from "@/config/axios";
 import { refresh } from "@/api/user";
 
-export async function createOrOpen() {
+export async function createEvent(payload = {}) {
   try {
     await refresh();
-    const response = await api.post("/api/been-together");
+    const response = await api.post("/api/event", payload);
     const data = response.data;
     return data;
   } catch (error) {
@@ -15,10 +15,19 @@ export async function createOrOpen() {
   }
 }
 
-export async function edit(payload = {}) {
+export async function getPaginatedEvents({
+  pageNum,
+  sort = "upcoming",
+  keyword = "",
+  withinDays,
+}) {
   try {
+    if (withinDays === 0) withinDays = "";
+
     await refresh();
-    const response = await api.patch("/api/been-together", payload);
+    const response = await api.get(
+      `/api/event/paginate/${sort}/${pageNum}?withinDays=${withinDays}&keyword=${keyword}`
+    );
     const data = response.data;
     return data;
   } catch (error) {

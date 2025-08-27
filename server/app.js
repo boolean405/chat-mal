@@ -11,9 +11,10 @@ import errorHandler from "./middlewares/errorHandler.js";
 
 // Routes
 import userRoute from "./routes/user.js";
-import publicRoute from "./routes/public.js";
-import imageRoute from "./routes/image.js";
 import chatRoute from "./routes/chat.js";
+import imageRoute from "./routes/image.js";
+import eventRoute from "./routes/event.js";
+import publicRoute from "./routes/public.js";
 import messageRoute from "./routes/message.js";
 import beenTogetherRoute from "./routes/beenTogether.js";
 
@@ -28,12 +29,13 @@ app.use(express.json({ limit: "50mb" })); // Parse JSON body
 app.use(cookieParser()); // Parse cookies
 
 // API routes
+app.use("/image", imageRoute);
 app.use("/api/user", userRoute);
-app.use("/api/public", publicRoute);
 app.use("/api/chat", chatRoute);
+app.use("/api/event", eventRoute);
+app.use("/api/public", publicRoute);
 app.use("/api/message", messageRoute);
 app.use("/api/been-together", beenTogetherRoute);
-app.use("/image", imageRoute);
 
 // Error handling
 app.use(notFoundHandler);

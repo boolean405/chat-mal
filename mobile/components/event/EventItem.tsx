@@ -8,29 +8,25 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/colors";
-import { UpcomingEvent } from "@/types";
-import { formatEventDateParts, daysUntil } from "@/utils/dates";
+import { Event } from "@/types";
+import {
+  formatEventDateParts,
+  daysUntil,
+  formatRelativeBadge,
+} from "@/utils/dates";
 
 type Props = {
-  item: UpcomingEvent;
-  onPress?: (e: UpcomingEvent) => void;
+  item: Event;
+  onPress?: (e: Event) => void;
 };
 
-export default function UpcomingEventItem({ item, onPress }: Props) {
+export default function EventItem({ item, onPress }: Props) {
   const scheme = useColorScheme();
   const color = Colors[scheme ?? "light"];
 
   const d = daysUntil(item.startAt);
-  const badgeText =
-    d === 1
-      ? "Tomorrow"
-      : d === -1
-      ? "Past yesterday"
-      : d > 1
-      ? `Coming in ${d} days`
-      : d < -1
-      ? `Past ${Math.abs(d)} days`
-      : "Today";
+  const badgeText = formatRelativeBadge(item.startAt);
+  const isEnded = new Date(item.startAt).getTime() < Date.now();
 
   const { date, time } = formatEventDateParts(item.startAt);
 
@@ -57,7 +53,7 @@ export default function UpcomingEventItem({ item, onPress }: Props) {
           >
             <Ionicons
               name="calendar-outline"
-              size={14}
+              size={12}
               color={color.tertiaryIcon}
             />
             <ThemedText
@@ -76,13 +72,35 @@ export default function UpcomingEventItem({ item, onPress }: Props) {
           >
             <Ionicons
               name="time-outline"
-              size={14}
+              size={12}
               color={color.tertiaryIcon}
             />
             <ThemedText
               style={[styles.dateText, { color: color.tertiaryText }]}
             >
               {time}
+            </ThemedText>
+          </View>
+
+          {/* Event status */}
+          <View
+            style={[
+              styles.datePill,
+              { backgroundColor: color.tertiaryBackground },
+            ]}
+          >
+            <Ionicons
+              name="radio-button-on-outline"
+              size={12}
+              color={isEnded ? "red" : "limegreen"}
+            />
+            <ThemedText
+              style={[
+                styles.dateText,
+                { color: isEnded ? "red" : "limegreen" },
+              ]}
+            >
+              {isEnded ? "Ended" : "Upcoming"}
             </ThemedText>
           </View>
         </View>
@@ -146,15 +164,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    paddingHorizontal: 10,
+    paddingHorizontal: 6,
     paddingVertical: 4,
-    borderRadius: 10,
+    borderRadius: 6,
     alignSelf: "flex-start",
   },
-  dateText: { fontSize: 12, fontWeight: "600" },
-  title: { fontSize: 15, fontWeight: "700" },
+  dateText: { fontSize: 10, fontWeight: "600" },
+  title: { fontSize: 15, fontWeight: "700", lineHeight: 22 },
   desc: { fontSize: 12, lineHeight: 18 },
   right: { marginLeft: 10 },
-  badge: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
-  badgeText: { fontSize: 12, fontWeight: "800" },
+  badge: { borderRadius: 10, paddingHorizontal: 6, paddingVertical: 4 },
+  badgeText: { fontSize: 10, fontWeight: "800" },
 });
