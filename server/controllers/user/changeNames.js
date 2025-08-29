@@ -14,7 +14,7 @@ const changeNames = async (req, res, next) => {
     const username = body.username;
 
     if (username && username !== currentUser.username) {
-      if (await UserDB.findOne({ username })) {
+      if (await UserDB.exists({ username })) {
         throw resError(409, "Username already exist!");
       }
     }

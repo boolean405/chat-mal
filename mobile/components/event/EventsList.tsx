@@ -22,6 +22,8 @@ type Props = {
   hasMore?: boolean;
   isPaging?: boolean;
   withinDays?: number;
+  hasKeyword?: boolean;
+  isLoading?: boolean;
 
   handleLoadMore?: () => void;
   onPressEvent?: (e: Event) => void;
@@ -37,7 +39,8 @@ export default function EventsList({
   hasMore,
   isPaging,
   withinDays,
-
+  hasKeyword,
+  isLoading,
   handleLoadMore,
   onPressEvent,
   onAddPress,
@@ -51,28 +54,40 @@ export default function EventsList({
     <UpcomingEventItem item={item} onPress={onPressEvent} />
   );
 
+  const emptyText = isLoading
+    ? hasKeyword
+      ? "Searching…"
+      : "Loading events…"
+    : hasKeyword
+    ? "No events found."
+    : "No upcoming events. Tap “Add” to create one.";
+
+  // inside the header
+  const title = sort === "upcoming" ? "Upcoming Events" : "Ended Events";
+
   return (
     <ThemedView style={[styles.container]}>
       {/* Header */}
       <View style={styles.header}>
-        <ThemedText style={styles.headerTitle}>
-          {sort === "upcoming"
-            ? `Upcoming Events${
-                withinDays
-                  ? ` (within ${withinDays} ${
-                      withinDays === 1 ? "day" : "days"
-                    })`
-                  : ""
-              }`
-            : "Ended Events"}
+        <ThemedText style={styles.headerTitle} numberOfLines={1}>
+          {title}
+          {sort === "upcoming" && withinDays ? (
+            <>
+              {" "}
+              <ThemedText type="small" style={[{ color: color.secondaryText }]}>
+                (within {withinDays} {withinDays === 1 ? "day" : "days"})
+              </ThemedText>
+            </>
+          ) : null}
         </ThemedText>
+
         {/* Right-side group: calendar + add button */}
         <View style={styles.rightGroup}>
           {/* All events */}
           <TouchableOpacity
             // hitSlop={8}
             onPress={onCalendarPress}
-            activeOpacity={0.7}
+            activeOpacity={0.8}
             style={[
               styles.iconContainer,
               { backgroundColor: color.secondaryBackground },
@@ -83,9 +98,7 @@ export default function EventsList({
               size={18}
               color={color.primaryIcon}
             />
-            {screenType === "been-together" && (
-              <ThemedText style={[styles.addText]}>All</ThemedText>
-            )}
+            {screenType === "been-together" && <ThemedText>All</ThemedText>}
           </TouchableOpacity>
 
           {/* Sort */}
@@ -93,7 +106,7 @@ export default function EventsList({
             <TouchableOpacity
               // hitSlop={8}
               onPress={onPressSort}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
               style={[
                 styles.iconContainer,
                 { backgroundColor: color.secondaryBackground },
@@ -112,9 +125,9 @@ export default function EventsList({
             accessibilityRole="button"
             onPress={onAddPress}
             hitSlop={8}
-            activeOpacity={0.7}
+            activeOpacity={0.8}
             style={[
-              styles.addBtn,
+              styles.iconContainer,
               { backgroundColor: color.primaryButtonBackground },
             ]}
           >
@@ -124,9 +137,7 @@ export default function EventsList({
               color={color.primaryBackground}
             />
             {screenType === "been-together" && (
-              <ThemedText
-                style={[styles.addText, { color: color.primaryBackground }]}
-              >
+              <ThemedText style={[{ color: color.primaryBackground }]}>
                 Add
               </ThemedText>
             )}
@@ -151,7 +162,7 @@ export default function EventsList({
             <ThemedText
               style={[styles.emptyText, { color: color.secondaryText }]}
             >
-              No upcoming events. Tap “Add” to create one.
+              {emptyText}
             </ThemedText>
           </ThemedView>
         }
@@ -172,10 +183,9 @@ export default function EventsList({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginHorizontal: 20,
+    paddingHorizontal: 20,
     borderRadius: 16,
   },
-  addText: { fontWeight: "600" },
   empty: { alignItems: "center", gap: 8, paddingVertical: 16 },
   emptyText: { fontSize: 13 },
   header: {
@@ -191,20 +201,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
-  addBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 10,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    gap: 5,
-  },
   iconContainer: {
     flexDirection: "row",
     alignItems: "center",
     borderRadius: 10,
     paddingVertical: 6,
-    paddingHorizontal: 10,
-    gap: 5,
+    paddingHorizontal: 8,
+    gap: 2,
   },
 });

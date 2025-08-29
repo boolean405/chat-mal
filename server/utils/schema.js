@@ -25,22 +25,6 @@ export const UserSchema = {
       .required(),
   }),
 
-  changeName: Joi.object({
-    name: Joi.string()
-      .pattern(/^[A-Za-z ]+$/)
-      .min(1)
-      .max(20)
-      .required(),
-  }),
-
-  changeUsername: Joi.object({
-    username: Joi.string()
-      .pattern(/^[a-z0-9]+$/)
-      .min(5)
-      .max(20)
-      .required(),
-  }),
-
   changePassword: Joi.object({
     oldPassword: Joi.string()
       .pattern(new RegExp('^[a-zA-Z0-9!@#$%^&*()_+={}|:"<>?\\,-.]{8,30}$'))
@@ -77,15 +61,15 @@ export const UserSchema = {
     coverPhoto: Joi.string(),
   }),
 
-  changeNames: Joi.object({
-    name: Joi.string()
-      .pattern(/^[\p{L}\p{M} ]+$/u)
-      .min(1)
-      .max(20),
+  editProfile: Joi.object({
+    name: Joi.string().min(1).max(20).optional(),
     username: Joi.string()
       .pattern(/^[a-z0-9]+$/)
       .min(5)
-      .max(20),
+      .max(20)
+      .optional(),
+    birthday: Joi.date().optional(),
+    gender: Joi.string().valid("male", "female", "other").optional(),
   }),
 
   existEmail: Joi.object({

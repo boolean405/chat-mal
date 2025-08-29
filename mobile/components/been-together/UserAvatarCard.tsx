@@ -44,7 +44,7 @@ export default function UserAvatarCard({
       <ThemedText
         numberOfLines={1}
         type="large"
-        style={{ marginVertical: 10 }}
+        style={{ marginVertical: 10 ,fontWeight: "bold"}}
         onPress={onPress}
       >
         {user?.name || "Choose partner"}
@@ -71,14 +71,14 @@ export default function UserAvatarCard({
                       ? "male-outline"
                       : user.gender === "female"
                       ? "female-outline"
-                      : "transgender-outline"
+                      : "male-female-outline"
                   }
-                  size={16}
+                  size={14}
                   color={color.primaryIcon}
                 />
               )}
 
-              <ThemedText>{age}</ThemedText>
+              <ThemedText type="small">{age}</ThemedText>
             </ThemedView>
           )}
 
@@ -93,10 +93,10 @@ export default function UserAvatarCard({
                 },
               ]}
             >
-              <ThemedText style={styles.zodiacSymbol}>
-                {ZODIAC_UNICODE[zodiacKey]}
+              <ThemedText type="small">{ZODIAC_UNICODE[zodiacKey]}</ThemedText>
+              <ThemedText type="small" style={styles.zodiacLabel}>
+                {zodiacKey}
               </ThemedText>
-              <ThemedText style={styles.zodiacLabel}>{zodiacKey}</ThemedText>
             </ThemedView>
           )}
         </ThemedView>

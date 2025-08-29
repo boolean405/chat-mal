@@ -139,6 +139,9 @@ export default function BeenTogether() {
         screenType="events"
         sort={sort}
         events={events}
+        hasKeyword={debouncedKeyword.length > 0}
+        isLoading={isLoading}
+        hasMore={hasMore}
         onPressEvent={(event) => console.log("Pressed event:", event._id)}
         onAddPress={() => setShowAddEventModal(true)}
         onCalendarPress={() => console.log("open calendar")}

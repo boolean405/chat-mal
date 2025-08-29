@@ -16,13 +16,17 @@ import {
   TouchableOpacity,
   useColorScheme,
 } from "react-native";
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
+import { format } from "date-fns";
 
 import pickImage from "@/utils/pickImage";
 import { Colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { changeNames, deletePhoto, uploadPhoto } from "@/api/user";
+import { editProfile, deletePhoto, uploadPhoto } from "@/api/user";
 import { ThemedButton } from "@/components/ThemedButton";
 import getImageMimeType from "@/utils/getImageMimeType";
 import { useAuthStore } from "@/stores/authStore";
@@ -50,6 +54,15 @@ export default function EditProfile() {
   );
   const [coverPhotoBase64, setCoverPhotoBase64] = useState<string | null>(null);
 
+  const [birthday, setBirthday] = useState<Date | null>(null);
+  const [gender, setGender] = useState<"male" | "female" | "other" | null>(
+    null
+  );
+  const [showBirthdayPicker, setShowBirthdayPicker] = useState(false);
+
+  const [isInvalidBirthday, setIsInvalidBirthday] = useState(false);
+  const [isInvalidGender, setIsInvalidGender] = useState(false);
+
   const [isInvalidName, setIsInvalidName] = useState(false);
   const [isInvalidUsername, setIsInvalidUsername] = useState(false);
   const [isExistUsername, setIsExistUsername] = useState(false);
@@ -68,6 +81,8 @@ export default function EditProfile() {
           setUsername(user.username || "");
           setProfilePhoto(user.profilePhoto || null);
           setCoverPhoto(user.coverPhoto || null);
+          setBirthday(user.birthday ? new Date(user.birthday) : null);
+          setGender(user.gender ?? null);
         }
       } catch (error) {
         console.log("Failed to load user data:", error);
@@ -75,21 +90,66 @@ export default function EditProfile() {
     };
 
     loadUserData();
-  }, []);
+  }, [user]);
 
+  // Validate
   useEffect(() => {
-    const validateInputs = async () => {
-      if (user?.name !== name || user.username !== username) {
-        setCanChange(true);
+    const validateInputs = () => {
+      // Normalize for comparison (avoid time-of-day / TZ noise)
+      const norm = (d?: Date | null) =>
+        d
+          ? new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+          : null;
+
+      const userBirthday = user?.birthday ? new Date(user.birthday) : null;
+
+      const changed =
+        (user?.name ?? "") !== name ||
+        (user?.username ?? "") !== username ||
+        norm(userBirthday) !== norm(birthday) ||
+        (user?.gender ?? null) !== (gender ?? null);
+
+      setCanChange(changed);
+
+      // name + username (unchanged)
+      setIsInvalidName(!NAME_RE.test(name.trim()));
+      setIsInvalidUsername(!/^[a-z0-9]{5,20}$/.test(username));
+
+      // birthday: optional; if provided, must be sensible
+      if (birthday) {
+        const min = new Date("1900-01-01T00:00:00Z");
+        const today = new Date();
+        // Compare date-only (local)
+        const bd = new Date(
+          birthday.getFullYear(),
+          birthday.getMonth(),
+          birthday.getDate()
+        );
+        const invalid = !(bd > min && bd <= today);
+        setIsInvalidBirthday(invalid);
       } else {
-        setCanChange(false);
+        setIsInvalidBirthday(false);
       }
 
-      setIsInvalidName(!NAME_RE.test(name));
-      setIsInvalidUsername(!/^[a-z0-9]{5,20}$/.test(username));
+      // gender: OPTIONAL by default (no error if null).
+      // If you want to REQUIRE selecting a gender, uncomment the next line:
+      // setIsInvalidGender(gender == null);
+
+      // If optional, keep it always false:
+      setIsInvalidGender(false);
     };
+
     validateInputs();
-  }, [name, user?.name, user?.username, username, NAME_RE]);
+  }, [
+    name,
+    gender,
+    username,
+    birthday,
+    user?.name,
+    user?.gender,
+    user?.birthday,
+    user?.username,
+  ]);
 
   useEffect(() => {
     const requestPermission = async () => {
@@ -105,19 +165,16 @@ export default function EditProfile() {
     requestPermission();
   }, []);
 
-  const handleContinue = async () => {
+  const handleUpdateProfile = async () => {
     Keyboard.dismiss();
 
     // Api call
     setIsLoading(true);
     try {
-      const data = await changeNames(name, username);
+      const data = await editProfile({ name, username, birthday, gender });
       setUserOnly(data.result.user);
 
       Alert.alert("Success", data.message);
-      router.back();
-      return;
-      // router.push("/(tab)");
     } catch (error: any) {
       setIsError(true);
       error.status === 409 && setIsExistUsername(true);
@@ -258,7 +315,7 @@ export default function EditProfile() {
     <KeyboardAvoidingView
       style={[{ flex: 1 }]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={headerHeight}
+      // keyboardVerticalOffset={headerHeight}
     >
       {/* Header */}
       <ScreenHeader title="Edit Profile" />
@@ -331,7 +388,7 @@ export default function EditProfile() {
             }
             style={[
               styles.profileImageWrapper,
-              { borderColor: color.secondaryBorder },
+              { borderColor: color.primaryBackground },
             ]}
           >
             {isProfileLoading && (
@@ -407,9 +464,8 @@ export default function EditProfile() {
                 onBlur={() => setName(name.trim())}
                 onChangeText={(text) => {
                   setIsError(false);
-                  const sanitized = text
-                    .replace(/^\s+/, "") // Remove leading spaces
-                    .replace(/[^\p{L}\p{M}\s]/gu, "");
+                  const sanitized = text.replace(/^\s+/, ""); // Remove leading spaces
+                  // .replace(/[^\p{L}\p{M}\s]/gu, "");
 
                   setName(sanitized);
                 }}
@@ -443,7 +499,7 @@ export default function EditProfile() {
                   !isInvalidName &&
                   !isInvalidUsername &&
                   !isError &&
-                  handleContinue()
+                  handleUpdateProfile()
                 }
                 onChangeText={(text) => {
                   setIsError(false);
@@ -456,8 +512,150 @@ export default function EditProfile() {
               />
             </ThemedView>
 
+            {/* Birthday Input */}
+            <ThemedView
+              style={[
+                styles.inputContainer,
+                {
+                  borderColor: isInvalidBirthday
+                    ? "red"
+                    : color.secondaryBorder,
+                },
+              ]}
+            >
+              <Ionicons
+                name="calendar-outline"
+                size={24}
+                style={{ color: color.primaryIcon }}
+              />
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  paddingHorizontal: 10,
+                  height: 50,
+                  justifyContent: "center",
+                }}
+                onPress={() => setShowBirthdayPicker(true)}
+                activeOpacity={0.7}
+              >
+                <ThemedText style={{ color: color.primaryText }}>
+                  {birthday
+                    ? format(birthday, "dd-MM-yyyy")
+                    : "Birthday (optional)"}
+                </ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setBirthday(null)}>
+                <Ionicons
+                  name="close-circle-outline"
+                  size={20}
+                  style={{ color: color.secondaryIcon }}
+                />
+              </TouchableOpacity>
+            </ThemedView>
+
+            {showBirthdayPicker && (
+              <DateTimePicker
+                value={birthday ?? new Date(2000, 0, 1)}
+                mode="date"
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                maximumDate={new Date()}
+                minimumDate={new Date("1900-01-01")}
+                onChange={(e: DateTimePickerEvent, d?: Date) => {
+                  if (Platform.OS === "android") setShowBirthdayPicker(false);
+                  if (d) setBirthday(d);
+                }}
+                style={{ alignSelf: "stretch" }}
+              />
+            )}
+
+            {/* Gender Toggle */}
+            <ThemedView style={styles.genderRow}>
+              <Ionicons
+                name={
+                  gender === "male"
+                    ? "male-outline"
+                    : gender === "female"
+                    ? "female-outline"
+                    : "male-female-outline"
+                }
+                size={24}
+                style={{ color: color.primaryIcon, marginRight: 8 }}
+              />
+              <TouchableOpacity
+                onPress={() => setGender((g) => (g === "male" ? g : "male"))}
+                disabled={isLoading}
+                style={[
+                  styles.genderChip,
+                  {
+                    borderColor: color.secondaryBorder,
+                    backgroundColor:
+                      gender === "male"
+                        ? color.primaryButtonBackground
+                        : "transparent",
+                  },
+                ]}
+                activeOpacity={0.8}
+              >
+                <ThemedText
+                  style={{ color: gender === "male" ? "black" : "white" }}
+                >
+                  Male
+                </ThemedText>
+              </TouchableOpacity>
+
+              {/* Female */}
+              <TouchableOpacity
+                onPress={() =>
+                  setGender((g) => (g === "female" ? g : "female"))
+                }
+                disabled={isLoading}
+                style={[
+                  styles.genderChip,
+                  {
+                    borderColor: color.secondaryBorder,
+                    backgroundColor:
+                      gender === "female"
+                        ? color.primaryButtonBackground
+                        : "transparent",
+                  },
+                ]}
+                activeOpacity={0.8}
+              >
+                <ThemedText
+                  style={{ color: gender === "female" ? "black" : "white" }}
+                >
+                  Female
+                </ThemedText>
+              </TouchableOpacity>
+
+              {/* Other */}
+              <TouchableOpacity
+                onPress={() => setGender((g) => (g === "other" ? g : "other"))}
+                disabled={isLoading}
+                style={[
+                  styles.genderChip,
+                  {
+                    borderColor: color.secondaryBorder,
+                    backgroundColor:
+                      gender === "other"
+                        ? color.primaryButtonBackground
+                        : "transparent",
+                  },
+                ]}
+                activeOpacity={0.8}
+              >
+                <ThemedText
+                  style={{ color: gender === "other" ? "black" : "white" }}
+                >
+                  Other
+                </ThemedText>
+              </TouchableOpacity>
+            </ThemedView>
+
             {isError && (
-              <ThemedText style={{ color: "red" }}>{errorMessage}</ThemedText>
+              <ThemedText style={{ color: "red", marginVertical: 15 }}>
+                {errorMessage}
+              </ThemedText>
             )}
 
             <ThemedButton
@@ -465,18 +663,20 @@ export default function EditProfile() {
                 styles.button,
                 (isInvalidUsername ||
                   isInvalidName ||
+                  isInvalidBirthday ||
+                  isInvalidGender ||
                   isLoading ||
                   isError ||
                   isExistUsername ||
-                  !canChange) && {
-                  opacity: 0.5,
-                },
+                  !canChange) && { opacity: 0.5 },
               ]}
-              title={!isLoading && "Change names"}
-              onPress={handleContinue}
+              title={"Update Profile"}
+              onPress={handleUpdateProfile}
               disabled={
                 isInvalidUsername ||
                 isInvalidName ||
+                isInvalidBirthday ||
+                isInvalidGender ||
                 isLoading ||
                 isError ||
                 isExistUsername ||
@@ -533,7 +733,7 @@ const styles = StyleSheet.create({
   },
   button: {
     width: "80%",
-    marginTop: 10,
+    marginTop: 20,
   },
   coverPhotoContainer: {
     width: screenWidth * 0.9,
@@ -573,7 +773,7 @@ const styles = StyleSheet.create({
     marginTop: -30,
     borderRadius: 60,
     alignSelf: "center",
-    borderWidth: 1,
+    borderWidth: 3,
     overflow: "hidden",
   },
   profilePhoto: {
@@ -603,5 +803,19 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     backgroundColor: "rgba(255, 255, 255, 0.6)",
     zIndex: 2,
+  },
+  genderRow: {
+    flexDirection: "row",
+    paddingHorizontal: 10,
+    alignItems: "center",
+    width: "80%",
+    marginTop: 10,
+    gap: 10,
+  },
+  genderChip: {
+    borderWidth: 0.4,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
   },
 });

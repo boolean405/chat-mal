@@ -275,7 +275,7 @@ export async function refresh() {
 }
 
 // Edit profile change names
-export async function changeNames(name, username) {
+export async function editProfile({ name, username, birthday, gender }) {
   try {
     await refresh();
     const user = useAuthStore.getState().user;
@@ -283,12 +283,10 @@ export async function changeNames(name, username) {
 
     if (name && user.name !== name) payload.name = name;
     if (username && user.username !== username) payload.username = username;
+    if (birthday && user.birthday !== birthday) payload.birthday = birthday;
+    if (gender && user.gender !== gender) payload.gender = gender;
 
-    if (Object.keys(payload).length === 0) {
-      throw new Error("Nothing to update!");
-    }
-
-    const response = await api.patch("/api/user/change-names", payload);
+    const response = await api.patch("/api/user/edit-profile", payload);
 
     return response.data;
   } catch (error) {

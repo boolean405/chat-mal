@@ -228,7 +228,6 @@ export default function BeenTogether() {
         hasMore={hasMore}
         isPaging={isPaging}
         withinDays={eventsDayCount}
-        isLoading={isLoadingEvents}
       />
 
       <EditRelationshipModal

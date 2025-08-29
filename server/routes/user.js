@@ -19,6 +19,7 @@ import {
 import { UserSchema } from "../utils/schema.js";
 import register from "../controllers/user/register.js";
 import { login, loginGoogle } from "../controllers/user/login.js";
+import { editProfile } from "../controllers/user/editProfile.js";
 import refresh from "../controllers/user/refresh.js";
 import logout from "../controllers/user/logout.js";
 import deleteAccount from "../controllers/user/deleteAccount.js";
@@ -59,26 +60,13 @@ router.post(
   validateBody(UserSchema.registerVerify),
   registerVerify
 );
-router.delete(
-  "/delete-account",
-  validateToken(),
-  validateBody(UserSchema.deleteAccount),
-  deleteAccount
-);
 
-router.patch(
-  "/change-name",
-  validateToken(),
-  validateBody(UserSchema.changeName),
-  changeName
-);
-
-router.patch(
-  "/change-username",
-  validateToken(),
-  validateBody(UserSchema.changeUsername),
-  changeUsername
-);
+// router.delete(
+//   "/delete-account",
+//   validateToken(),
+//   validateBody(UserSchema.deleteAccount),
+//   deleteAccount
+// );
 
 router.patch(
   "/change-password",
@@ -108,13 +96,6 @@ router.patch(
   deletePhoto
 );
 
-router.patch(
-  "/change-names",
-  validateToken(),
-  validateBody(UserSchema.changeNames),
-  changeNames
-);
-
 router.post(
   "/forgot-password",
   validateBody(UserSchema.forgotPassword),
@@ -131,6 +112,13 @@ router.patch(
   "/reset-password",
   validateBody(UserSchema.resetPassword),
   resetPassword
+);
+
+router.patch(
+  "/edit-profile",
+  validateToken(),
+  validateBody(UserSchema.editProfile),
+  editProfile
 );
 
 router.get(
@@ -158,18 +146,21 @@ router.post(
   validateBody(UserSchema.follow),
   follow
 );
+
 router.delete(
   "/unfollow/:userId",
   validateToken(),
   validateParam(UserSchema.params.userId, "userId"),
   unfollow
 );
+
 router.get(
   "/is-following/:userId",
   validateToken(),
   validateParam(UserSchema.params.userId, "userId"),
   isFollowing
 );
+
 router.get(
   "/paginate/follow/:type/:sort/:pageNum",
   validateToken(),
@@ -187,6 +178,7 @@ router.delete(
   validateParam(UserSchema.params.userId, "userId"),
   unblock
 );
+
 router.get(
   "/is-blocked/:userId",
   validateToken(),

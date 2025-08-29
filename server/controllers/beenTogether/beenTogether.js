@@ -28,7 +28,6 @@ export const createOrOpenBeenTogether = async (req, res, next) => {
             path: "partner",
             select: "-password",
           })
-          .select("-__v")
           .lean();
         if (doc) return resJson(res, 200, "Successfully fetched.", doc);
       }
