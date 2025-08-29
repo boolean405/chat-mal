@@ -20,7 +20,15 @@ const ANDROID_PACKAGE = Constants.expoConfig?.android?.package;
 export const RATE_APP_URL =
   Platform.OS === "ios"
     ? `itms-apps://itunes.apple.com/app/id${IOS_STORE_ID}?action=write-review`
-    : `market://details?id=${ANDROID_PACKAGE}`;
+    : `https://apkpure.com/chat-mal/${ANDROID_PACKAGE}`;
 
-export const PLAY_STORE_WEB = `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE}`;
+export const PLAY_STORE_WEB = `https://apkpure.com/chat-mal/${ANDROID_PACKAGE}`;
 export const APP_STORE_WEB = `https://apps.apple.com/app/id${IOS_STORE_ID}`;
+
+// export const RATE_APP_URL =
+//   Platform.OS === "ios"
+//     ? `itms-apps://itunes.apple.com/app/id${IOS_STORE_ID}?action=write-review`
+//     : `market://details?id=${ANDROID_PACKAGE}`;
+
+// export const PLAY_STORE_WEB = `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE}`;
+// export const APP_STORE_WEB = `https://apps.apple.com/app/id${IOS_STORE_ID}`;

@@ -24,6 +24,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useOAuth } from "@/hooks/useOAuth";
 import { useNetworkListener } from "@/hooks/useNetworkListener";
 import usePermissions from "@/hooks/usePermissions";
+import useOTAUpdates from "@/hooks/useOTAUpdates";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -37,7 +38,7 @@ export default function RootLayout() {
   useNotifications();
   useNetworkListener();
   usePermissions();
-  
+  useOTAUpdates();
 
   const colorScheme = useColorScheme();
 
