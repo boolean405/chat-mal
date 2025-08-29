@@ -320,6 +320,9 @@ export default function LoginOrRegister() {
             }}
           >
             <TouchableOpacity
+              disabled={
+                isLoading || isGoogleLoginLoading || isFacebookLoginLoading
+              }
               onPress={() => router.push("/(setting)/terms-of-service")}
             >
               <ThemedText type="link" style={{ fontWeight: "400" }}>
@@ -328,6 +331,9 @@ export default function LoginOrRegister() {
             </TouchableOpacity>
             <ThemedText style={{ fontWeight: "200" }}>{" and "}</ThemedText>
             <TouchableOpacity
+              disabled={
+                isLoading || isGoogleLoginLoading || isFacebookLoginLoading
+              }
               onPress={() => router.push("/(setting)/privacy-policy")}
             >
               <ThemedText type="link" style={{ fontWeight: "400" }}>

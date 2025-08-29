@@ -815,7 +815,7 @@ const styles = StyleSheet.create({
   genderChip: {
     borderWidth: 0.4,
     borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
   },
 });
