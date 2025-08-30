@@ -538,7 +538,7 @@ export default function EditProfile() {
                 onPress={() => setShowBirthdayPicker(true)}
                 activeOpacity={0.7}
               >
-                <ThemedText style={{ color: color.primaryText }}>
+                <ThemedText style={!birthday && { color: "gray" }}>
                   {birthday
                     ? format(birthday, "dd-MM-yyyy")
                     : "Birthday (optional)"}
@@ -597,7 +597,9 @@ export default function EditProfile() {
                 activeOpacity={0.8}
               >
                 <ThemedText
-                  style={{ color: gender === "male" ? "black" : "white" }}
+                  style={
+                    gender === "male" && { color: color.primaryBackground }
+                  }
                 >
                   Male
                 </ThemedText>
@@ -622,7 +624,9 @@ export default function EditProfile() {
                 activeOpacity={0.8}
               >
                 <ThemedText
-                  style={{ color: gender === "female" ? "black" : "white" }}
+                  style={
+                    gender === "female" && { color: color.primaryBackground }
+                  }
                 >
                   Female
                 </ThemedText>
@@ -645,7 +649,9 @@ export default function EditProfile() {
                 activeOpacity={0.8}
               >
                 <ThemedText
-                  style={{ color: gender === "other" ? "black" : "white" }}
+                  style={
+                    gender === "other" && { color: color.primaryBackground }
+                  }
                 >
                   Other
                 </ThemedText>
