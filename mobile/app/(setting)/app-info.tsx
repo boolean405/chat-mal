@@ -23,13 +23,16 @@ import InfoRow from "@/components/InfoRow";
 import SectionCard from "@/components/SectionCard";
 import openLink from "@/utils/openLink";
 import {
+  APP_NAME,
   APP_STORE_WEB,
   CS_EMAIL,
+  DEVELOPER_URL,
   PLAY_STORE_WEB,
   RATE_APP_URL,
   WEBSITE_URL,
 } from "@/constants";
 import { router } from "expo-router";
+import { Image } from "expo-image";
 
 export default function AppInfo() {
   const colorScheme = useColorScheme();
@@ -37,7 +40,7 @@ export default function AppInfo() {
   const [clearing, setClearing] = useState(false);
 
   const appMeta = useMemo(() => {
-    const name = Application.applicationName ?? "Chat Mal";
+    const name = Application.applicationName ?? APP_NAME;
     const version =
       Application.nativeApplicationVersion ??
       Application.nativeApplicationVersion ??
@@ -61,8 +64,8 @@ export default function AppInfo() {
     try {
       const supported = await StoreReview.isAvailableAsync();
       if (supported) {
-        await StoreReview.requestReview();
-        // No return value — so either trust it ran, or always also open store link
+        // await StoreReview.requestReview(); // uncomment after submit on play store
+        await openLink(RATE_APP_URL);
       } else {
         await openLink(RATE_APP_URL);
       }
@@ -74,8 +77,8 @@ export default function AppInfo() {
   async function handleShareApp() {
     const url = Platform.OS === "ios" ? APP_STORE_WEB : PLAY_STORE_WEB;
     await Share.share({
-      title: "Chat Mal",
-      message: `Try Chat Mal — private chat, calls & stories.\n${url}`,
+      title: APP_NAME,
+      message: `Try Chat Mal — private chat, calls & more services.\n${url}`,
       url,
     });
   }
@@ -135,6 +138,10 @@ export default function AppInfo() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
+          <Image
+            source={require("../../assets/images/logo.png")}
+            style={{ width: 80, height: 80 }}
+          />
           <ThemedText type="title">App Info</ThemedText>
           <ThemedText style={{ color: "gray", marginTop: 4 }}>
             {appMeta.name} · v{appMeta.version} ({appMeta.build})
@@ -165,6 +172,12 @@ export default function AppInfo() {
             subtitle="Open-source libraries we use"
             icon="reader-outline"
             onPress={() => router.push(`/(setting)/license`) as any}
+          />
+          <InfoRow
+            title="Developer"
+            subtitle={DEVELOPER_URL.replace(/^https?:\/\//, "")}
+            icon="code-outline"
+            onPress={() => openLink(DEVELOPER_URL)}
           />
         </SectionCard>
 
@@ -238,7 +251,7 @@ export default function AppInfo() {
         />
 
         <ThemedText style={[styles.footer, { color: color.tertiaryText }]}>
-          © {new Date().getFullYear()} Chat Mal
+          © {new Date().getFullYear()} {APP_NAME}
         </ThemedText>
       </ScrollView>
     </ThemedView>

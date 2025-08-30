@@ -274,7 +274,7 @@ export async function refresh() {
   }
 }
 
-// Edit profile change names
+// Edit profile
 export async function editProfile({ name, username, birthday, gender }) {
   try {
     await refresh();

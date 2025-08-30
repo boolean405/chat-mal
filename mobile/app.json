@@ -74,7 +74,7 @@
     "plugins": [
       "expo-router",
       "expo-video",
-      "expo-web-browser",
+      "expo-localization",
       "react-native-legal",
       "react-native-compressor",
       "@config-plugins/react-native-callkeep",
@@ -127,12 +127,6 @@
         }
       ],
       [
-        "expo-web-browser",
-        {
-          "experimentalLauncherActivity": true
-        }
-      ],
-      [
         "expo-audio",
         {
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
@@ -142,19 +136,6 @@
         "@react-native-google-signin/google-signin",
         {
           "iosUrlScheme": "com.googleusercontent.apps.623654267934-f59m85tttolhq7ldu2esk6er9ndib9n6"
-        }
-      ],
-      [
-        "react-native-fbsdk-next",
-        {
-          "appID": "796836696245947",
-          "displayName": "Chat Mal",
-          "clientToken": "d4085b98beb9bbd477a3e9a09c710d34",
-          "scheme": "fb796836696245947",
-          "advertiserIDCollectionEnabled": false,
-          "autoLogAppEventsEnabled": false,
-          "isAutoInitEnabled": true,
-          "iosUserTrackingPermission": "This identifier will be used to deliver personalized ads to you."
         }
       ]
     ],
