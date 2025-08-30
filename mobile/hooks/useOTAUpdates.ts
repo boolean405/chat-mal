@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import * as Updates from "expo-updates";
 import { Alert } from "react-native";
 
-export default function useOTAUpdates() {
+export const useOTAUpdates = () => {
   const { isUpdateAvailable, isUpdatePending } = Updates.useUpdates();
 
   useEffect(() => {
@@ -25,4 +25,4 @@ export default function useOTAUpdates() {
       );
     }
   }, [isUpdatePending]);
-}
+};

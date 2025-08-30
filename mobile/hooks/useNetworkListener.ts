@@ -1,4 +1,3 @@
-// hooks/useNetworkListener.ts
 import { useEffect } from "react";
 import NetInfo from "@react-native-community/netinfo";
 import { useNetworkStore } from "@/stores/useNetworkStore";

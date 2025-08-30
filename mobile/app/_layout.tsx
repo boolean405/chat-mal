@@ -17,14 +17,14 @@ import {
   KeyboardController,
 } from "react-native-keyboard-controller";
 
-import { useColorScheme } from "@/hooks/useColorScheme";
 import SafeScreen from "@/components/SafeScreen";
+import { useOAuth } from "@/hooks/useOAuth";
+import { useOTAUpdates } from "@/hooks/useOTAUpdates";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useColorScheme } from "@/hooks/useColorScheme";
 import { FloatingCall } from "@/components/FloatingCall";
 import { useNotifications } from "@/hooks/useNotifications";
-import { useOAuth } from "@/hooks/useOAuth";
 import { useNetworkListener } from "@/hooks/useNetworkListener";
-import usePermissions from "@/hooks/usePermissions";
-import useOTAUpdates from "@/hooks/useOTAUpdates";
 
 SplashScreen.preventAutoHideAsync();
 

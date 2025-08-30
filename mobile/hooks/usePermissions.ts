@@ -14,7 +14,7 @@ import {
  * - Directs to Settings when blocked
  * - Refreshes when app returns from background
  */
-export default function usePermissions() {
+export const usePermissions = () => {
   // Note: some versions return [perm, request, get]; examples show 2-tuple.
   const [cameraPerm, requestCamera, getCamera] = useCameraPermissions();
   const [micPerm, requestMic, getMic] = useMicrophonePermissions();
@@ -81,4 +81,4 @@ export default function usePermissions() {
     blocked, // { camera: boolean, mic: boolean }
     refresh, // Manually re-fetch permission status
   };
-}
+};
